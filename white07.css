@@ -675,3 +675,8 @@ body.mk-white .screenBrand .galaxyScreenBrand img{height:41px!important;max-widt
 body.mk-white .lotShareBtn{position:absolute;z-index:8;top:10px;right:10px;width:44px;height:44px;border:1px solid rgba(214,224,236,.95);border-radius:11px;background:rgba(255,255,255,.94);color:#1677df;display:grid;place-items:center;box-shadow:0 2px 9px rgba(16,35,61,.12);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);padding:0}
 body.mk-white .lotShareBtn svg{width:23px;height:23px}
 body.mk-white .lotShareBtn:active{transform:scale(.96);background:#eef7ff}
+
+@media(max-width:520px){
+ body.mk-white .adminStatusFilter{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;padding:6px 12px 8px;overflow:visible}
+ body.mk-white .adminStatusFilter button{width:100%;min-width:0;white-space:normal;line-height:1.15;padding:8px 5px;font-size:10px}
+}
