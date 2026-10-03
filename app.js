@@ -360,10 +360,9 @@ function renderModernMarkets(){
 async function renderModernMyBids(){
  whiteRenderBidRows();
 }
-function setProfileAvatar(el,d,name){if(!el)return;const url=d.avatar_url||tgUser?.photo_url;el.textContent=(name.slice(0,2)||'MK').toUpperCase();el.style.backgroundImage=url?`url("${String(url).replace(/["\\]/g,"\\$&")}")`:'';el.classList.toggle('hasPhoto',!!url)}
 function syncModernProfile(){
- if(!window.accountData)return;const d=window.accountData,name=[d.first_name,d.last_name].filter(Boolean).join(' ')||d.username||'Telegram user';
- $("modernProfileName").textContent=name;$("modernProfileUser").textContent=d.username?'@'+d.username:String(d.telegram_id||'');setProfileAvatar($("modernProfileAvatar"),d,name);$("modernProfileStatus").textContent=String(d.account_status||'pending').toUpperCase();$("modernProfileDeposit").textContent=money(Number(d.deposit_amount||0));$("modernProfileLimit").textContent=money(Number(d.bid_limit||0));$("modernProfileCars").textContent=String((myCarsSnapshot.pending?.length||0)+(myCarsSnapshot.tracking?.length||0));$("modernProfileRegistered").textContent=d.created_at?new Date(d.created_at).toLocaleDateString('ru-RU'):'—';$("openAdminFromProfile").style.display=d.is_admin?'block':'none';
+ if(!window.accountData)return;const d=window.accountData;const name=[d.first_name,d.last_name].filter(Boolean).join(' ')||d.username||'Telegram user';
+ $("modernProfileName").textContent=name;$("modernProfileUser").textContent=d.username?'@'+d.username:String(d.telegram_id||'');$("modernProfileAvatar").textContent=(name.slice(0,2)||'MK').toUpperCase();$("modernProfileDeposit").textContent=money(Number(d.deposit_amount||0));$("modernProfileLimit").textContent=money(Number(d.bid_limit||0));$("openAdminFromProfile").style.display=d.is_admin?'block':'none';
 }
 function update(){
  const waiting=stateRow?.status==='waiting';const bonus=whiteIsBonus();
@@ -475,6 +474,7 @@ async function loadAccountProfile(){
   if(!tgUser?.id){
     $("accountName").textContent="Откройте через Telegram";
     $("accountUsername").textContent="Mini App";
+    $("accountTelegramId").textContent="—";
     $("accountDeposit").textContent="$0";
     $("accountLimit").textContent="$0";
     $("accountStatus").textContent="НЕ АВТОРИЗОВАН";
@@ -484,22 +484,22 @@ async function loadAccountProfile(){
   hint.textContent="Загрузка профиля…";
   try{
     await registrationReady;
-    const {data,error}=await db.from("auction_users").select("telegram_id,username,first_name,last_name,email,phone,phone_country,avatar_url,country,deposit_amount,deposit_method,bid_limit,account_status,deposit_updated_at,created_at,is_admin").eq("telegram_id",String(tgUser.id)).single();
+    const {data,error}=await db.from("auction_users").select("telegram_id,username,first_name,last_name,deposit_amount,deposit_method,bid_limit,account_status,deposit_updated_at,is_admin").eq("telegram_id",String(tgUser.id)).single();
     if(error) throw error;
     currentAccountProfile=data;
     window.accountData=data;syncModernProfile();refreshRegisteredCount();await refreshAdminAccess();
     const name=[data.first_name,data.last_name].filter(Boolean).join(" ") || data.username || "Telegram user";
     $("accountName").textContent=name;
     $("accountUsername").textContent=data.username?"@"+data.username:"Без username";
+    $("accountTelegramId").textContent=data.telegram_id||"—";
     $("accountDeposit").textContent=money(Number(data.deposit_amount||0));
     $("accountLimit").textContent=money(Number(data.bid_limit||0));
-    renderAccountContact(data);
-    $("accountRegistered").textContent=data.created_at?"Дата регистрации: "+new Date(data.created_at).toLocaleDateString("ru-RU"):"Дата регистрации: —";
-    $("accountLanguage").textContent=languageName(selectedLanguage());
+    $("accountMethod").textContent=(data.deposit_method||"—").toUpperCase();
+    $("accountUpdated").textContent=data.deposit_updated_at?new Date(data.deposit_updated_at).toLocaleString():"—";
     const active=String(data.account_status||"").toLowerCase()==="active";
     $("accountStatus").textContent=active?"ACTIVE":"ОЖИДАЕТ АКТИВАЦИИ";
     $("accountStatus").classList.toggle("active",active);
-    $("accountAvatar").textContent=(name.trim().slice(0,2)||"MK").toUpperCase();if(tgUser?.photo_url){$("accountAvatar").style.backgroundImage=`url("${String(tgUser.photo_url).replace(/["\\]/g,"\\$&")}")`;$("accountAvatar").classList.add("hasPhoto");}
+    $("accountAvatar").textContent=(name.trim().slice(0,2)||"MK").toUpperCase();
     hint.textContent=active?"Участие в аукционе активировано.":"После получения наличного депозита администратор активирует ваш лимит ставок.";
   }catch(err){
     console.error("Account profile load failed",err);
@@ -517,18 +517,11 @@ renderModernMarkets();
 document.querySelectorAll("[data-close-modern]").forEach(b=>b.onclick=()=>{closeModernScreens();setModernActive("home");$("homeScreen").classList.add("open")});
 document.querySelectorAll("#modernBottomNav [data-modern]").forEach(b=>b.onclick=()=>{const k=b.dataset.modern;closeModernScreens();setModernActive(k);if(k==="home")$("homeScreen").classList.add("open");else if(k==="markets")$("marketsScreen").classList.add("open");else if(k==="bids"){renderModernMyBids();$("myBidsScreen").classList.add("open")}else if(k==="profile"){syncModernProfile();loadAccountProfile();$("profileScreen").classList.add("open")}});
 document.querySelectorAll("[data-home-auction]").forEach(b=>b.onclick=()=>{closeModernScreens();setModernActive("markets");$("marketsScreen").classList.add("open");});
+$("openAccountFromProfile").onclick=()=>{closeModernScreens();openAccount()};
 $("openAdminFromProfile").onclick=()=>{closeModernScreens();openAdminPanel()};
 $("accountClose").onclick=()=>$("accountOverlay").classList.remove("open");
 $("accountOverlay").onclick=e=>{if(e.target===$("accountOverlay"))$("accountOverlay").classList.remove("open")};
 $("accountRefresh").onclick=loadAccountProfile;
-
-
-let pendingProfileAvatar='';
-function openProfileEditor(){const d=window.accountData||{},name=[d.first_name,d.last_name].filter(Boolean).join(' ')||d.username||'MK';$('profileFirstName').value=d.first_name||'';$('profileLastName').value=d.last_name||'';$('profileEmail').value=d.email||'';$('profilePhone').value=d.phone||'';$('profilePhoneCountry').value=d.phone_country||'AE';setProfileAvatar($('profileEditAvatar'),d,name);pendingProfileAvatar='';$('profileEditMsg').textContent='';$('profileEditOverlay').classList.add('open');$('profileEditOverlay').setAttribute('aria-hidden','false')}
-function closeProfileEditor(){$('profileEditOverlay').classList.remove('open');$('profileEditOverlay').setAttribute('aria-hidden','true')}
-async function profilePhotoChanged(e){const f=e.target.files?.[0];if(!f)return;try{pendingProfileAvatar=await fileToCompressedDataUrl(f);$('profileEditAvatar').style.backgroundImage=`url("${pendingProfileAvatar}")`; $('profileEditAvatar').textContent=''}catch(err){$('profileEditMsg').textContent='Ошибка фото: '+err.message}}
-async function saveOwnProfile(){const btn=$('profileSave'),msg=$('profileEditMsg');btn.disabled=true;msg.textContent='Сохранение…';try{const r=await fetch('/api/profile',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:tg?.initData,firstName:$('profileFirstName').value,lastName:$('profileLastName').value,email:$('profileEmail').value,phone:$('profilePhone').value,phoneCountry:$('profilePhoneCountry').value,avatarUrl:pendingProfileAvatar})}),out=await r.json();if(!r.ok)throw Error(out.error||'Не удалось сохранить');window.accountData={...window.accountData,...out.profile};syncModernProfile();closeProfileEditor()}catch(e){msg.textContent='Ошибка: '+e.message;msg.className='adminSaveMsg error'}finally{btn.disabled=false}}
-$('profileEdit').onclick=openProfileEditor;$('profileEditClose').onclick=closeProfileEditor;$('profilePhoto').onchange=profilePhotoChanged;$('profileSave').onclick=saveOwnProfile;$('profileEditOverlay').onclick=e=>{if(e.target===$('profileEditOverlay'))closeProfileEditor()};
 
 
 async function adminApi(path,payload={}){
@@ -910,17 +903,5 @@ function renderHomeSales(){
 async function refreshHomeSales(){try{const r=await fetch('/api/home-sales?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;homeSalesSnapshot=await r.json();renderHomeSales();}catch(e){}}
 refreshHomeSales();setInterval(refreshHomeSales,5000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshHomeSales()});
 
-/* Profile preferences and launch routing. Language selection intentionally does not translate UI yet. */
-const LANGUAGES={ru:'Русский',en:'English',ar:'العربية'};
-function languageKey(){return 'galaxyLanguage:'+(tgUser?.id||'guest')}
-function selectedLanguage(){return LANGUAGES[localStorage.getItem(languageKey())]?localStorage.getItem(languageKey()):'ru'}
-function languageName(code){return LANGUAGES[code]||LANGUAGES.ru}
-function syncLanguagePicker(){const code=selectedLanguage();document.querySelectorAll('[data-language]').forEach(b=>b.classList.toggle('active',b.dataset.language===code));const p=$('profileLanguageLabel'),a=$('accountLanguage');if(p)p.textContent=languageName(code);if(a)a.textContent=languageName(code)}
-function openLanguagePicker(){$('languageOverlay').classList.add('open');$('languageOverlay').setAttribute('aria-hidden','false');syncLanguagePicker()}
-function closeLanguagePicker(){$('languageOverlay').classList.remove('open');$('languageOverlay').setAttribute('aria-hidden','true')}
-$('openLanguagePicker').onclick=openLanguagePicker;$('languageClose').onclick=closeLanguagePicker;$('languageOverlay').onclick=e=>{if(e.target===$('languageOverlay'))closeLanguagePicker()};document.querySelectorAll('[data-language]').forEach(b=>b.onclick=()=>{localStorage.setItem(languageKey(),b.dataset.language);syncLanguagePicker();closeLanguagePicker()});syncLanguagePicker();
-function countryFlag(country){const c=String(country||'').trim().toUpperCase();const aliases={UAE:'AE','UNITED ARAB EMIRATES':'AE','ОАЭ':'AE',RUSSIA:'RU','РОССИЯ':'RU',KAZAKHSTAN:'KZ','КАЗАХСТАН':'KZ'};const code=aliases[c]||(/^[A-Z]{2}$/.test(c)?c:'');return code?String.fromCodePoint(...[...code].map(x=>127397+x.charCodeAt())):''}
-function renderAccountContact(data){const phone=String(data.phone||data.phone_number||'').trim(),flag=countryFlag(data.phone_country||data.country);$('accountPhone').textContent=phone?(flag?flag+' ':'')+phone:(flag?flag+' ':'')+'Телефон не указан';const email=String(data.email||'').trim();$('accountEmail').hidden=!email;$('accountEmail').textContent=email;}
-document.querySelectorAll('[data-account-target]').forEach(b=>b.onclick=()=>{const key=b.dataset.accountTarget;if(key==='cars'||key==='favorites'){$('accountOverlay').classList.remove('open');closeModernScreens();setModernActive('bids');whiteBidTab=key==='favorites'?'favorites':'pending';whiteRenderBidRows();$('myBidsScreen').classList.add('open');}else alert('Раздел «'+b.querySelector('b').textContent+'» готовится к подключению.')});
 registrationReady.then(()=>refreshMyCars());setInterval(refreshMyCars,10000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshMyCars()});window.addEventListener('galaxy-public-lots-updated',updateMyCarsCounters);
 setTimeout(applyLaunchIntent,450);
