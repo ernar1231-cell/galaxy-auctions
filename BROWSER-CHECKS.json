@@ -1,0 +1,52 @@
+{
+  "errors": [],
+  "viewports": [
+    {
+      "w": 320,
+      "h": 568,
+      "client": 512,
+      "scroll": 512,
+      "body": 320,
+      "bidBottom": 493,
+      "navTop": 512
+    },
+    {
+      "w": 360,
+      "h": 640,
+      "client": 584,
+      "scroll": 584,
+      "body": 360,
+      "bidBottom": 563,
+      "navTop": 584
+    },
+    {
+      "w": 390,
+      "h": 720,
+      "client": 664,
+      "scroll": 664,
+      "body": 390,
+      "bidBottom": 642,
+      "navTop": 664
+    },
+    {
+      "w": 430,
+      "h": 810,
+      "client": 754,
+      "scroll": 754,
+      "body": 430,
+      "bidBottom": 732,
+      "navTop": 754
+    },
+    {
+      "w": 768,
+      "h": 900,
+      "client": 844,
+      "scroll": 844,
+      "body": 768,
+      "bidBottom": 822,
+      "navTop": 844
+    }
+  ],
+  "writes": [],
+  "external_network": "blocked; fixture data only"
+}

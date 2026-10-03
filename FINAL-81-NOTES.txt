@@ -1,0 +1,5 @@
+FINAL-81 — WhatsApp share preview
+- Share button now sends a dedicated /api/share?lot=XXX URL.
+- WhatsApp/Telegram crawlers receive Open Graph title, description and first vehicle photo.
+- Each of 15 lots has its own 1200x630 JPEG preview.
+- Opening the shared card redirects to the exact lot in Galaxy Auctions.

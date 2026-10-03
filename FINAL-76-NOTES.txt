@@ -1,0 +1,5 @@
+GALAXY AUCTIONS FINAL-76
+1) Daily auction schedule: server locks bidding until 18:00 Asia/Dubai. Published lots are previewable before start with countdown and real queue count.
+2) Lots button shows dynamic count. Full-height scrollable lots sheet. Sold lots disappear from active queue but remain in database/history.
+3) Galaxy Auctions branding replaces MK Auction. Approved black/gold Galaxy Auctions logo is used in app headers. WHITE-07 and PAUSE labels removed; notification bell remains.
+Base: MK-AUCTION-FINAL-74-TODAY-DAY-POSITION-CLIENT-LOTS(2).zip

@@ -1,0 +1,657 @@
+/* WHITE-07: white reference UI. Last stylesheet wins over all legacy themes. */
+:root{--blue:#087bfa;--navy:#0d213e;--green:#0b9f54;--red:#ef3340;--line:#e6edf5;--muted:#74849a;--app-height:100dvh;--bottom:56px}
+body.mk-white{margin:0!important;background:#f1f5fb!important;color:var(--navy)!important;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif!important;overflow:hidden!important;-webkit-text-size-adjust:100%}
+body.mk-white *{box-sizing:border-box}body.mk-white [hidden]{display:none!important}
+body.mk-white button{font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}body.mk-white button:focus-visible{outline:2px solid #097afa;outline-offset:2px}
+body.mk-white .uiIcon{width:20px;height:20px;flex:none;vertical-align:middle}body.mk-white .app{width:100%!important;max-width:520px!important;height:calc(var(--app-height) - var(--bottom) - env(safe-area-inset-bottom))!important;min-height:0!important;padding:0!important;margin:0 auto!important;display:flex!important;flex-direction:column!important;overflow-y:auto!important;overflow-x:hidden!important;background:#fff!important;box-shadow:none!important}
+body.mk-white header{height:43px!important;min-height:43px!important;padding:5px 12px!important;position:relative!important;display:flex!important;align-items:center!important;gap:5px!important;border-bottom:1px solid #f0f3f8!important;background:#fff!important;box-shadow:none!important}
+body.mk-white header .brand{font-size:19px!important;font-weight:850!important;letter-spacing:-.65px!important;color:var(--blue)!important;white-space:nowrap}body.mk-white header .brand:before{content:none!important}
+body.mk-white .buildBadge{font-size:7px;color:#8696aa;letter-spacing:.1px;margin-left:auto;white-space:nowrap}body.mk-white header .top{display:flex;gap:5px!important;align-items:center}
+body.mk-white .headerBell{display:grid!important;place-items:center;background:none!important;color:var(--navy)!important;border:0!important;padding:5px!important;width:31px;height:32px}
+body.mk-white .live{background:#f11933!important;color:white!important;padding:5px 7px!important;font-size:10px!important;font-weight:800!important;border-radius:5px!important;box-shadow:none!important;animation:none!important;white-space:nowrap}
+body.mk-white .live.paused{background:#f0f4f8!important;color:#688095!important;font-size:8px!important}
+body.mk-white .status{display:flex!important;flex:none!important;position:relative!important;height:22px!important;min-height:22px!important;padding:0 40px 0 10px!important;gap:5px!important;background:#f6f9fd!important;border-bottom:0!important;color:#263a51!important;font-size:9px!important;font-weight:600!important;justify-content:flex-start!important;overflow:hidden!important}
+body.mk-white .status:before{content:none!important}body.mk-white .statusDot{width:6px;height:6px;border-radius:50%;background:var(--green);flex:none}body.mk-white #soundStatus{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+body.mk-white .status .sound{position:absolute!important;right:9px!important;top:0!important;transform:none!important;background:none!important;padding:1px 5px!important;font-size:15px!important;height:22px!important;min-width:28px!important;color:var(--navy)!important;border:0!important}
+body.mk-white .progress{display:flex!important;flex:none!important;align-items:center!important;justify-content:space-between!important;gap:5px!important;height:24px!important;min-height:24px!important;padding:0 11px!important;background:#fff!important;color:var(--navy)!important;font-size:9px!important;font-weight:650!important}
+body.mk-white .progress #liveAudience{display:none!important}body.mk-white .progress #count{font-size:8px!important;color:#6d7e94}body.mk-white .progress #lot{font-size:10px!important;color:var(--navy)!important;font-weight:750!important}
+body.mk-white .lotsBtn{font-size:9px!important;padding:4px 5px!important;min-height:22px;border-radius:4px!important;background:#f3f7fb!important;color:var(--blue)!important}
+body.mk-white .livegrid{display:flex!important;flex:1 0 auto!important;min-height:0!important;padding:0 10px 3px!important;gap:0!important;background:#fff!important}
+body.mk-white .carcol{padding:0!important;margin:0!important;border:0!important;border-radius:0!important;box-shadow:none!important;overflow:visible!important;flex:1!important;min-width:0!important;display:flex!important;flex-direction:column!important;background:#fff!important}
+body.mk-white .photoFrame{position:relative;flex:1 0 116px;min-height:100px;border-radius:8px;overflow:hidden;background:#eef2f6}
+body.mk-white .photoFrame .hero{width:100%!important;height:100%!important;position:absolute!important;inset:0!important;object-fit:contain!important;object-position:center!important;margin:0!important;border:0!important;border-radius:8px!important;box-shadow:none!important;background:#edf2f6!important;touch-action:pan-y;user-select:none}
+body.mk-white .photoArrow{position:absolute;z-index:3;top:50%;transform:translateY(-50%);width:32px;height:36px;border:1px solid #ffffffb3;border-radius:50%;background:#162233ad;color:#fff;font-size:29px;line-height:24px;display:grid;place-items:center;padding:0}
+body.mk-white .photoArrow.prev{left:6px}body.mk-white .photoArrow.next{right:6px}
+body.mk-white .heroCounter{position:absolute;z-index:3;bottom:6px;right:7px;background:#11223bd9;color:white;border-radius:5px;padding:3px 6px;font-size:10px;font-weight:650;font-variant-numeric:tabular-nums}
+body.mk-white .gallery{display:none!important}
+body.mk-white .main{padding:4px 0 0!important;margin:0!important;flex:none!important;background:white!important}
+body.mk-white .main .title{margin:0 0 4px!important;color:var(--navy)!important;font-size:16px!important;line-height:1.15!important;font-weight:800!important;letter-spacing:-.2px!important;min-height:19px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+body.mk-white .chips{display:flex!important;gap:4px!important;flex-wrap:nowrap!important;overflow:hidden;margin:0!important;min-height:21px}
+body.mk-white .chip{font-size:9px!important;line-height:13px!important;font-weight:500!important;background:#f3f6fb!important;color:#445572!important;border:0!important;border-radius:4px!important;padding:3px 5px!important;white-space:nowrap}
+body.mk-white .auctionLower{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;gap:9px!important;align-items:start!important;margin:6px 0 0!important;padding:0!important;background:linear-gradient(90deg,#fff,#fff 45%,#f9fffb)!important;border:0!important}
+body.mk-white .specColumn{min-width:0;display:flex;flex-direction:column;gap:4px}
+body.mk-white .specColumn .details{padding:0!important;margin:0!important;border:0!important;border-radius:0!important;background:transparent!important}
+body.mk-white .specColumn .detailrow{padding:3px 1px!important;border:0!important;display:flex!important;flex-direction:column!important;align-items:flex-start!important;gap:1px!important;font-size:9px!important;line-height:11px!important}
+body.mk-white .detailrow span{color:#7b89a0!important}body.mk-white .detailrow b{font-size:10px!important;color:#1b2e49!important;text-align:left!important;font-weight:600!important;line-height:12px!important;word-break:break-word}
+body.mk-white .specMore{font-size:9px;background:transparent;border:0;padding:4px 0;color:var(--blue);text-align:left;min-height:24px}
+body.mk-white .specColumn .participants{padding:1px 0!important;margin:0!important;font-size:9px!important;display:flex!important;gap:4px!important;align-items:center!important;justify-content:flex-start!important;background:transparent!important;border:0!important;border-radius:0!important;color:var(--navy)!important;box-shadow:none!important;text-align:left!important}
+body.mk-white .participants .uiIcon{width:18px;height:18px}body.mk-white .participants small{display:block!important;font-size:8px!important;margin:1px 0 0!important;width:auto!important;color:#8c98aa!important;text-align:left!important}
+body.mk-white .auctionLower>.bidcol{padding:0!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;overflow:visible!important;min-width:0!important}
+body.mk-white .bidbox{padding:0!important;margin:0!important;background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;text-align:center}
+body.mk-white .bidStateBanner{min-height:23px;display:flex!important;align-items:center!important;justify-content:center!important;margin:0 0 4px!important;padding:4px 5px!important;background:#f2f5f9!important;color:#6e7f92!important;font-size:9px!important;line-height:12px!important;font-weight:750!important;border-radius:4px!important}
+body.mk-white .bidStateBanner.win{background:#079d54!important;color:white!important}body.mk-white .bidStateBanner.outbid{background:#f22437!important;color:white!important}
+body.mk-white .phaseTitle{display:flex;align-items:center;justify-content:center;gap:4px;margin:0 0 4px;color:var(--green);font-size:10px;font-weight:750}body.mk-white .phaseTitle .uiIcon{width:17px;height:17px}
+body.mk-white .bidcircle{--ring:#0b9f54;--progress:100%;--track:#c6edd8;width:116px!important;height:116px!important;margin:0 auto 3px!important;position:relative!important;border:0!important;border-radius:50%!important;box-shadow:none!important;background:conic-gradient(var(--ring) var(--progress),var(--track) 0)!important;display:flex!important;flex-direction:column!important;justify-content:center!important;align-items:center!important;gap:2px!important;padding:7px!important;transition:none!important}
+body.mk-white .bidcircle:after{content:'';position:absolute;inset:6px!important;background:#fff!important;border-radius:50%;z-index:0}body.mk-white .bidcircle>*{position:relative;z-index:1}
+body.mk-white .circleTime{font-size:26px;line-height:1;font-weight:800;color:var(--ring);letter-spacing:-.9px;font-variant-numeric:tabular-nums}
+body.mk-white .circleLabel{font-size:9px;line-height:11px;color:#75869b;max-width:84px;text-align:center}
+body.mk-white .currentAmount{display:flex;flex-direction:column;align-items:center;gap:1px}
+body.mk-white .currentAmount>span{font-size:9px;color:#61718b}body.mk-white .currentAmount .price{font-size:22px!important;line-height:25px!important;color:#0e2040!important;letter-spacing:-.5px!important;font-weight:850!important;margin:0!important}
+body.mk-white .myBidInline{font-size:9px!important;line-height:13px!important;padding:1px 0!important;background:none!important;color:#78869a!important;margin:0!important;border:0!important}
+body.mk-white .myBidInline b{font-size:10px!important;color:#304565!important;font-weight:750!important;margin:0!important}
+body.mk-white .tradeControls{margin-top:5px}
+body.mk-white .tradeControls .circlecontrols{display:grid!important;grid-template-columns:42px 1fr 42px!important;gap:5px!important;width:100%!important;max-width:none!important;margin:0 0 5px!important;align-items:center!important}
+body.mk-white .circlecontrols button{width:42px!important;height:32px!important;padding:0!important;border:1px solid #e5ecf5!important;border-radius:5px!important;background:#f8faff!important;color:#1b3151!important;font-size:22px!important;line-height:28px!important;font-weight:500!important}
+body.mk-white .circlecontrols .selected{height:32px!important;display:grid;place-items:center;font-size:13px!important;font-weight:750!important;padding:3px!important;background:#f8faff!important;color:var(--navy)!important;border:1px solid #e5ecf5!important;border-radius:5px!important}
+body.mk-white .bidbtn{display:flex!important;justify-content:center!important;align-items:center!important;gap:5px!important;width:100%!important;min-height:37px!important;height:37px!important;line-height:14px!important;font-size:11px!important;letter-spacing:-.05px!important;padding:6px!important;border:0!important;border-radius:5px!important;box-shadow:none!important;margin:0!important;background:#0c9d52!important;color:white!important;font-weight:800!important}
+body.mk-white .bidbtn.outbid{background:var(--red)!important}body.mk-white .bidbtn.leader{background:var(--green)!important}body.mk-white .bidbtn:disabled{background:#e6ebf1!important;color:#8a98ac!important;opacity:1!important}body.mk-white .bidbtn .uiIcon{width:21px;height:21px}
+body.mk-white .historyLink{display:flex;align-items:center;justify-content:center;gap:4px;background:none;border:0;color:#8492a7;font-size:8px;padding:1px 5px;min-height:19px;margin:0 auto}body.mk-white .historyLink .uiIcon{width:11px;height:11px}
+body.mk-white .modernBottomNav{width:100%!important;max-width:520px!important;height:calc(var(--bottom) + env(safe-area-inset-bottom))!important;bottom:0!important;background:#fff!important;border-top:1px solid #edf1f6!important;box-shadow:none!important;padding:0 0 env(safe-area-inset-bottom)!important;z-index:90!important}
+body.mk-white .modernBottomNav button{font-size:9px!important;line-height:12px!important;font-weight:600!important;color:#8493ab!important;gap:3px!important;padding:4px 0!important}body.mk-white .modernBottomNav button.active{color:var(--blue)!important}body.mk-white .modernBottomNav .uiIcon{width:20px;height:20px}
+/* The same white header/cards on every section. */
+body.mk-white .modernScreen{background:#fbfcff!important;max-width:520px!important;width:100%!important;top:0!important;bottom:calc(var(--bottom) + env(safe-area-inset-bottom))!important;height:auto!important;padding:0 12px 12px!important;color:var(--navy)!important;z-index:85!important;overflow:auto!important}
+body.mk-white .modernScreen .screenBrand{display:flex;align-items:center;gap:5px;min-height:45px;padding:4px 0;border-bottom:1px solid #f0f4f8;margin-bottom:10px;background:#fff}
+body.mk-white .screenBrand b{color:var(--blue);font-size:19px;font-weight:850;letter-spacing:-.7px}body.mk-white .screenBrand>span{font-size:7px;color:#94a3b5;margin-left:auto}body.mk-white .screenBrand .uiIcon{width:18px;height:18px;margin-left:8px}
+body.mk-white .modernScreen .modernScreenHead{display:flex!important;gap:6px!important;align-items:flex-start!important;margin:0 0 10px!important;padding:0!important;background:none!important}
+body.mk-white .modernScreen .modernScreenHead h2{margin:0!important;color:var(--navy)!important;font-size:20px!important;font-weight:800!important;line-height:23px!important;letter-spacing:-.4px}
+body.mk-white .modernScreen .screenSubtitle{color:#8794a9!important;font-size:10px!important;line-height:13px!important;margin:4px 0 0!important;max-width:310px}
+body.mk-white .modernScreen .screenClose{width:27px!important;height:27px!important;min-width:27px!important;font-size:20px!important;padding:0!important;background:#f1f6fc!important;color:#7a8a9e!important;border:0!important;box-shadow:none!important;backdrop-filter:none!important}
+body.mk-white #modernMarkets{display:grid!important;grid-template-columns:1fr 1fr!important;gap:9px!important;background:none!important}
+body.mk-white #modernMarkets .marketCard{position:relative;display:block!important;border:1px solid #edf1f7!important;border-radius:8px!important;box-shadow:0 2px 5px #25385b04!important;padding:0!important;background:white!important;text-align:left!important;overflow:hidden!important}
+body.mk-white .marketArt{display:block;width:100%;height:clamp(64px,10.9vh,92px);object-fit:cover;background:#eaf4fe}
+body.mk-white #modernMarkets .marketInfo{padding:5px 7px 6px!important;position:relative!important;background:#fff!important}
+body.mk-white #modernMarkets .marketInfo b{display:block;font-size:11px!important;line-height:14px!important;color:var(--navy)!important;margin:0!important;font-weight:750!important;max-width:90%}
+body.mk-white #modernMarkets .marketInfo small{font-size:9px!important;color:#8593a8!important;margin:2px 0 0!important;line-height:11px!important;display:block}
+body.mk-white #modernMarkets .marketInfo>span{position:absolute;right:8px;top:13px;color:#23395d;font-size:19px}
+body.mk-white .myBidTabs{margin:0 0 10px!important;display:grid!important;grid-template-columns:repeat(3,1fr)!important;gap:5px!important;overflow:visible!important}
+body.mk-white .myBidTabs button{font-size:10px!important;white-space:nowrap;border:0!important;border-radius:7px!important;padding:7px 4px!important;background:#edf3fc!important;color:#546984!important;font-weight:650!important;min-height:32px}
+body.mk-white .myBidTabs button span{font-size:9px;padding:1px 3px;border-radius:4px;background:#ffffff45}body.mk-white .myBidTabs button.active{background:var(--blue)!important;color:#fff!important}
+body.mk-white .myBidCard{width:100%;grid-template-columns:66px minmax(0,1fr) 9px!important;gap:8px!important;align-items:center!important;background:#fff!important;border:1px solid #edf1f7!important;border-radius:9px!important;box-shadow:0 2px 6px #19346004!important;padding:7px!important;margin:0 0 8px!important;text-align:left!important}
+body.mk-white .myBidCard>img{width:66px!important;height:63px!important;border-radius:6px!important;object-fit:cover}
+body.mk-white .myBidCard .bidCardBody>b{font-size:10px!important;line-height:13px;display:block;color:var(--navy);font-weight:750!important}
+body.mk-white .myBidCard small{font-size:8px!important;line-height:11px!important;margin:2px 0 0!important;color:#8b99ad!important}
+body.mk-white .bidCardAmounts{display:flex;align-items:center;justify-content:space-between;gap:4px;margin-top:3px}
+body.mk-white .bidCardAmounts strong{font-size:15px;color:var(--navy);letter-spacing:-.2px}
+body.mk-white .myBidStatus{font-size:8px!important;line-height:10px!important;border-radius:5px!important;padding:3px 4px!important;background:#e3f7ed!important;color:#198459!important;text-transform:none!important;white-space:normal}
+body.mk-white .myBidStatus.outbid{background:#ffe9ed!important;color:#ed3348!important}body.mk-white .chevron{font-size:17px;color:#74849c}
+body.mk-white .pendingTitle{font-size:12px;color:#8b9aae;margin:15px 0 7px;font-weight:600}
+body.mk-white .emptyWatch{padding:28px 12px!important;text-align:center;color:#8a97aa;font-size:12px;line-height:19px;font-weight:450!important}
+body.mk-white .profileTop{border:1px solid #eff3f9!important;border-radius:8px!important;box-shadow:none!important;padding:12px 9px!important;gap:10px!important;background:#fff!important}
+body.mk-white .profileAvatar{width:48px!important;height:48px!important;font-size:18px!important;background:#e8f2fe!important;color:#126de0!important}
+body.mk-white #modernProfileName{font-size:16px}body.mk-white #modernProfileUser{font-size:10px!important}
+body.mk-white .profileCards{gap:8px!important;margin:10px 0!important}
+body.mk-white .profileCard{position:relative;padding:11px 10px 11px 32px!important;border:1px solid #edf2f9!important;border-radius:8px!important;box-shadow:none!important;background:#fff!important}
+body.mk-white .profileCard .uiIcon{position:absolute;left:8px;top:15px;width:18px;height:18px;color:var(--blue)}body.mk-white .profileCard span{font-size:10px!important;color:#8290a6!important}
+body.mk-white .profileCard strong{font-size:20px!important;color:var(--navy)!important;margin-top:4px!important;letter-spacing:-.6px}
+body.mk-white .profileRegistered{display:flex!important;align-items:center!important;gap:8px!important;padding:7px 10px!important;margin:0 0 10px!important;background:#f5f8fd!important;border:0!important;border-radius:6px!important;box-shadow:none!important}
+body.mk-white .profileRegistered span{flex:1;font-size:9px}body.mk-white .profileRegistered b{font-size:13px}body.mk-white .profileRegistered small{font-size:8px;color:#718198}
+body.mk-white .profileMenu{border:1px solid #edf1f8!important;background:#fff!important;border-radius:9px!important;box-shadow:none!important;overflow:hidden}
+body.mk-white .profileMenu>button{display:flex;align-items:center;gap:10px;min-height:45px;padding:9px 11px!important;border:0!important;border-bottom:1px solid #f1f4f8!important;background:#fff!important;font-size:11px!important;font-weight:500!important;text-align:left!important;color:#253c5b!important;width:100%}
+body.mk-white .profileMenu button>span{flex:1}body.mk-white .profileMenu button .uiIcon{width:17px;height:17px}body.mk-white .profileMenu button>small{font-size:9px;color:#8b9bb0}body.mk-white .profileMenu button>.uiIcon:last-child{width:13px;color:#8291a6}
+body.mk-white .switch{display:block;background:#dce5f1;width:34px;height:21px;border-radius:13px;position:relative;flex:none}body.mk-white .switch:after{content:'';width:17px;height:17px;position:absolute;left:2px;top:2px;border-radius:50%;background:#fff;box-shadow:0 1px 3px #0002}body.mk-white .switch.on{background:#087bfa}body.mk-white .switch.on:after{left:15px}
+/* History / details remain available, not removed to force a short page. */
+body.mk-white .whiteSheetOverlay{position:fixed;inset:0;z-index:120;background:#0c203655;display:flex;align-items:flex-end;justify-content:center}
+body.mk-white .whiteSheet{width:min(520px,100%);max-height:70vh;background:#fff;border-radius:18px 18px 0 0;padding:14px 14px calc(18px + env(safe-area-inset-bottom));overflow:auto}
+body.mk-white .whiteSheetHead{display:flex;align-items:center;justify-content:space-between;margin:0 0 10px}body.mk-white .whiteSheetHead h2{font-size:18px;margin:0}body.mk-white .whiteSheetHead button{width:32px;height:32px;border:0;border-radius:50%;font-size:24px;background:#f2f6fb;color:#547089}
+body.mk-white .whiteSheet .recentBidders{display:flex!important;flex-direction:column!important;min-height:0!important;gap:6px!important;margin:0!important}
+body.mk-white .whiteSheet .recentBidder{width:100%!important;display:grid!important;grid-template-columns:30px minmax(0,1fr) auto auto!important;gap:7px!important;padding:10px 8px!important;background:#f5f8fc!important;border:0!important;border-radius:8px!important;color:var(--navy)!important;text-align:left!important}
+body.mk-white .whiteSheet .recentBidderCircle{width:29px!important;height:29px!important;display:grid;place-items:center;font-size:18px!important;border:0!important;background:white!important;margin:0!important}
+body.mk-white .whiteSheet .recentBidderName,body.mk-white .whiteSheet .recentBidderAmount{font-size:11px!important;color:#263d5b!important}body.mk-white .whiteSheet .recentBidderAmount{color:var(--green)!important}body.mk-white .whiteSheet .recentBidderTime{font-size:9px!important;display:block!important;color:#8795aa!important}
+body.mk-white .catalogSheet,body.mk-white .detailSheet,body.mk-white .accountSheet{max-height:85vh!important;padding-bottom:24px!important}body.mk-white .detailSpecs .detailrow{font-size:12px!important;padding:8px!important}body.mk-white .detailSpecs .detailrow b{font-size:12px!important}
+body.mk-white.shortScreen .photoFrame{flex-basis:96px;min-height:90px}
+body.mk-white.shortScreen .auctionLower{margin-top:4px!important;gap:7px!important}body.mk-white.shortScreen .bidcircle{width:98px!important;height:98px!important}body.mk-white.shortScreen .circleTime{font-size:23px}
+body.mk-white.shortScreen .specColumn .detailrow{padding:2px 0!important;font-size:8px!important;line-height:10px!important}body.mk-white.shortScreen .specColumn .detailrow b{font-size:9px!important;line-height:11px!important}
+body.mk-white.shortScreen .bidStateBanner{font-size:8px!important;min-height:20px!important;padding:3px!important}body.mk-white.shortScreen .phaseTitle{font-size:9px;margin-bottom:2px}
+body.mk-white.shortScreen .title{font-size:14px!important;line-height:16px!important;margin-bottom:3px!important}body.mk-white.shortScreen .currentAmount .price{font-size:20px!important;line-height:22px!important}
+body.mk-white.shortScreen .tradeControls{margin-top:3px}body.mk-white.shortScreen .historyLink{min-height:18px}
+@media(min-width:600px){body.mk-white{padding-top:0}.app{border-left:1px solid #e9eef5;border-right:1px solid #e9eef5}body.mk-white .photoFrame{flex-basis:170px}}
+@media(prefers-reduced-motion:reduce){body.mk-white *{animation:none!important;transition:none!important}}
+/* Explicit overrides for the previous #marketsScreen dark theme. */
+body.mk-white #marketsScreen{background:#fbfcff!important;padding:0 12px 12px!important}
+body.mk-white #marketsScreen .modernScreenHead{background:none!important;padding:0!important;margin:0 0 10px!important}
+body.mk-white #marketsScreen .modernScreenHead h2{color:#0d213e!important;font-size:20px!important;letter-spacing:-.4px!important}
+body.mk-white #marketsScreen .screenSubtitle{color:#8794a9!important;font-size:10px!important;line-height:13px!important;max-width:310px!important}
+body.mk-white #marketsScreen .screenClose{background:#f1f6fc!important;color:#7a8a9e!important;border:0!important;backdrop-filter:none!important;box-shadow:none!important}
+body.mk-white #marketsScreen .marketArt{height:clamp(68px,12vh,98px);object-fit:cover;object-position:center 55%}
+body.mk-white .progress{border:0!important;box-shadow:none!important}
+body.mk-white .profileAvatar img{width:100%;height:100%;border-radius:50%;object-fit:cover}
+@media(max-height:590px){body.mk-white .photoFrame{flex-basis:82px!important;min-height:82px!important}body.mk-white .historyLink{min-height:16px!important;padding:0!important}}
+
+/* LIVE-27 — mobile auction layout: controls always visible above bottom navigation */
+@media (max-width:599px){
+  :root{--bottom:70px}
+  body.mk-white .app{padding-bottom:112px!important;scroll-padding-bottom:130px!important}
+  body.mk-white .livegrid{padding:0 12px 8px!important}
+  body.mk-white .photoFrame{flex:0 0 clamp(210px,42vh,340px)!important;min-height:210px!important;border-radius:14px!important}
+  body.mk-white .photoFrame .hero{object-fit:cover!important;border-radius:14px!important}
+  body.mk-white .main{padding-top:9px!important}
+  body.mk-white .main .title{font-size:20px!important;line-height:1.12!important;margin-bottom:7px!important}
+  body.mk-white .chips{min-height:28px!important;gap:6px!important}
+  body.mk-white .chip{font-size:11px!important;padding:5px 8px!important;border-radius:8px!important}
+  body.mk-white .auctionLower{grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr)!important;gap:14px!important;margin-top:12px!important;background:#fff!important}
+  body.mk-white .specColumn{padding-top:7px!important}
+  body.mk-white .specColumn .detailrow{padding:6px 2px!important;font-size:11px!important;line-height:13px!important;border-bottom:1px solid #f0f3f7!important}
+  body.mk-white .detailrow b{font-size:12px!important;line-height:15px!important}
+  body.mk-white .specMore{font-size:11px!important;padding:8px 1px!important}
+  body.mk-white .auctionLower>.bidcol{border:1px solid #e6edf5!important;border-radius:15px!important;padding:9px!important;background:#fff!important}
+  body.mk-white .bidStateBanner{min-height:34px!important;border-radius:20px!important;font-size:11px!important;margin-bottom:8px!important}
+  body.mk-white .bidcircle{width:145px!important;height:145px!important;margin:0 auto 7px!important}
+  body.mk-white .circleTime{font-size:31px!important}
+  body.mk-white .circleLabel{font-size:10px!important}
+  body.mk-white .currentAmount>span{font-size:10px!important}
+  body.mk-white .currentAmount .price{font-size:27px!important;line-height:31px!important}
+  body.mk-white .myBidInline{font-size:10px!important;padding:6px 0!important}
+  body.mk-white .myBidInline b{font-size:13px!important;color:#0b9f54!important}
+  body.mk-white .tradeControls{position:sticky!important;bottom:0!important;z-index:20!important;margin:14px -1px 0!important;padding:8px 0 10px!important;background:linear-gradient(180deg,rgba(255,255,255,.72),#fff 18%)!important}
+  body.mk-white .tradeControls .circlecontrols{grid-template-columns:52px 1fr 52px!important;gap:7px!important;margin-bottom:7px!important}
+  body.mk-white .circlecontrols button{width:52px!important;height:43px!important;border-radius:9px!important;font-size:25px!important}
+  body.mk-white .circlecontrols .selected{height:43px!important;border-radius:9px!important;font-size:15px!important}
+  body.mk-white .bidbtn{height:48px!important;min-height:48px!important;border-radius:9px!important;font-size:14px!important;background:#087bfa!important}
+  body.mk-white .historyLink{min-height:24px!important;font-size:9px!important}
+  body.mk-white .modernBottomNav{height:calc(70px + env(safe-area-inset-bottom))!important}
+}
+
+/* FINAL LIVE AUCTION adjustments: fixed bid dock + Copart-style 4 circle states */
+body.mk-white .myBidInline{display:none!important}
+body.mk-white .liveBidFeed{display:flex;flex-direction:column;gap:3px;margin:5px 0 2px}
+body.mk-white .liveBidder{display:grid;grid-template-columns:22px 1fr auto;align-items:center;gap:5px;min-height:24px;padding:2px 6px;border-radius:8px;font-size:9px;color:#18304f}
+body.mk-white .liveBidder.leader{background:#eaf9f0;color:#087f45;font-weight:800;animation:leaderPulse 1.15s ease-in-out infinite}
+body.mk-white .liveFlag{font-size:15px;line-height:1}.liveName{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.liveAmount{font-weight:800}
+@keyframes leaderPulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(11,159,84,0)}50%{opacity:.58;box-shadow:0 0 0 4px rgba(11,159,84,.08)}}
+@media (prefers-reduced-motion:reduce){body.mk-white .liveBidder.leader{animation:none}}
+body.mk-white .circleStatus{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:5px;width:82%;line-height:1.05}
+body.mk-white .circleStatus[hidden]{display:none!important}
+body.mk-white .circleStatus b{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-size:22px;background:#0b9f54;color:#fff}
+body.mk-white .circleStatus strong{font-size:12px;font-weight:950;color:#0b9f54}
+body.mk-white .bidcircle.stateOutbid .circleStatus b{background:#ef3340}body.mk-white .bidcircle.stateOutbid .circleStatus strong{color:#ef3340}
+body.mk-white .bidcircle.stateAccepted .circleStatus b{background:#0b9f54}body.mk-white .bidcircle.stateAccepted .circleStatus strong{color:#0b9f54}
+@media(min-width:521px){body.mk-white .tradeControls{position:fixed!important;left:50%!important;transform:translateX(-50%)!important;bottom:calc(70px + env(safe-area-inset-bottom))!important;width:min(520px,100%)!important;z-index:89!important;margin:0!important;padding:7px 12px 9px!important;background:#fff!important;border-top:1px solid #e8eef5!important;box-shadow:0 -8px 20px rgba(16,35,61,.06)!important}body.mk-white .app{padding-bottom:calc(155px + env(safe-area-inset-bottom))!important}}
+@media(max-width:520px){body.mk-white .tradeControls{position:fixed!important;left:0!important;right:0!important;bottom:calc(70px + env(safe-area-inset-bottom))!important;z-index:89!important;margin:0!important;padding:7px 12px 9px!important;background:#fff!important;border-top:1px solid #e8eef5!important;box-shadow:0 -8px 20px rgba(16,35,61,.06)!important}body.mk-white .app{padding-bottom:calc(155px + env(safe-area-inset-bottom))!important}}
+
+/* LIVE-29: robust viewport bid dock + pulsing live leader row */
+body.mk-white #tradeControls{box-sizing:border-box!important;position:fixed!important;left:50%!important;right:auto!important;transform:translateX(-50%)!important;bottom:calc(70px + env(safe-area-inset-bottom))!important;width:100%!important;max-width:520px!important;z-index:91!important;margin:0!important;padding:8px 12px 9px!important;background:#fff!important;border-top:1px solid #e7edf4!important;box-shadow:0 -6px 18px rgba(15,35,62,.07)!important}
+body.mk-white .app{padding-bottom:calc(165px + env(safe-area-inset-bottom))!important;scroll-padding-bottom:175px!important}
+body.mk-white .liveBidFeed{margin:7px 0 4px!important;min-height:0}
+body.mk-white .liveBidder{grid-template-columns:24px minmax(0,1fr) auto!important;min-height:27px!important;padding:3px 7px!important;border-radius:9px!important;font-size:10px!important}
+body.mk-white .liveBidder.leader{position:relative;background:#e8f8ef!important;color:#087f45!important;font-weight:850!important;animation:mkLeaderHeartbeat 1.05s ease-in-out infinite!important}
+body.mk-white .liveBidder.leader:after{content:'LIVE';font-size:7px;font-weight:900;letter-spacing:.3px;color:#0b9f54;margin-left:3px}
+@keyframes mkLeaderHeartbeat{0%,100%{opacity:1;filter:brightness(1);box-shadow:0 0 0 0 rgba(11,159,84,0)}35%{opacity:.66;filter:brightness(.96);box-shadow:0 0 0 3px rgba(11,159,84,.07)}55%{opacity:1;filter:brightness(1.03);box-shadow:0 0 0 5px rgba(11,159,84,.10)}75%{opacity:.72;filter:brightness(.98);box-shadow:0 0 0 2px rgba(11,159,84,.05)}}
+@media(prefers-reduced-motion:reduce){body.mk-white .liveBidder.leader{animation:none!important}}
+
+
+/* LIVE-30: requested Live Auction-only cleanup */
+/* Show live client count in the top auction progress row; remove the lower client card. */
+body.mk-white .progress #liveAudience{display:inline-flex!important;align-items:center!important;gap:3px!important;font-size:9px!important;font-weight:800!important;color:#17304f!important;background:#eef6ff!important;border:1px solid #d9e9f8!important;border-radius:999px!important;padding:4px 7px!important;white-space:nowrap!important}
+body.mk-white .participants{display:none!important}
+body.mk-white .specMore{display:none!important}
+body.mk-white .specColumn .details{margin-bottom:0!important;padding-bottom:4px!important}
+/* The dock belongs to the live lot only. It disappears on every app screen/overlay. */
+body.mk-white:has(.modernScreen.open) #tradeControls,
+body.mk-white:has(.soldScreen.open) #tradeControls,
+body.mk-white:has(.overlay.open) #tradeControls,
+body.mk-white:has(.catalogOverlay.open) #tradeControls,
+body.mk-white:has(.queueOverlay.open) #tradeControls,
+body.mk-white:has(.detailOverlay.open) #tradeControls{display:none!important}
+
+/* LIVE-31 — compact single-scroll Live Auction, matching approved reference */
+/* Bid controls belong to .main and move with the whole auction. */
+body.mk-white #tradeControls,
+body.mk-white .tradeControls{
+  position:static!important;left:auto!important;right:auto!important;bottom:auto!important;
+  transform:none!important;width:100%!important;max-width:none!important;z-index:auto!important;
+  margin:7px 0 3px!important;padding:0!important;background:#fff!important;border:0!important;
+  box-shadow:none!important;display:block!important;
+}
+body.mk-white .app{padding-bottom:8px!important;scroll-padding-bottom:8px!important}
+/* Keep the compact reference composition; no large white gap. */
+body.mk-white .auctionLower{margin-top:7px!important;gap:8px!important;grid-template-columns:minmax(0,.92fr) minmax(0,1.08fr)!important}
+body.mk-white .specColumn .detailrow{padding:4px 1px!important}
+body.mk-white .bidcircle{width:112px!important;height:112px!important;margin-bottom:3px!important}
+body.mk-white .liveBidFeed{gap:2px!important;margin:4px 0 1px!important}
+body.mk-white .liveBidder{min-height:23px!important;padding:2px 5px!important;font-size:9px!important}
+body.mk-white .main{padding-bottom:2px!important}
+body.mk-white .historyLink{margin-bottom:0!important}
+/* Top audience is live; lower duplicate stays removed. */
+body.mk-white .progress #liveAudience{display:inline-flex!important}
+body.mk-white .participants{display:none!important}
+
+/* LIVE-33 — full compact Live Auction. Preserve functions; only tighten layout. */
+body.mk-white #tradeControls,body.mk-white .tradeControls{position:static!important;left:auto!important;right:auto!important;bottom:auto!important;transform:none!important;width:100%!important;max-width:none!important;margin:7px 0 3px!important;padding:0!important;background:#fff!important;border:0!important;box-shadow:none!important;z-index:auto!important}
+body.mk-white .app{padding-bottom:8px!important;scroll-padding-bottom:8px!important}
+body.mk-white .specMore{display:block!important;font-size:9px!important;padding:4px 0!important;min-height:20px!important}
+body.mk-white .participants{display:none!important}
+body.mk-white .progress #liveAudience{display:inline-flex!important}
+@media(max-width:599px){
+ body.mk-white .livegrid{padding:0 10px 5px!important}
+ body.mk-white .photoFrame{flex:0 0 clamp(205px,34vh,285px)!important;min-height:205px!important;border-radius:11px!important}
+ body.mk-white .main{padding-top:6px!important;padding-bottom:1px!important}
+ body.mk-white .main .title{font-size:18px!important;line-height:1.08!important;margin-bottom:5px!important;min-height:0!important}
+ body.mk-white .chips{min-height:23px!important;gap:4px!important}
+ body.mk-white .chip{font-size:10px!important;padding:4px 6px!important;border-radius:6px!important}
+ body.mk-white .auctionLower{grid-template-columns:minmax(0,.92fr) minmax(0,1.08fr)!important;gap:8px!important;margin-top:7px!important;align-items:start!important}
+ body.mk-white .specColumn{padding-top:2px!important;gap:1px!important}
+ body.mk-white .specColumn .detailrow{padding:3px 1px!important;font-size:9px!important;line-height:11px!important}
+ body.mk-white .detailrow b{font-size:10px!important;line-height:12px!important}
+ body.mk-white .auctionLower>.bidcol{padding:6px!important;border-radius:11px!important}
+ body.mk-white .bidStateBanner{min-height:27px!important;margin-bottom:4px!important;font-size:9px!important;padding:3px 5px!important}
+ body.mk-white .phaseTitle{font-size:9px!important;margin-bottom:2px!important}
+ body.mk-white .bidcircle{width:112px!important;height:112px!important;margin-bottom:2px!important}
+ body.mk-white .circleTime{font-size:25px!important}
+ body.mk-white .currentAmount .price{font-size:22px!important;line-height:24px!important}
+ body.mk-white .liveBidFeed{gap:1px!important;margin:3px 0 1px!important}
+ body.mk-white .liveBidder{min-height:21px!important;padding:1px 4px!important;font-size:8.5px!important}
+ body.mk-white .liveFlag{font-size:13px!important}
+ body.mk-white .tradeControls{margin-top:6px!important}
+ body.mk-white .tradeControls .circlecontrols{grid-template-columns:44px 1fr 44px!important;gap:5px!important;margin-bottom:5px!important}
+ body.mk-white .circlecontrols button{width:44px!important;height:38px!important;font-size:22px!important}
+ body.mk-white .circlecontrols .selected{height:38px!important;font-size:14px!important}
+ body.mk-white .bidbtn{height:43px!important;min-height:43px!important;font-size:13px!important}
+ body.mk-white .historyLink{min-height:20px!important;font-size:8px!important}
+}
+
+/* LIVE-34 — stable Live Auction viewport: no sideways/rubber-band shake. */
+html,body{max-width:100%;overflow-x:hidden!important;overscroll-behavior-x:none!important}
+body.mk-white{touch-action:pan-y!important;overscroll-behavior-x:none!important;-webkit-text-size-adjust:100%;}
+body.mk-white .app{width:100%!important;max-width:100%!important;margin-left:auto!important;margin-right:auto!important;overflow-x:clip!important;overscroll-behavior-x:none!important;contain:layout paint;}
+body.mk-white .livegrid,body.mk-white .carcol,body.mk-white .main,body.mk-white .auctionLower,body.mk-white .bidcol,body.mk-white #tradeControls{min-width:0!important;max-width:100%!important;box-sizing:border-box!important;}
+body.mk-white .photoFrame,body.mk-white .hero{max-width:100%!important;}
+body.mk-white .modernBottomNav{left:0!important;right:0!important;width:100%!important;max-width:520px!important;margin:0 auto!important;transform:none!important;}
+@media(max-width:599px){
+ html,body{width:100%!important;}
+ body.mk-white .app{position:relative!important;left:0!important;right:0!important;transform:none!important;}
+ body.mk-white .livegrid{width:100%!important;overflow-x:hidden!important;}
+ body.mk-white .auctionLower{width:100%!important;overflow:hidden!important;}
+}
+
+/* LIVE-35: remove vehicle name and pull the two-column auction area upward. */
+body.mk-white .main .title{display:none!important;height:0!important;min-height:0!important;margin:0!important;padding:0!important;overflow:hidden!important}
+body.mk-white .main{padding-top:1px!important}
+body.mk-white .chips{margin:0 0 2px!important}
+body.mk-white .auctionLower{margin-top:2px!important}
+
+/* LIVE-36 — real Live Auction viewport lock + title in right column. */
+body.mk-white.liveViewportLocked{
+  overflow:hidden!important;
+  overscroll-behavior:none!important;
+  touch-action:none!important;
+  position:fixed!important;
+  inset:0!important;
+  width:100%!important;
+  height:100%!important;
+}
+body.mk-white.liveViewportLocked .app{
+  height:calc(100dvh - 70px - env(safe-area-inset-bottom))!important;
+  min-height:0!important;
+  overflow:hidden!important;
+  overscroll-behavior:none!important;
+  touch-action:none!important;
+  padding-bottom:0!important;
+}
+body.mk-white.liveViewportLocked .livegrid{
+  height:100%!important;
+  max-height:100%!important;
+  overflow:hidden!important;
+}
+body.mk-white .bidcol>.liveVehicleTitle{
+  display:block!important;
+  margin:0 0 5px!important;
+  padding:0 2px!important;
+  font-size:13px!important;
+  line-height:1.12!important;
+  font-weight:900!important;
+  color:#102a4b!important;
+  text-align:left!important;
+  height:auto!important;
+  min-height:0!important;
+  overflow:visible!important;
+}
+body.mk-white .main>.title{display:none!important}
+@supports not (height:100dvh){
+ body.mk-white.liveViewportLocked .app{height:calc(100vh - 70px - env(safe-area-inset-bottom))!important}
+}
+
+/* LIVE-37 — two requested fixes only: one-line right title + hard vertical viewport lock. */
+html:has(body.mk-white.liveViewportLocked){
+  height:100%!important;
+  overflow:hidden!important;
+  overscroll-behavior:none!important;
+}
+body.mk-white.liveViewportLocked{
+  position:fixed!important;
+  inset:0!important;
+  width:100%!important;
+  height:100%!important;
+  max-height:100%!important;
+  overflow:hidden!important;
+  overscroll-behavior:none!important;
+  touch-action:none!important;
+}
+body.mk-white.liveViewportLocked .app{
+  position:fixed!important;
+  inset:0 0 calc(var(--bottom) + env(safe-area-inset-bottom)) 0!important;
+  width:100%!important;
+  height:auto!important;
+  max-height:none!important;
+  overflow:hidden!important;
+  overscroll-behavior:none!important;
+  touch-action:none!important;
+}
+body.mk-white.liveViewportLocked .livegrid{
+  flex:1 1 auto!important;
+  min-height:0!important;
+  height:auto!important;
+  max-height:none!important;
+  overflow:hidden!important;
+  padding-bottom:2px!important;
+}
+body.mk-white.liveViewportLocked .carcol,
+body.mk-white.liveViewportLocked .main,
+body.mk-white.liveViewportLocked .auctionLower,
+body.mk-white.liveViewportLocked .bidcol{
+  min-height:0!important;
+  overflow:hidden!important;
+}
+body.mk-white.liveViewportLocked .bidcol>.liveVehicleTitle{
+  display:block!important;
+  width:100%!important;
+  margin:0!important;
+  padding:3px 7px 2px!important;
+  font-size:11px!important;
+  line-height:14px!important;
+  font-weight:900!important;
+  color:#102a4b!important;
+  white-space:nowrap!important;
+  text-overflow:ellipsis!important;
+  overflow:hidden!important;
+}
+/* Keep the right title on the same top line without increasing the auction block height. */
+body.mk-white.liveViewportLocked .bidcol{position:relative!important;padding-top:19px!important}
+body.mk-white.liveViewportLocked .bidcol>.liveVehicleTitle{position:absolute!important;top:1px!important;left:0!important;right:0!important;z-index:2!important}
+
+@media (max-width:599px){
+  body.mk-white.liveViewportLocked .photoFrame{flex:0 0 clamp(150px,28vh,218px)!important;min-height:0!important}
+  body.mk-white.liveViewportLocked .hero{height:100%!important;min-height:0!important}
+  body.mk-white.liveViewportLocked .gallery{display:none!important}
+  body.mk-white.liveViewportLocked .main{padding-bottom:1px!important}
+  body.mk-white.liveViewportLocked .chips{min-height:18px!important}
+  body.mk-white.liveViewportLocked .chip{padding:3px 6px!important;font-size:8px!important}
+  body.mk-white.liveViewportLocked .auctionLower{margin-top:1px!important;gap:5px!important}
+  body.mk-white.liveViewportLocked .details{padding-bottom:0!important}
+  body.mk-white.liveViewportLocked .detailrow{padding:2px 0!important;min-height:0!important}
+  body.mk-white.liveViewportLocked .bidcol{padding-top:17px!important}
+  body.mk-white.liveViewportLocked .bidcol>.liveVehicleTitle{font-size:10px!important;line-height:12px!important;padding:2px 6px!important}
+  body.mk-white.liveViewportLocked .bidbox{padding:3px 5px!important}
+  body.mk-white.liveViewportLocked .bidStateBanner{margin:1px 0 2px!important;padding:4px 3px!important}
+  body.mk-white.liveViewportLocked .phaseTitle{margin:1px 0!important}
+  body.mk-white.liveViewportLocked .bidcircle{width:104px!important;height:104px!important;margin:1px auto 2px!important}
+  body.mk-white.liveViewportLocked .circleTime{font-size:19px!important}
+  body.mk-white.liveViewportLocked .circleStatus strong{font-size:11px!important;line-height:11px!important}
+  body.mk-white.liveViewportLocked .currentAmount{margin-top:1px!important}
+  body.mk-white.liveViewportLocked .currentAmount .price{font-size:21px!important;line-height:22px!important}
+  body.mk-white.liveViewportLocked .liveBidFeed{margin:2px 0 0!important}
+  body.mk-white.liveViewportLocked .liveBidder{min-height:18px!important;padding:0 4px!important}
+  body.mk-white.liveViewportLocked .tradeControls{margin-top:3px!important}
+  body.mk-white.liveViewportLocked .tradeControls .circlecontrols{margin-bottom:3px!important}
+  body.mk-white.liveViewportLocked .circlecontrols button,
+  body.mk-white.liveViewportLocked .circlecontrols .selected{height:34px!important}
+  body.mk-white.liveViewportLocked .bidbtn{height:39px!important;min-height:39px!important}
+  body.mk-white.liveViewportLocked .historyLink{min-height:17px!important}
+}
+
+/* LIVE-38 — agreed placement: vehicle name in LEFT details column, right auction card starts at the top. */
+body.mk-white .main>.liveVehicleTitle{
+  display:block!important;
+  margin:1px 0 4px!important;
+  padding:0!important;
+  height:auto!important;
+  min-height:0!important;
+  overflow:hidden!important;
+  color:#102a4b!important;
+  font-size:12px!important;
+  line-height:1.12!important;
+  font-weight:900!important;
+  white-space:normal!important;
+  text-overflow:clip!important;
+}
+body.mk-white.liveViewportLocked .main>.liveVehicleTitle{
+  font-size:11px!important;
+  line-height:12px!important;
+  margin:0 0 3px!important;
+  padding:0!important;
+  position:static!important;
+  width:auto!important;
+}
+body.mk-white.liveViewportLocked .bidcol{padding-top:0!important}
+body.mk-white.liveViewportLocked .bidcol>.liveVehicleTitle{display:none!important}
+
+
+/* LIVE-39 — final agreed alignment.
+   Vehicle name is part of the LEFT specs column (not a full-width row).
+   The RIGHT auction card begins at the same top line. */
+body.mk-white .specColumn>.liveVehicleTitle{
+  display:block!important;
+  margin:0 0 4px!important;
+  padding:0 1px 4px!important;
+  min-height:0!important;
+  height:auto!important;
+  color:#102a4b!important;
+  font-size:11px!important;
+  line-height:13px!important;
+  font-weight:850!important;
+  letter-spacing:-.1px!important;
+  white-space:normal!important;
+  overflow:hidden!important;
+  text-overflow:clip!important;
+  border-bottom:1px solid #edf1f6!important;
+}
+body.mk-white .main>.liveVehicleTitle{display:none!important}
+body.mk-white .auctionLower{align-items:start!important}
+body.mk-white .auctionLower>.bidcol{margin-top:0!important;padding-top:0!important}
+body.mk-white.liveViewportLocked .specColumn>.liveVehicleTitle{
+  font-size:10px!important;
+  line-height:11px!important;
+  margin:0 0 2px!important;
+  padding:0 1px 2px!important;
+}
+
+/* LIVE-40 — Variant 2: both columns finish on the same baseline above bid controls. */
+body.mk-white .auctionLower{
+  align-items:stretch!important;
+}
+body.mk-white .specColumn,
+body.mk-white .auctionLower>.bidcol{
+  align-self:stretch!important;
+  height:auto!important;
+}
+body.mk-white .specColumn{
+  display:flex!important;
+  flex-direction:column!important;
+}
+body.mk-white .specColumn .details{
+  flex:1 1 auto!important;
+  display:flex!important;
+  flex-direction:column!important;
+  justify-content:space-between!important;
+  min-height:0!important;
+}
+body.mk-white .auctionLower>.bidcol{
+  display:flex!important;
+  flex-direction:column!important;
+}
+body.mk-white .auctionLower>.bidcol .bidbox{
+  flex:1 1 auto!important;
+  display:flex!important;
+  flex-direction:column!important;
+  min-height:0!important;
+}
+body.mk-white .auctionLower>.bidcol .liveBidFeed{
+  margin-top:auto!important;
+}
+/* The history shortcut is intentionally removed in Variant 2. */
+body.mk-white #whiteHistory{display:none!important}
+/* LIVE-41: single sound control. The header bell is the only auction audio toggle. */
+body.mk-white .status .sound{display:none!important}
+body.mk-white .headerBell.soundOn{color:var(--green)!important}
+
+/* LIVE-42: exactly one sound control: header bell. */
+body.mk-white #whiteProfileSound{display:none!important}
+body.mk-white .status .sound{display:none!important}
+body.mk-white .headerBell{display:inline-flex!important;align-items:center!important;justify-content:center!important}
+body.mk-white .headerBell.soundOn{color:var(--green)!important}
+/* LIVE45 interactive markets map */
+#marketsScreen{background:#f8fbff!important}
+#marketsScreen .modernScreenHead{margin-bottom:8px}
+.marketMapWrap{position:relative;height:390px;margin:0 0 10px;border-radius:22px;background:#eef7ff;overflow:hidden;border:1px solid #dceaf7}
+.marketMapWrap:before{content:"";position:absolute;inset:18px;background:url('assets/world-map.svg') center/contain no-repeat;opacity:.45}
+.marketMapFallback{position:absolute;inset:22px;background:radial-gradient(ellipse at 28% 43%,#dcecf8 0 12%,transparent 13%),radial-gradient(ellipse at 52% 40%,#dcecf8 0 18%,transparent 19%),radial-gradient(ellipse at 74% 48%,#dcecf8 0 17%,transparent 18%),radial-gradient(ellipse at 31% 67%,#dcecf8 0 12%,transparent 13%),radial-gradient(ellipse at 82% 72%,#dcecf8 0 9%,transparent 10%)}
+.mapPin{position:absolute;transform:translate(-50%,-50%);border:0;background:transparent;padding:0;text-align:center;color:#10233d;z-index:2}.mapPin i{display:block;width:22px;height:22px;margin:auto;background:#8391a5;border-radius:50% 50% 50% 0;transform:rotate(-45deg);box-shadow:0 3px 8px #17304733}.mapPin.active i{width:29px;height:29px;background:#1689f5}.mapPin span{display:block;margin-top:8px;background:#fff;border-radius:10px;padding:5px 8px;box-shadow:0 4px 12px #17304718;font-size:10px;font-weight:850;white-space:nowrap}.mapPin small{display:block;color:#8997aa;font-size:8px;font-weight:600;margin-top:2px}.mapPin.active small{color:#10a957;font-weight:900}.marketSelectedCard{display:grid;grid-template-columns:112px 1fr auto;gap:13px;align-items:center;background:#fff;border:1px solid #dce6ef;border-radius:18px;padding:11px;margin-bottom:90px;box-shadow:0 5px 18px #1730470a}.marketSelectedCard img{width:112px;height:78px;object-fit:cover;border-radius:13px}.marketSelectedCard b{display:block;font-size:18px}.marketSelectedCard p{margin:5px 0 7px;color:#7c8ca0;font-size:11px}.marketSelectedCard em{display:inline-block;border-radius:999px;padding:5px 12px;font-size:11px;font-style:normal;font-weight:900;background:#edf1f6;color:#8794a5}.marketSelectedCard.live em{background:#12b95f;color:#fff}.marketSelectedCard .go{font-size:26px;color:#173653}
+@media(max-width:520px){.marketMapWrap{height:355px}.marketSelectedCard{grid-template-columns:95px 1fr auto}.marketSelectedCard img{width:95px;height:70px}.marketSelectedCard b{font-size:16px}}
+
+
+/* LIVE-46: Dubai LIVE beacon — soft green pulse only while this market is live. */
+.mapPin.livePin{z-index:4}
+.mapPin.livePin i{position:relative;width:29px;height:29px;background:#12b95f!important;box-shadow:0 0 0 0 rgba(18,185,95,.32),0 4px 12px rgba(18,185,95,.24)!important;animation:mkMarketLiveBeacon 1.65s ease-out infinite}
+.mapPin.livePin span{border:1px solid rgba(18,185,95,.18);box-shadow:0 5px 16px rgba(18,185,95,.13)}
+.mapPin.livePin small{color:#0ca654!important;font-weight:950!important;animation:mkMarketLiveText 1.65s ease-in-out infinite}
+@keyframes mkMarketLiveBeacon{0%{box-shadow:0 0 0 0 rgba(18,185,95,.38),0 4px 12px rgba(18,185,95,.25)}65%{box-shadow:0 0 0 16px rgba(18,185,95,0),0 4px 12px rgba(18,185,95,.18)}100%{box-shadow:0 0 0 0 rgba(18,185,95,0),0 4px 12px rgba(18,185,95,.25)}}
+@keyframes mkMarketLiveText{0%,100%{opacity:1}50%{opacity:.48}}
+@media(prefers-reduced-motion:reduce){.mapPin.livePin i,.mapPin.livePin small{animation:none!important}}
+
+/* FINAL-47: approved realistic world-map layout. Only the markets screen is changed. */
+#marketsScreen{background:#f8fbff!important}
+#marketsScreen .modernScreenHead{margin-bottom:6px!important}
+.marketMapWrap{
+  position:relative!important;
+  height:min(54vh,500px)!important;
+  min-height:410px!important;
+  margin:0!important;
+  border:0!important;
+  border-radius:0!important;
+  overflow:hidden!important;
+  background:#dff1ff url('assets/world-map-approved.jpg') center center/cover no-repeat!important;
+}
+.marketMapWrap:before,.marketMapFallback{display:none!important}
+/* Labels/pins are already part of the approved map artwork. Keep invisible hit areas for selection. */
+.mapPin{width:88px!important;height:70px!important;transform:translate(-50%,-50%)!important;opacity:0!important;z-index:5!important}
+.mapPin i,.mapPin span{display:none!important}
+/* Dubai gets the only animated LIVE beacon, matching the approved green impulse. */
+.mapPin.livePin{opacity:1!important;width:54px!important;height:54px!important;left:55%!important;top:67%!important;pointer-events:auto!important}
+.mapPin.livePin:before,.mapPin.livePin:after{content:"";position:absolute;left:50%;top:50%;width:20px;height:20px;border:3px solid rgba(17,190,93,.78);border-radius:50%;transform:translate(-50%,-50%) scale(.5);animation:mkApprovedPulse 1.65s ease-out infinite;box-shadow:0 0 18px rgba(17,190,93,.5)}
+.mapPin.livePin:after{animation-delay:.55s}
+.mapPin.livePin i{display:block!important;position:absolute!important;left:50%!important;top:50%!important;width:22px!important;height:22px!important;margin:0!important;background:#10b85c!important;border-radius:50% 50% 50% 0!important;transform:translate(-50%,-62%) rotate(-45deg)!important;box-shadow:0 0 18px rgba(17,190,93,.8)!important;animation:none!important}
+.mapPin.livePin span{display:none!important}
+@keyframes mkApprovedPulse{0%{opacity:.9;transform:translate(-50%,-50%) scale(.45)}70%{opacity:0;transform:translate(-50%,-50%) scale(3.2)}100%{opacity:0;transform:translate(-50%,-50%) scale(3.2)}}
+#marketSelected{position:relative!important;z-index:8!important;margin-top:-1px!important}
+.marketSelectedCard{position:relative!important;display:grid!important;grid-template-columns:118px 1fr 22px!important;gap:12px!important;align-items:center!important;margin:0 0 88px!important;padding:16px 18px 82px!important;border:0!important;border-radius:28px 28px 0 0!important;background:#fff!important;box-shadow:0 -5px 18px rgba(23,48,71,.08)!important;min-height:188px!important}
+.marketSelectedCard:before{content:"";position:absolute;top:9px;left:50%;width:48px;height:5px;border-radius:4px;background:#d8dde5;transform:translateX(-50%)}
+.marketSelectedCard img{width:118px!important;height:92px!important;object-fit:cover!important;border-radius:14px!important}
+.marketSelectedCard b{font-size:19px!important;line-height:1.15!important;color:#0c2041!important}
+.marketSelectedCard p{font-size:12px!important;line-height:1.35!important;margin:6px 0 8px!important;color:#8492a8!important}
+.marketSelectedCard em{font-size:12px!important;padding:5px 13px!important;background:#12b95f!important;color:#fff!important}
+.marketSelectedCard .go{font-size:27px!important;color:#0c2041!important}
+.marketSelectedCard:after{content:"Реальные лоты   ·   Проверенные продавцы   ·   Международная доставка";position:absolute;left:18px;right:18px;bottom:18px;padding:12px 8px;border:1px solid #e3eaf2;border-radius:13px;text-align:center;font-size:10px;font-weight:800;line-height:1.35;color:#173653;background:#fff}
+@media(max-width:520px){.marketMapWrap{height:50vh!important;min-height:390px!important}.marketSelectedCard{grid-template-columns:105px 1fr 18px!important;padding:15px 14px 76px!important}.marketSelectedCard img{width:105px!important;height:84px!important}.marketSelectedCard b{font-size:17px!important}}
+@media(prefers-reduced-motion:reduce){.mapPin.livePin:before,.mapPin.livePin:after{animation:none!important;opacity:.35!important;transform:translate(-50%,-50%) scale(1.6)!important}}
+
+/* FINAL-48 — robust approved map: real image element + white compact Dubai sheet. */
+.marketMapWrap{background:#dff1ff!important;}
+.marketMapWrap>.approvedMapImage{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;object-fit:cover!important;display:block!important;z-index:0!important;user-select:none!important;-webkit-user-drag:none!important;pointer-events:none!important}
+.marketMapWrap>.marketMapFallback{display:none!important}
+.mapPin{z-index:4!important}
+.mapPin.livePin{z-index:6!important}
+#marketSelected{background:#fff!important}
+.marketSelectedCard,.marketSelectedCard.live{display:block!important;background:#fff!important;color:#0c2041!important;border:0!important;border-radius:28px 28px 0 0!important;padding:26px 18px 18px!important;margin:0 0 82px!important;min-height:0!important;box-shadow:0 -5px 18px rgba(23,48,71,.08)!important}
+.marketSelectedCard:before{content:""!important;position:absolute!important;top:9px!important;left:50%!important;width:48px!important;height:5px!important;border-radius:4px!important;background:#d8dde5!important;transform:translateX(-50%)!important}
+.marketSelectedCard:after{display:none!important;content:none!important}
+.marketSelectedCard .marketMain{display:grid!important;grid-template-columns:118px minmax(0,1fr) 22px!important;gap:13px!important;align-items:center!important}
+.marketSelectedCard .marketMain>img{width:118px!important;height:92px!important;object-fit:cover!important;border-radius:14px!important}
+.marketSelectedCard .marketCopy b{display:block!important;font-size:19px!important;line-height:1.15!important;color:#0c2041!important}
+.marketSelectedCard .marketCopy p{margin:6px 0 8px!important;color:#8492a8!important;font-size:12px!important;line-height:1.35!important}
+.marketSelectedCard .marketCopy em{display:inline-block!important;border-radius:999px!important;padding:5px 13px!important;background:#12b95f!important;color:#fff!important;font-size:12px!important;font-style:normal!important;font-weight:900!important}
+.marketSelectedCard .go{font-size:27px!important;color:#0c2041!important}
+.marketBenefits{display:grid!important;grid-template-columns:repeat(3,1fr)!important;margin-top:14px!important;border:1px solid #e3eaf2!important;border-radius:13px!important;overflow:hidden!important;background:#fff!important}
+.marketBenefits>div{display:grid!important;grid-template-columns:25px 1fr!important;column-gap:7px!important;padding:11px 9px!important;border-right:1px solid #e8edf3!important;align-items:center!important}
+.marketBenefits>div:last-child{border-right:0!important}.marketBenefits strong{grid-row:1/3!important;font-size:20px!important;color:#0c2041!important}.marketBenefits b{font-size:10px!important;line-height:1.15!important;color:#0c2041!important}.marketBenefits small{font-size:8px!important;line-height:1.15!important;color:#8795a9!important;margin-top:3px!important}
+@media(max-width:520px){.marketSelectedCard{padding:25px 14px 15px!important}.marketSelectedCard .marketMain{grid-template-columns:105px minmax(0,1fr) 18px!important}.marketSelectedCard .marketMain>img{width:105px!important;height:84px!important}.marketSelectedCard .marketCopy b{font-size:17px!important}.marketBenefits>div{grid-template-columns:20px 1fr!important;padding:9px 6px!important}.marketBenefits strong{font-size:17px!important}.marketBenefits b{font-size:9px!important}.marketBenefits small{font-size:7px!important}}
+/* FINAL-51: admin draft lot management */
+body.mk-white .adminLotCard{cursor:pointer;transition:transform .12s ease,box-shadow .12s ease}body.mk-white .adminLotCard:active{transform:scale(.985)}
+.adminLotManageOverlay{position:fixed;inset:0;background:#07131f99;backdrop-filter:blur(5px);z-index:110;display:none}.adminLotManageOverlay.open{display:block}.adminLotManageSheet{position:absolute;left:0;right:0;bottom:0;max-width:760px;margin:auto;background:#f8fbff;border-radius:26px 26px 0 0;padding-bottom:calc(18px + env(safe-area-inset-bottom));box-shadow:0 -18px 60px #0005}.adminLotManageBody{padding:12px 16px 18px}.adminLotManagePic{display:block;width:100%;height:150px;object-fit:cover;border-radius:15px;background:#e9eff5;margin-bottom:12px}.adminLotManagePic[src=""]{display:none}.adminLotManageTitle{font-size:17px;font-weight:950;color:#102a43;line-height:1.2}.adminLotManageMeta{font-size:11px;color:#718398;margin-top:5px}.adminLotManageStatus{display:inline-block;margin:10px 0 14px;padding:5px 9px;border-radius:8px;background:#eaf1f8;color:#526a80;font-size:10px;font-weight:950;text-transform:uppercase}.adminLotManageStatus.live{background:#d9f8e7;color:#08743d}.adminLotManageStatus.scheduled{background:#ddebff;color:#0a63ba}.adminLotAction{display:block;width:100%;border:0;border-radius:13px;padding:13px 12px;margin-top:8px;font-size:12px;font-weight:950;cursor:pointer}.adminLotAction.live{background:#12a862;color:#fff}.adminLotAction.schedule{background:#eaf3ff;color:#0876df;border:1px solid #bcd8f5}.adminLotAction:disabled{opacity:.55;cursor:default}
+
+/* FINAL-53 VIN import */
+body.mk-white .adminLotsTop{display:grid;grid-template-columns:1fr 1fr auto;gap:8px}
+body.mk-white #adminVinImportBtn{border:1px solid #b9d7f6;background:#eef7ff;color:#0876df;border-radius:12px;font-size:11px;font-weight:950;padding:11px 9px;cursor:pointer}
+.adminVinOverlay{position:fixed;inset:0;background:#07131f99;backdrop-filter:blur(5px);z-index:115;display:none}.adminVinOverlay.open{display:block}.adminVinSheet{position:absolute;left:0;right:0;bottom:0;max-width:760px;margin:auto;background:#f8fbff;border-radius:26px 26px 0 0;padding-bottom:calc(18px + env(safe-area-inset-bottom));box-shadow:0 -18px 60px #0005}.adminVinBody{padding:14px 16px 20px}.adminVinPreview{margin-top:12px;padding:14px;border:1px solid #dbe8f4;border-radius:16px;background:#fff}.adminVinBadge{display:inline-block;background:#fff0d7;color:#b96a00;border:1px solid #ffd59a;border-radius:999px;padding:4px 9px;font-size:9px;font-weight:950}.adminVinTitle{font-size:18px;font-weight:950;color:#102a43;margin-top:9px}.adminVinSource{font-size:10px;color:#718398;margin-top:3px}.adminVinGrid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:12px 0}.adminVinGrid div{padding:9px;background:#f4f8fc;border-radius:10px}.adminVinGrid b{display:block;font-size:9px;color:#8192a5;text-transform:uppercase}.adminVinGrid span{display:block;margin-top:2px;font-size:11px;font-weight:850;color:#213a51}.adminVinMissing{font-size:10px;line-height:1.45;color:#6f8193;margin:8px 0 12px}
+/* FINAL-54: VIN import is intentionally a full-width second action row so it is always visible on iPhone. */
+body.mk-white .adminLotsTop{display:grid!important;grid-template-columns:1fr 54px!important;gap:8px!important;padding:12px 16px 6px!important}
+body.mk-white #adminAddLotBtn{grid-column:1;grid-row:1;min-height:44px}
+body.mk-white #adminLotsReload{grid-column:2;grid-row:1;min-width:54px;min-height:44px}
+body.mk-white #adminVinImportBtn{grid-column:1 / -1;grid-row:2;min-height:44px!important;width:100%;font-size:12px!important;background:#fff!important;border:2px solid #1687ff!important;color:#0876df!important;box-shadow:none!important}
+body.mk-white #adminVinImportBtn:active{background:#eaf4ff!important}
+body.mk-white .adminVinSheet{background:#f8fbff}
+body.mk-white .adminVinBody{padding:16px}
+body.mk-white .adminVinBody:before{content:'VIN → поиск → Preview → следующий LOT';display:block;margin:0 0 12px;padding:10px 12px;border-radius:12px;background:#eef6ff;color:#58738c;font-size:10px;font-weight:800;text-align:center}
+body.mk-white #adminVinFind{min-height:48px;border-radius:13px;font-size:13px}
+body.mk-white .adminVinPreview{border-radius:18px;padding:15px}
+body.mk-white .adminVinBadge{background:#fff2c8;color:#8b6500;border-color:#ffe08a}
+body.mk-white #adminVinAdd{width:100%;min-height:48px;border-radius:13px;background:#1687ff;color:#fff;border:0;font-weight:950}
+/* FINAL-61: only My Bids -> My Cars */
+body.mk-white .myCarTabs{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px!important}
+body.mk-white .myCarTabs button{white-space:normal!important;line-height:1.15!important;min-height:42px!important}
+
+/* FINAL-67 admin client profile */
+.adminClientProfileOverlay{position:fixed;inset:0;z-index:130;background:#f8fbff;display:none;overflow-y:auto;-webkit-overflow-scrolling:touch}.adminClientProfileOverlay.open{display:block}.adminClientProfileSheet{max-width:760px;margin:0 auto;min-height:100%;padding:calc(12px + env(safe-area-inset-top)) 16px calc(90px + env(safe-area-inset-bottom));background:#f8fbff}.adminClientProfileHead{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:8px;padding:8px 0 18px;border-bottom:1px solid #e2eaf2}.adminClientProfileHead b{text-align:center;font-size:17px;color:#102a43}.adminClientProfileHead button{border:0;background:transparent;color:#0876df;font-weight:800;font-size:12px;padding:10px 4px}.adminClientProfileHero{display:grid;grid-template-columns:70px 1fr auto;gap:12px;align-items:center;padding:18px 0}.adminClientProfileAvatar{width:70px;height:70px;border-radius:50%;display:grid;place-items:center;background:#e6f2ff;color:#126fd1;font-size:25px;font-weight:950}.adminClientProfileIdentity{display:flex;flex-direction:column;gap:3px;min-width:0}.adminClientProfileIdentity strong{font-size:18px;color:#102a43}.adminClientProfileIdentity span{font-size:11px;color:#718398}.adminClientProfileStatus{align-self:start;padding:6px 10px;border-radius:999px;font-size:9px;font-weight:950;background:#fff0c8;color:#8a6500}.adminClientProfileStatus.active{background:#d9f8e7;color:#08743d}.adminClientProfileStatus.blocked{background:#ffe2e2;color:#b31e2a}.adminClientProfileStats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.adminClientProfileStats>div,.adminClientProfileMoney>div{background:#fff;border:1px solid #dfe8f1;border-radius:13px;padding:13px 8px;text-align:center}.adminClientProfileStats b,.adminClientProfileMoney b{display:block;font-size:18px;color:#102a43}.adminClientProfileStats span,.adminClientProfileMoney span{display:block;margin-top:3px;font-size:9px;color:#718398}.adminClientProfileMoney{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}.adminClientProfileTabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:14px 0 10px}.adminClientProfileTabs button{border:0;border-radius:10px;background:#eaf1f8;color:#526a80;min-height:40px;font-size:10px;font-weight:850}.adminClientProfileTabs button.active{background:#1687ff;color:#fff}.adminClientProfileContent{background:#fff;border:1px solid #dfe8f1;border-radius:14px;min-height:150px;padding:12px}.adminClientEmpty{text-align:center;color:#8a9aac;font-size:11px;padding:38px 10px}.adminClientHistoryRow{padding:12px 4px;border-bottom:1px solid #e8eef4}.adminClientHistoryRow:last-child{border-bottom:0}.adminClientHistoryRow b{display:block;font-size:11px;color:#18334d}.adminClientHistoryRow span{display:block;margin-top:4px;font-size:10px;color:#718398}@media(max-width:390px){.adminClientProfileSheet{padding-left:12px;padding-right:12px}.adminClientProfileHero{grid-template-columns:58px 1fr auto}.adminClientProfileAvatar{width:58px;height:58px}.adminClientProfileHead b{font-size:15px}}
+html,body{touch-action:pan-y;-webkit-text-size-adjust:100%;overscroll-behavior:none}button,a,[role="button"]{touch-action:manipulation}
+
+/* FINAL-70 weekly lot schedule */
+body.mk-white .adminWeekFilter{display:flex;gap:6px;overflow-x:auto;padding:8px 16px 4px;scrollbar-width:none}body.mk-white .adminWeekFilter::-webkit-scrollbar{display:none}body.mk-white .adminWeekFilter button{flex:0 0 auto;min-width:44px;border:1px solid #cfe0f0;background:#edf4fb;color:#536b82;border-radius:10px;padding:9px 10px;font-weight:900;font-size:12px}body.mk-white .adminWeekFilter button.active{background:#1688ff;color:#fff;border-color:#1688ff}body.mk-white .adminDayPicker{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-top:7px}body.mk-white .adminDayPicker button{border:1px solid #d5e2ef;background:#eef4fa;color:#526b82;border-radius:9px;min-height:38px;font-weight:900;font-size:11px}body.mk-white .adminDayPicker button.active{background:#1688ff;color:#fff;border-color:#1688ff}body.mk-white .adminLotDay{display:inline-flex;align-items:center;margin-top:4px;padding:3px 7px;border-radius:7px;background:#eef4fa;color:#587087;font-size:9px;font-weight:900}body.mk-white .adminLotsTop{grid-template-columns:1fr 54px!important}
+
+/* FINAL-71 weekly lot scheduler */
+body.mk-white .adminWeekTitle{padding:10px 16px 0;font-size:11px;font-weight:950;color:#60758a;text-transform:uppercase;letter-spacing:.02em}
+body.mk-white .adminStatusFilter{display:flex;gap:6px;overflow-x:auto;padding:6px 16px 8px;scrollbar-width:none}
+body.mk-white .adminStatusFilter::-webkit-scrollbar{display:none}
+body.mk-white .adminStatusFilter button{flex:0 0 auto;border:1px solid #d5e2ef;background:#f3f7fb;color:#536b82;border-radius:10px;padding:8px 11px;font-weight:900;font-size:11px}
+body.mk-white .adminStatusFilter button.active{background:#1688ff;color:#fff;border-color:#1688ff}
+body.mk-white #adminLotsView .adminLotSearchRow{grid-template-columns:1fr!important}
+body.mk-white #adminVinImportBtn,.adminVinOverlay{display:none!important}
+.adminDayCapacity{margin:8px 0 10px;padding:10px 12px;border-radius:12px;background:#eef6ff;color:#315777;font-weight:800;font-size:13px;text-align:center}.adminLotDay{display:inline-block;margin-top:5px;padding:3px 7px;border-radius:8px;background:#eef6ff;color:#2376c9;font-weight:800;font-size:11px}
+/* GALAXY AUCTIONS — approved brand header */
+body.mk-white header .galaxyBrand{display:flex!important;align-items:center!important;min-width:0!important;flex:1!important;height:42px!important;overflow:hidden!important}
+body.mk-white header .galaxyBrand img{display:block!important;width:auto!important;height:32px!important;max-width:220px!important;object-fit:contain!important;object-position:left center!important}
+body.mk-white header .buildBadge,body.mk-white header .live{display:none!important}
+body.mk-white .homeTop .galaxyHomeBrand{display:flex!important;align-items:center!important;height:38px!important;max-width:250px!important;overflow:hidden!important}
+body.mk-white .homeTop .galaxyHomeBrand img{display:block!important;width:auto!important;height:34px!important;max-width:240px!important;object-fit:contain!important;object-position:left center!important}
+@media(max-width:520px){body.mk-white header .galaxyBrand img{height:27px!important;max-width:190px!important}body.mk-white .homeTop .galaxyHomeBrand img{height:29px!important;max-width:205px!important}}
+body.mk-white .screenBrand .galaxyScreenBrand{display:flex!important;align-items:center!important;height:34px!important;max-width:230px!important;overflow:hidden!important}
+body.mk-white .screenBrand .galaxyScreenBrand img{display:block!important;width:auto!important;height:30px!important;max-width:220px!important;object-fit:contain!important;object-position:left center!important}
+/* Full-height Copart-style lots sheet */
+body.mk-white .catalogOverlay.open{display:flex!important;align-items:flex-end!important}
+body.mk-white .catalogSheet{height:min(86vh,760px)!important;max-height:86vh!important;display:flex!important;flex-direction:column!important;border-radius:24px 24px 0 0!important}
+body.mk-white #catalogList{flex:1!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch!important;padding-bottom:calc(90px + env(safe-area-inset-bottom))!important}
+
+/* FINAL-77: enlarge Galaxy Auctions branding only; no layout/logic changes */
+body.mk-white header .galaxyBrand{height:50px!important;max-width:330px!important}
+body.mk-white header .galaxyBrand img{height:44px!important;max-width:320px!important}
+body.mk-white .homeTop .galaxyHomeBrand{height:48px!important;max-width:330px!important}
+body.mk-white .homeTop .galaxyHomeBrand img{height:43px!important;max-width:320px!important}
+body.mk-white .screenBrand .galaxyScreenBrand{height:46px!important;max-width:320px!important}
+body.mk-white .screenBrand .galaxyScreenBrand img{height:41px!important;max-width:310px!important}
+@media(max-width:520px){
+ body.mk-white header .galaxyBrand img{height:39px!important;max-width:285px!important}
+ body.mk-white .homeTop .galaxyHomeBrand img{height:39px!important;max-width:285px!important}
+ body.mk-white .screenBrand .galaxyScreenBrand img{height:38px!important;max-width:280px!important}
+}
+
+/* FINAL-79: native share button for the current vehicle */
+body.mk-white .lotShareBtn{position:absolute;z-index:8;top:10px;right:10px;width:44px;height:44px;border:1px solid rgba(214,224,236,.95);border-radius:11px;background:rgba(255,255,255,.94);color:#1677df;display:grid;place-items:center;box-shadow:0 2px 9px rgba(16,35,61,.12);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);padding:0}
+body.mk-white .lotShareBtn svg{width:23px;height:23px}
+body.mk-white .lotShareBtn:active{transform:scale(.96);background:#eef7ff}

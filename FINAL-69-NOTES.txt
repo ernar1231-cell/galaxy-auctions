@@ -1,0 +1,11 @@
+FINAL-69 — Admin Lot Manager
+- Admin > Lots: search + status filter.
+- Existing LOT opens editor.
+- Save vehicle fields and status.
+- Explicit Draft / Upcoming / Live / Sold / Archived states.
+- Start selected LOT live from admin.
+- Archive removes LOT from customer list while preserving history.
+- Delete is blocked for SOLD lots and lots with bids.
+- Original LOT #001–#015 are seeded into auction_lots on first Admin > Lots load so admin can manage them too.
+- Live sequence follows managed Upcoming lots instead of hard-coded 1→15 progression.
+- Client profile / Owner-Admin permissions / VIN import remain in place.

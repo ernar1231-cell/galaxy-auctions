@@ -1,0 +1,1 @@
+FINAL-71: VIN Import removed from Admin > Lots. Added visible weekday filter All/Mon-Sun and status chips. Add/Edit lot keeps auction weekday picker.

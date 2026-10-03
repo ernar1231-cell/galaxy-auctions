@@ -1,0 +1,6 @@
+FINAL-74
+- Live header no longer shows public LOT number; shows current Dubai auction weekday.
+- Live position shows Position X of 50.
+- Client Lots button opens only today's active weekday queue, not all historical lots.
+- Today's catalog header shows weekday and count /50.
+- Internal LOT number remains unchanged in admin/database.

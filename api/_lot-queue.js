@@ -1,0 +1,9 @@
+const DAYS=['mon','tue','wed','thu','fri','sat','sun'];
+function dayFromDescription(v){const m=String(v||'').match(/\[\[auction_day:(mon|tue|wed|thu|fri|sat|sun)\]\]/i);return m?m[1].toLowerCase():null}
+function cleanDescription(v){return String(v||'').replace(/\n?\[\[auction_day:(?:mon|tue|wed|thu|fri|sat|sun)\]\]/gi,'').trim()}
+function withDay(desc,day){const d=DAYS.includes(String(day||'').toLowerCase())?String(day).toLowerCase():null;return ([cleanDescription(desc),d?`[[auction_day:${d}]]`:'' ].filter(Boolean).join('\n'))||null}
+async function allLots(sf){const r=await sf('auction_lots?select=id,lot_number,status,description,sort_order&order=sort_order.asc,lot_number.asc');if(!r.ok)throw new Error('Could not load lot queue');return await r.json()||[]}
+async function reindexDay(sf,day){if(!DAYS.includes(day))return;const rows=(await allLots(sf)).filter(x=>dayFromDescription(x.description)===day&&String(x.status||'draft').toLowerCase()!=='archived').sort((a,b)=>(Number(a.sort_order)||9999)-(Number(b.sort_order)||9999)||(Number(a.lot_number)||0)-(Number(b.lot_number)||0));for(let i=0;i<rows.length;i++){if(Number(rows[i].sort_order)!==i+1)await sf(`auction_lots?id=eq.${encodeURIComponent(rows[i].id)}`,{method:'PATCH',body:JSON.stringify({sort_order:i+1})})}return rows.length}
+async function nextPosition(sf,day){await reindexDay(sf,day);const rows=await allLots(sf);return rows.filter(x=>dayFromDescription(x.description)===day&&String(x.status||'draft').toLowerCase()!=='archived').length+1}
+async function nextLotNumber(sf){const r=await sf('auction_lots?select=lot_number&order=lot_number.desc&limit=1');if(!r.ok)throw new Error('Could not calculate LOT number');const rows=await r.json()||[];return (Number(rows[0]?.lot_number)||0)+1}
+module.exports={DAYS,dayFromDescription,cleanDescription,withDay,reindexDay,nextPosition,nextLotNumber};

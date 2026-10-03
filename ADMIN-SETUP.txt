@@ -1,0 +1,46 @@
+MK AUCTION — ADMIN STEP 3 SETUP
+
+Before admin panel and protected bidding work, set these Vercel Environment Variables in the deployed project:
+
+1) TELEGRAM_BOT_TOKEN
+   Your Telegram bot token from BotFather.
+   Keep it secret. Never put it in index.html.
+
+2) SUPABASE_SERVICE_ROLE_KEY
+   Supabase Dashboard -> Project Settings -> API Keys -> service_role / secret key.
+   Keep it secret. Never expose it to clients.
+
+3) SUPABASE_URL (optional)
+   https://exfxcgiuotraszeqefha.supabase.co
+   The API code already uses this as fallback.
+
+After setting env vars, redeploy the same ZIP/project.
+
+Admin access is checked server-side:
+- Telegram Mini App initData signature is verified with TELEGRAM_BOT_TOKEN.
+- The verified Telegram ID must have auction_users.is_admin = true.
+- Only then can /api/admin-users and /api/admin-update work.
+
+Protected bidding:
+- user must be ACTIVE
+- bid_limit must be > 0
+- next bid cannot exceed bid_limit
+- BLOCKED users cannot bid
+- Telegram initData is verified server-side
+
+OWNER / ADMIN ROLES (FINAL-63)
+4) OWNER_TELEGRAM_ID (required for owner controls)
+   Set this to YOUR numeric Telegram ID in Vercel Environment Variables.
+   For multiple owners, use OWNER_TELEGRAM_IDS with comma-separated numeric IDs.
+
+Security behavior:
+- Admin button visibility is now confirmed by /api/admin-access after Telegram signature verification.
+- Owner is defined only by OWNER_TELEGRAM_ID(S), never by client-side UI.
+- Only Owner can grant/revoke auction_users.is_admin from the client editor.
+- All admin APIs still verify Telegram initData and server-side admin rights.
+
+IMPORTANT ONE-TIME CLEANUP if old builds accidentally marked every user as admin:
+Run in Supabase SQL Editor once, replacing YOUR_TELEGRAM_ID:
+  update auction_users set is_admin = false;
+  update auction_users set is_admin = true where telegram_id = 'YOUR_TELEGRAM_ID';
+After that, use Owner -> Clients -> user -> "НАЗНАЧИТЬ АДМИНОМ".

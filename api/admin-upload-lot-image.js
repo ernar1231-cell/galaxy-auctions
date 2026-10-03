@@ -1,0 +1,20 @@
+const crypto = require('crypto');
+function verifyTelegram(initData, botToken){
+  const token=String(botToken||'').trim(),raw=String(initData||'');if(!token)return {ok:false,error:'Server bot token missing'};if(!raw)return {ok:false,error:'Telegram initData missing'};
+  const p=new URLSearchParams(raw),hash=p.get('hash');if(!hash)return {ok:false,error:'Telegram hash missing'};p.delete('hash');const data=[...p.entries()].sort(([a],[b])=>a.localeCompare(b)).map(([k,v])=>`${k}=${v}`).join('\n');const secret=crypto.createHmac('sha256','WebAppData').update(token).digest();const calc=crypto.createHmac('sha256',secret).update(data).digest('hex');
+  try{const a=Buffer.from(calc,'hex'),bb=Buffer.from(hash,'hex');if(a.length!==bb.length||!crypto.timingSafeEqual(a,bb))return {ok:false,error:'Telegram signature mismatch'};}catch{return {ok:false,error:'Telegram signature check failed'};}
+  const auth=Number(p.get('auth_date')||0),age=Math.floor(Date.now()/1000)-auth;if(!auth)return {ok:false,error:'Telegram auth_date missing'};if(age>604800)return {ok:false,error:'Telegram session expired. Close and reopen Mini App'};try{const user=JSON.parse(p.get('user')||'null');if(!user?.id)return {ok:false,error:'Telegram user missing'};return {ok:true,user};}catch{return {ok:false,error:'Telegram user data invalid'};}
+}
+const base=()=>String(process.env.SUPABASE_URL||'https://exfxcgiuotraszeqefha.supabase.co').replace(/\/$/,'');const key=()=>process.env.SUPABASE_SERVICE_ROLE_KEY;
+async function rest(path,opts={}){const k=key();if(!k)throw new Error('SUPABASE_SERVICE_ROLE_KEY is not configured');return fetch(base()+'/rest/v1/'+path,{...opts,headers:{apikey:k,Authorization:`Bearer ${k}`,'Content-Type':'application/json',...(opts.headers||{})}})}
+async function requireAdmin(user){const r=await rest(`auction_users?telegram_id=eq.${encodeURIComponent(String(user.id))}&is_admin=eq.true&select=telegram_id`);const a=await r.json();return r.ok&&a?.length;}
+module.exports=async(req,res)=>{
+  if(req.method!=='POST')return res.status(405).json({error:'Method not allowed'});const vr=verifyTelegram(req.body?.initData,process.env.TELEGRAM_BOT_TOKEN);if(!vr.ok)return res.status(401).json({error:vr.error});
+  try{if(!await requireAdmin(vr.user))return res.status(403).json({error:'Admin access required'});const b=req.body||{},lotId=Number(b.lotId),lotNumber=Number(b.lotNumber),dataUrl=String(b.dataUrl||'');if(!Number.isInteger(lotId)||lotId<1||!dataUrl.startsWith('data:image/'))return res.status(400).json({error:'Invalid image data'});
+    const m=dataUrl.match(/^data:(image\/(?:jpeg|png|webp));base64,(.+)$/);if(!m)return res.status(400).json({error:'Only JPEG, PNG or WEBP images are allowed'});const mime=m[1],buf=Buffer.from(m[2],'base64');if(buf.length>10*1024*1024)return res.status(413).json({error:'Image is larger than 10 MB'});
+    const ext=mime==='image/png'?'png':mime==='image/webp'?'webp':'jpg';const safeLot=Number.isFinite(lotNumber)?String(lotNumber).padStart(3,'0'):String(lotId);const path=`lot-${safeLot}/${Date.now()}-${crypto.randomBytes(5).toString('hex')}.${ext}`;const k=key();
+    const up=await fetch(base()+'/storage/v1/object/lot-images/'+path,{method:'POST',headers:{apikey:k,Authorization:`Bearer ${k}`,'Content-Type':mime,'x-upsert':'false'},body:buf});if(!up.ok){const t=await up.text();throw new Error('Image upload failed: '+t)}
+    const imageUrl=base()+'/storage/v1/object/public/lot-images/'+path;const rec={lot_id:lotId,image_url:imageUrl,is_primary:!!b.isPrimary,sort_order:Number(b.sortOrder)||0};if(rec.is_primary){await rest(`auction_lot_images?lot_id=eq.${lotId}`,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({is_primary:false})});}
+    const ir=await rest('auction_lot_images',{method:'POST',headers:{Prefer:'return=representation'},body:JSON.stringify(rec)});const rows=await ir.json();if(!ir.ok)throw new Error(rows?.message||'Could not save image record');res.status(200).json({image:rows[0],imageUrl});
+  }catch(e){res.status(500).json({error:e.message});}
+};

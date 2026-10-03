@@ -1,0 +1,9 @@
+FINAL-73 — WEEKLY 50-SLOT QUEUES
+- 7 weekday queues, maximum 50 lots per day.
+- New lot receives next free position automatically (1/50 ... 50/50).
+- Global LOT # remains unique and is assigned automatically by server.
+- Delete/archive closes the gap and reindexes later positions automatically.
+- Moving a lot to another weekday reindexes both old and new weekday queues.
+- Admin weekday filter shows occupied count and next free position.
+- Live Auction uses only today's Dubai weekday queue and advances automatically.
+- Lots from other weekdays cannot hijack today's Live screen.

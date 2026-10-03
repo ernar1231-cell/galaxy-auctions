@@ -1,0 +1,6 @@
+FINAL-79
+- Added a Share button over the current auction vehicle photo.
+- Uses the native iOS/Android share sheet (WhatsApp, Telegram, Messages, Mail, Copy, etc.).
+- Each shared URL points to the exact lot using ?lot=<lot number>.
+- Opening a shared link opens that exact vehicle detail.
+- Favorites / My Auto behavior was not changed.

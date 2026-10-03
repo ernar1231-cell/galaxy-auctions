@@ -1,0 +1,7 @@
+FINAL-72
+- Live Auction now follows only the current weekday queue.
+- Lots assigned to another weekday cannot hijack today's main Live screen.
+- Today's lots run in ascending LOT/sort order: first -> second -> third automatically.
+- After SOLD, next lot for today becomes Live automatically; after the last one, screen waits.
+- New LOT number is assigned automatically in Add Auto; admin no longer types it.
+- Bid submission uses the real lot number (fix for dynamic LOT #16+).

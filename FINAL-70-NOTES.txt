@@ -1,0 +1,7 @@
+FINAL-70
+- Removed visible VIN/LOT import button from Admin > Lots.
+- Added weekly filters: All, Mon, Tue, Wed, Thu, Fri, Sat, Sun.
+- Added Auction Day selector when creating and editing a lot.
+- Auction day persists without requiring a database schema migration.
+- Existing lot manager/status controls preserved.
+- Client admin/profile, Owner/Admin permissions and Live Auction left unchanged.
