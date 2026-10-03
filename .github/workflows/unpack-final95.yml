@@ -1,0 +1,31 @@
+name: Unpack FINAL-95
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  unpack:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Unpack FINAL-95
+        shell: bash
+        run: |
+          ZIP="$(find . -maxdepth 1 -type f -iname '*.zip' | head -1)"
+          test -n "$ZIP"
+          echo "Unpacking: $ZIP"
+          unzip -o "$ZIP" -d .
+          rm -f "$ZIP"
+
+      - name: Commit unpacked project
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Unpack FINAL-95 project" || exit 0
+          git push
