@@ -676,6 +676,17 @@ body.mk-white .lotShareBtn{position:absolute;z-index:8;top:10px;right:10px;width
 body.mk-white .lotShareBtn svg{width:23px;height:23px}
 body.mk-white .lotShareBtn:active{transform:scale(.96);background:#eef7ff}
 
+/* Vehicle media: preserve the complete car and one normalized gallery everywhere. */
+body.mk-white .photoFrame .hero,body.mk-white .detailHero,body.mk-white .adminLotManagePic,
+body.mk-white .catalogItem>img,body.mk-white .queueItem>img,body.mk-white .myBidCard>img,
+body.mk-white .adminLotPic,body.mk-white .homeCarImg img{object-fit:contain!important;object-position:center center!important;background:#f3f6f9!important}
+body.mk-white .gallery img,body.mk-white .detailThumbs img{object-fit:contain!important;object-position:center center!important;background:#f3f6f9!important}
+body.mk-white .catalogItem{grid-template-columns:78px minmax(0,1fr) auto!important}
+body.mk-white .catalogActions{display:flex;flex-direction:column;gap:5px;align-items:center}
+body.mk-white .catalogActions button{width:34px!important;height:30px!important;border:0;border-radius:9px;background:#eef6ff;color:#1688f8;font-size:17px;line-height:1;padding:0}
+body.mk-white .adminLotManagePic{height:min(36vh,260px)!important}
+@media(max-width:520px){body.mk-white .catalogActions{flex-direction:row;gap:4px}body.mk-white .catalogActions button{width:32px!important;height:32px!important}body.mk-white .catalogItem{gap:8px!important}}
+
 @media(max-width:520px){
  body.mk-white .adminStatusFilter{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;padding:6px 12px 8px;overflow:visible}
  body.mk-white .adminStatusFilter button{width:100%;min-width:0;white-space:normal;line-height:1.15;padding:8px 5px;font-size:10px}

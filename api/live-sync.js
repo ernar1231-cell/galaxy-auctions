@@ -5,6 +5,7 @@ const {nextAuctionTime}=require('../auction-schedule');
 const LOT_SECONDS=10,BONUS_SECONDS=10,SOLD_SECONDS=2;
 function scheduledStart(state,now){return nextAuctionTime(state.status==='waiting'?(state.phase_started_at||state.updated_at||now):now)}
 async function activeLots(){const r=await sfetch('auction_lots?status=in.(upcoming,live)&select=id,lot_number,starting_bid,status,description,sort_order&order=sort_order.asc,lot_number.asc');if(!r.ok)return[];const rows=await r.json()||[];const now=Date.now();return rows.filter(x=>{const m=String(x.description||'').match(/\[\[retry_after:([^\]]+)\]\]/);return !m||Date.parse(m[1])<=now})}
+function orderedQueue(rows,state){const current=Number(state?.lot_id||0);if(state?.status!=='live'||!current)return rows.slice();const selected=rows.find(x=>Number(x.lot_number)===current);return selected?[selected,...rows.filter(x=>Number(x.lot_number)!==current)]:rows.slice();}
 async function setLotStatus(lotNumber,status,now){return sfetch(`auction_lots?lot_number=eq.${Number(lotNumber)}`,{method:'PATCH',body:JSON.stringify({status,updated_at:now})})}
 module.exports=async(req,res)=>{if(req.method!=='GET'&&req.method!=='POST')return res.status(405).json({error:'Method not allowed'});try{
  let r=await sfetch('auction_state?id=eq.1&select=*');let state=(await r.json())?.[0];if(!r.ok||!state)throw new Error('Auction state unavailable');
@@ -22,6 +23,7 @@ module.exports=async(req,res)=>{if(req.method!=='GET'&&req.method!=='POST')retur
  const lotId=Number(state.lot_id||0);r=await sfetch(`auction_bids?lot_id=eq.${lotId}&select=user_id,username,country,amount,created_at,id&order=id.desc&limit=4`);const bids=await r.json();
  let lot=null;if(lotId){const lr=await sfetch(`auction_lots?lot_number=eq.${lotId}&select=*,auction_lot_images(id,image_url,is_primary,sort_order)`);const rows=await lr.json();if(lr.ok&&rows?.[0]){lot=rows[0];const images=(lot.auction_lot_images||[]).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0));delete lot.auction_lot_images;lot.images=images;lot.primary_image=(images.find(x=>x.is_primary)||images[0])?.image_url||null;}}
  const sr=await sfetch('auction_lots?select=lot_number,status');const statusRows=sr.ok?await sr.json():[];const lotStatuses=Object.fromEntries((statusRows||[]).map(x=>[String(x.lot_number),x.status]));
- all=await activeLots();queue=all.slice(0,50);startAt=state.status==='waiting'?scheduledStart(state,nowIso):new Date(new Date(state.phase_started_at||nowIso).setUTCMinutes(0,0,0));
+ all=await activeLots();queue=orderedQueue(all,state).slice(0,50);startAt=state.status==='waiting'?scheduledStart(state,nowIso):new Date(new Date(state.phase_started_at||nowIso).setUTCMinutes(0,0,0));
  res.setHeader('Cache-Control','no-store, max-age=0');res.status(200).json({serverNow:nowIso,todayQueue:queue.map(x=>Number(x.lot_number)),startAt:startAt.toISOString(),canBid:state.status==='live',state,bids:Array.isArray(bids)?bids:[],lot,lotStatuses});
  }catch(e){res.status(500).json({error:e.message});}}
+module.exports.orderedQueue=orderedQueue;
