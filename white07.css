@@ -731,3 +731,8 @@ body.telegramLiveLaunch .modernScreen{display:none!important}
 body.mk-white .adminLotManagePic{display:block;width:100%!important;max-height:38dvh!important;aspect-ratio:16/10;object-fit:contain!important;background:#f2f6fa;border-radius:16px}
 body.mk-white .adminLotManageMeta{display:flex!important;flex-wrap:wrap;gap:6px!important;margin:6px 0 10px!important}.adminLotManageMeta span{padding:5px 8px;background:#f3f7fb;border-radius:8px;color:#536980;font-size:11px}
 body.mk-white .adminLotManageSheet{padding-bottom:calc(30px + env(safe-area-inset-bottom))!important}.adminLotDangerRow{margin-top:18px;padding-top:14px;border-top:1px solid #f2cbd0}
+body.mk-white .profileHeroCard .profileContacts{grid-column:2/4;display:grid;gap:5px;padding-top:9px;border-top:1px solid #edf2f7;color:#60738a;font-size:12px}
+body.mk-white .profileHeroCard .profileContacts b{color:#17283d}
+body.mk-white .profileIdentity em.inactive{background:#fff3df;color:#9a6500}
+body.mk-white button.profileCard{font:inherit;text-align:left;cursor:pointer}
+body.mk-white .profileSectionOverlay{position:fixed;inset:0;z-index:131;background:rgba(13,31,50,.4);display:none;align-items:flex-end}.profileSectionOverlay.open{display:flex}.profileSectionSheet{box-sizing:border-box;width:100%;min-height:240px;background:#fff;border-radius:22px 22px 0 0;padding:16px 16px calc(24px + env(safe-area-inset-bottom))}.profileSectionBody{padding:24px 8px;color:#61748a;line-height:1.55}.profileSectionBody strong{display:block;color:#17283d;font-size:18px;margin-bottom:8px}
