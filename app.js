@@ -149,7 +149,8 @@ async function fetchAuctionState(){
   applyAuctionState(data,true);
  }catch(e){console.warn("Auction state read",e.message)}
 }
-function upsertServerLot(l){if(!l)return;const no=String(l.lot_number).padStart(3,'0');const photos=(l.images||[]).map(x=>x.image_url).filter(Boolean);const q={no,title:[l.make,l.model,l.year].filter(Boolean).join(' '),price:Number(l.starting_bid||0),meta:[`${Number(l.mileage||0).toLocaleString()} km`,l.fuel||'—',l.transmission||'—',l.drive||'—'],photos:photos.length?photos:[l.primary_image].filter(Boolean),details:[["Specs",l.specs||'—'],["Engine",l.engine||'—'],["Interior",l.interior_color||'—'],["Exterior",l.exterior_color||'—'],["Seats",l.seats||'—'],["VIN",l.vin||'—']]};const idx=lots.findIndex(x=>Number(x.no)===Number(l.lot_number));if(idx>=0){if(!q.photos.length)q.photos=lots[idx].photos;if(q.meta.every(v=>v==='—'||v==='0 km'))q.meta=lots[idx].meta;lots[idx]=q;}else if(q.photos.length)lots.push(q);lots.sort((a,b)=>Number(a.no)-Number(b.no));}
+function normalizedPhotos(l){const seen=new Set();return [...(l.images||[]).sort((a,b)=>(Number(a.sort_order)||0)-(Number(b.sort_order)||0)).map(x=>x?.image_url),l.primary_image].filter(u=>{u=String(u||'').trim();if(!u||seen.has(u))return false;seen.add(u);return true;});}
+function upsertServerLot(l){if(!l)return;const no=String(l.lot_number).padStart(3,'0'),photos=normalizedPhotos(l);const q={id:l.id,no,title:[l.make,l.model,l.year].filter(Boolean).join(' '),price:Number(l.starting_bid||0),meta:[`${Number(l.mileage||0).toLocaleString()} km`,l.fuel||'—',l.transmission||'—',l.drive||'—'],photos,details:[["Specs",l.specs||'—'],["Engine",l.engine||'—'],["Interior",l.interior_color||'—'],["Exterior",l.exterior_color||'—'],["Seats",l.seats||'—'],["VIN",l.vin||'—']]};const idx=lots.findIndex(x=>String(x.id||'')===String(l.id||'')||Number(x.no)===Number(l.lot_number));if(idx>=0){if(!q.photos.length)q.photos=lots[idx].photos;if(q.meta.every(v=>v==='—'||v==='0 km'))q.meta=lots[idx].meta;lots[idx]={...lots[idx],...q};}else lots.push(q);}
 function applyAuctionState(row,forceRender=false){
  if(!row)return;
  const incomingAudioKey=String(row.lot_id||1)+"|"+String(row.phase||"red")+"|"+String(row.phase_started_at||"");
@@ -235,11 +236,11 @@ function auctionDateLabel(){return GalaxySchedule.formatAuctionTime(galaxyStartA
 function lotCountLabel(count){return GalaxySchedule.pluralizeLots(count)}
 function renderCatalog(){
  const root=$("catalogList"); if(!root)return;
- const allowed=new Set(liveTodayQueue.map(Number));
- const rows=lots.map((q,idx)=>({q,idx})).filter(({q})=>allowed.has(Number(q.no))&&String(managedLotStatuses[String(Number(q.no))]||"").toLowerCase()!=="archived"&&String(managedLotStatuses[String(Number(q.no))]||"").toLowerCase()!=="draft");
+ const rows=liveTodayQueue.map(no=>{const idx=lots.findIndex(q=>Number(q.no)===Number(no));return idx<0?null:{q:lots[idx],idx};}).filter(x=>x&&String(managedLotStatuses[String(Number(x.q.no))]||"").toLowerCase()!=="archived"&&String(managedLotStatuses[String(Number(x.q.no))]||"").toLowerCase()!=="draft");
  const label=auctionDateLabel(),head=document.querySelector('#catalogOverlay .sheetHead b'); if(head)head.textContent=`ЛОТЫ (${rows.length}) · ${label}`;
- root.innerHTML=rows.map(({q,idx},pos)=>`<div class="catalogItem" data-open-lot="${idx}"><img src="${q.photos[0]}"><div><b>${label}</b><small>${q.title}</small><small>Позиция ${pos+1} из ${rows.length} • ${q.meta[0]} • ${q.meta[1]} • <strong>${lotStatus(idx)}</strong></small></div><button class="starBtn ${isFavorite(idx)?'on':''}" data-star="${idx}" aria-label="Favorite">${isFavorite(idx)?'★':'☆'}</button></div>`).join("")||'<div class="emptyWatch">Предстоящих лотов пока нет.</div>';
+ root.innerHTML=rows.map(({q,idx},pos)=>`<div class="catalogItem" data-open-lot="${idx}">${q.photos[0]?`<img src="${whiteEscape(q.photos[0])}" alt="${whiteEscape(q.title)}">`:''}<div><b>${label}</b><small>${whiteEscape(q.title)}</small><small>Позиция ${pos+1} из ${rows.length} • ${whiteEscape(q.meta[0])} • ${whiteEscape(q.meta[1])} • <strong>${lotStatus(idx)}</strong></small></div><div class="catalogActions"><button class="starBtn ${isFavorite(idx)?'on':''}" data-star="${idx}" aria-label="Избранное">${isFavorite(idx)?'★':'☆'}</button><button class="catalogShareBtn" data-share-lot="${idx}" aria-label="Поделиться">⇧</button></div></div>`).join("")||'<div class="emptyWatch">Предстоящих лотов пока нет.</div>';
  root.querySelectorAll('[data-star]').forEach(b=>b.onclick=e=>{e.stopPropagation();toggleFavorite(Number(b.dataset.star))});
+ root.querySelectorAll('[data-share-lot]').forEach(b=>b.onclick=e=>{e.stopPropagation();shareLot(Number(b.dataset.shareLot))});
  root.querySelectorAll('[data-open-lot]').forEach(el=>el.onclick=()=>openLotDetail(Number(el.dataset.openLot)));
 }
 function renderWatchlist(){
@@ -252,7 +253,8 @@ function renderWatchlist(){
 let detailIndex=0;
 let currentPhotoIndex=0;
 function setLivePhoto(idx){
- const x=lots[i];if(!x?.photos?.length)return;
+ const x=lots[i];if(!x?.photos?.length){$('photo').removeAttribute('src');$('photo').style.display='none';$('heroCounter').hidden=true;$('photoPrev').hidden=$('photoNext').hidden=true;return;}
+ $('photo').style.display='block';$('heroCounter').hidden=false;
  currentPhotoIndex=((idx%x.photos.length)+x.photos.length)%x.photos.length;
  $("photo").src=x.photos[currentPhotoIndex];$("photo").alt=x.title+' — фото '+(currentPhotoIndex+1);
  $("heroCounter").textContent=`${currentPhotoIndex+1}/${x.photos.length}`;
@@ -270,7 +272,7 @@ function attachHeroSwipe(){
 function ensureHeroCounter(){ /* Counter is anchored to photoFrame in the HTML. */ }
 
 function updateDetailFav(idx){$("detailFav").textContent=isFavorite(idx)?'★ Удалить из списка ожидания':'☆ Добавить в список ожидания';}
-function openLotDetail(idx){detailIndex=idx;const q=lots[idx];$("detailHero").src=q.photos[0];$("detailThumbs").innerHTML=q.photos.map((u,k)=>`<img src="${u}" class="${k===0?'active':''}" data-dphoto="${u}">`).join('');$("detailThumbs").querySelectorAll('img').forEach(im=>im.onclick=()=>{$("detailHero").src=im.dataset.dphoto;$("detailThumbs").querySelectorAll('img').forEach(z=>z.classList.remove('active'));im.classList.add('active')});$("detailLot").textContent="";$("detailTitle").textContent=q.title;$("detailChips").innerHTML=q.meta.map(v=>`<span class="chip">${v}</span>`).join('');$("detailSpecs").innerHTML=q.details.map(d=>`<div class="detailrow"><span>${d[0]}</span><b>${d[1]}</b></div>`).join('');$("detailStart").textContent=money(q.price);updateDetailFav(idx);$("catalogOverlay").classList.remove('open');$("queueOverlay").classList.remove('open');$("detailOverlay").classList.add('open');}
+function openLotDetail(idx){detailIndex=idx;const q=lots[idx];if(!q)return;const photos=(q.photos||[]).filter(Boolean);$("detailHero").src=photos[0]||'';$("detailHero").style.display=photos.length?'block':'none';$("detailThumbs").innerHTML=photos.map((u,k)=>`<img src="${whiteEscape(u)}" class="${k===0?'active':''}" data-dphoto="${whiteEscape(u)}">`).join('');$("detailThumbs").querySelectorAll('img').forEach(im=>im.onclick=()=>{$("detailHero").src=im.dataset.dphoto;$("detailThumbs").querySelectorAll('img').forEach(z=>z.classList.remove('active'));im.classList.add('active')});$("detailLot").textContent="";$("detailTitle").textContent=q.title;$("detailChips").innerHTML=q.meta.map(v=>`<span class="chip">${v}</span>`).join('');$("detailSpecs").innerHTML=q.details.map(d=>`<div class="detailrow"><span>${d[0]}</span><b>${d[1]}</b></div>`).join('');$("detailStart").textContent=money(q.price);updateDetailFav(idx);$("catalogOverlay").classList.remove('open');$("queueOverlay").classList.remove('open');$("detailOverlay").classList.add('open');}
 
 function render(doSubscribe=true){
  const x=lots[i];
@@ -593,7 +595,7 @@ function renderAdminLots(){
   const count=g=>adminLots.filter(x=>group(x)===g).length;
   $("adminLotsSummary").textContent=`Все ${adminLots.length} • Предстоящие ${count('auction')} • Ожидают подтверждения ${count('pending')} • Проданные ${count('sold')}`;
   const labels={inventory:'В НАЛИЧИИ',auction:'ПРЕДСТОЯЩИЙ',pending:'ОЖИДАЕТ',sold:'ПРОДАНО'};
-  root.innerHTML=shown.map(l=>{const idx=adminLots.indexOf(l),pic=l.primary_image||l.images?.[0]?.image_url||"",g=group(l),winner=g==='pending'||g==='sold'?(l.winner_username||l.winner_user_id||'—'):'';return `<div class="adminLotCard" data-admin-lot="${idx}" role="button" tabindex="0">${pic?`<img class="adminLotPic" src="${pic}">`:`<div class="adminLotPic"></div>`}<div class="adminLotInfo"><b>${whiteEscape(l.make||"")} ${whiteEscape(l.model||"")} ${l.year||""}</b><small>${l.mileage==null?'—':Number(l.mileage).toLocaleString()+' km'} • Starting ${adminMoney(l.starting_bid)}</small><small>${l.vin?"VIN "+whiteEscape(l.vin):"Без VIN"}</small>${winner?`<span class="adminLotDay">🏆 Победитель: ${whiteEscape(winner)} • ${adminMoney(l.winning_bid||0)}</span>`:''}</div><span class="adminLotStatus ${g}">${labels[g]}</span><span class="adminChevron">›</span></div>`}).join("")||'<div class="emptyWatch">Автомобили не найдены.</div>';
+  root.innerHTML=shown.map(l=>{const idx=adminLots.indexOf(l),pic=l.primary_image||l.images?.[0]?.image_url||"",g=group(l),winner=g==='pending'||g==='sold'?(l.winner_username||l.winner_user_id||'—'):'';return `<div class="adminLotCard" data-admin-lot="${idx}" role="button" tabindex="0">${pic?`<img class="adminLotPic" src="${pic}" alt="${whiteEscape([l.make,l.model,l.year].filter(Boolean).join(' '))}">`:''}<div class="adminLotInfo"><b>${whiteEscape(l.make||"")} ${whiteEscape(l.model||"")} ${l.year||""}</b><small>${l.mileage==null?'—':Number(l.mileage).toLocaleString()+' km'} • Starting ${adminMoney(l.starting_bid)}</small><small>${l.vin?"VIN "+whiteEscape(l.vin):"Без VIN"}</small>${winner?`<span class="adminLotDay">🏆 Победитель: ${whiteEscape(winner)} • ${adminMoney(l.winning_bid||0)}</span>`:''}</div><span class="adminLotStatus ${g}">${labels[g]}</span><span class="adminChevron">›</span></div>`}).join("")||'<div class="emptyWatch">Автомобили не найдены.</div>';
   root.querySelectorAll('[data-admin-lot]').forEach(el=>{const open=()=>openAdminLotManage(adminLots[Number(el.dataset.adminLot)]);el.onclick=open;el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();open()}}});
 }
 let adminManagedLot=null;
@@ -686,7 +688,7 @@ function whiteRenderBidRows(){
    $('myBidsList').innerHTML=favs.map(idx=>whiteCarCard(idx,'<span class="myBidStatus win">Избранное</span>')).join('')||'<div class="emptyWatch">❤️ Пока нет избранных авто.<br><small>В списке лотов нажмите звёздочку ☆.</small></div>';
  }else if(whiteBidTab==='pending'){
    $('myBidsList').innerHTML='<div class="emptyWatch">Загрузка…</div>';
-   fetch('/api/my-auction-results',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:tg?.initData||''})}).then(r=>r.json()).then(out=>{const rows=out.results||[];$('bidCountWon').textContent=rows.length;$('myBidsList').innerHTML=rows.map(r=>{const idx=lots.findIndex(x=>Number(x.no)===Number(r.lot_number));const badge=r.status==='pending'?'⏳ Ожидает подтверждения':'✓ Куплено';return idx>=0?whiteCarCard(idx,`<span class="myBidStatus ${r.status==='pending'?'':'win'}">${badge} · ${money(r.amount)}</span>`):''}).join('')||'<div class="emptyWatch">⏳ Пока нет выигранных автомобилей.</div>';$('myBidsList').querySelectorAll('[data-white-lot]').forEach(el=>el.onclick=()=>openLotDetail(Number(el.dataset.whiteLot)));}).catch(()=>{$('myBidsList').innerHTML='<div class="emptyWatch">Не удалось загрузить результаты.</div>'});
+   fetch('/api/my-auction-results',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:tg?.initData||''})}).then(r=>r.ok?r.json():r.json().then(x=>Promise.reject(new Error(x.error)))).then(out=>{const rows=out.results||[];rows.forEach(upsertServerLot);$('bidCountWon').textContent=rows.length;$('myBidsList').innerHTML=rows.map(r=>{const idx=lots.findIndex(x=>String(x.id||'')===String(r.id)||Number(x.no)===Number(r.lot_number));const badge=r.status==='pending'?'⏳ Выиграно · ожидает подтверждения':'✓ Куплено';return idx>=0?whiteCarCard(idx,`<span class="myBidStatus ${r.status==='pending'?'':'win'}">${badge} · ${money(r.amount)}</span>`):''}).join('')||'<div class="emptyWatch">⏳ Пока нет выигранных автомобилей.</div>';$('myBidsList').querySelectorAll('[data-white-lot]').forEach(el=>el.onclick=()=>openLotDetail(Number(el.dataset.whiteLot)));}).catch(()=>{$('myBidsList').innerHTML='<div class="emptyWatch">Не удалось загрузить результаты.</div>'});
  }else if(whiteBidTab==='tracking'){
    $('bidCountWon').textContent='0';
    $('myBidsList').innerHTML='<div class="emptyWatch">🚢 Отслеживание пока пусто.<br><small>Позже статусы будет добавлять администратор.</small></div>';
@@ -843,15 +845,10 @@ refreshPublicLots();setInterval(refreshPublicLots,10000);
 setInterval(()=>{if(!stateRow||stateRow.status!=='waiting'||!galaxyStartAt)return;const remain=Math.max(0,new Date(galaxyStartAt).getTime()-serverNowMs()),txt=galaxyFormatCountdown(remain),n=liveTodayQueue.length;const st=$('soundStatus');if(st)st.textContent=`${auctionDateLabel()} · ${lotCountLabel(n)} · через ${txt}`;const ct=$('circleTime');if(ct)ct.textContent=txt;const cl=$('circleLabel');if(cl)cl.textContent='до начала аукциона';},250);
 
 
-/* FINAL-79: share a direct link to the exact vehicle. */
-(function(){
-  function sharedLotUrl(q){
-    const u=new URL('/api/share', window.location.origin);
-    u.searchParams.set('lot',String(q.no).padStart(3,'0'));
-    return u.toString();
-  }
-  async function shareCurrentLot(){
-    const q=lots[i]; if(!q)return;
+/* Share uses one path for the live vehicle and every row in the lot queue. */
+function sharedLotUrl(q){const u=new URL('/api/share',window.location.origin);if(q.id)u.searchParams.set('id',q.id);else u.searchParams.set('lot',Number(q.no));return u.toString();}
+async function shareLot(idx){
+    const q=lots[idx]; if(!q)return;
     const url=sharedLotUrl(q);
     const data={title:q.title,text:`${q.title} · Galaxy Auctions`,url};
     try{
@@ -861,15 +858,15 @@ setInterval(()=>{if(!stateRow||stateRow.status!=='waiting'||!galaxyStartAt)retur
     }catch(e){if(e?.name!=='AbortError')console.error('Share failed',e);}
   }
   const btn=document.getElementById('lotShareBtn');
-  if(btn)btn.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();shareCurrentLot();});
+  if(btn)btn.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();shareLot(i);});
 
   let sharedOpened=false;
   function openSharedLot(){
     if(sharedOpened)return;
-    const no=Number(new URLSearchParams(location.search).get('lot'));
-    if(!Number.isFinite(no)||!no)return;
-    const idx=lots.findIndex(q=>Number(q.no)===no);
-    if(idx<0)return;
+    const params=new URLSearchParams(location.search),id=params.get('lotId'),no=Number(params.get('lot'));
+    if(!id&&(!Number.isFinite(no)||!no))return;
+    const idx=lots.findIndex(q=>id?String(q.id||'')===id:Number(q.no)===no);
+    if(idx<0){if(id)fetch('/api/public-lot?id='+encodeURIComponent(id),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(out=>{if(out?.lot){upsertServerLot(out.lot);openSharedLot();}});return;}
     sharedOpened=true;
     try{
       if(typeof closeModernScreens==='function')closeModernScreens();
@@ -879,7 +876,6 @@ setInterval(()=>{if(!stateRow||stateRow.status!=='waiting'||!galaxyStartAt)retur
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(openSharedLot,350));
   else setTimeout(openSharedLot,350);
   window.addEventListener('galaxy-public-lots-updated',openSharedLot);
-})();
 
 // FINAL-84: Home sales are driven by confirmed SOLD lots, not demo data.
 let homeSalesSnapshot={count:0,volume:0,sold:[]};
