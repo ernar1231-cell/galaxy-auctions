@@ -365,8 +365,8 @@ function syncModernProfile(){
  if(!window.accountData)return;const d=window.accountData,name=[d.first_name,d.last_name].filter(Boolean).join(' ')||d.username||'Пользователь';
  $("modernProfileName").textContent=name;$("modernProfileUser").textContent=d.username?'@'+d.username:'ID '+String(d.telegram_id||'');setProfileAvatar($("modernProfileAvatar"),d,name);
  const active=String(d.account_status||'').toLowerCase()==='active';$("modernProfileStatus").textContent=active?'🟢 Активный аккаунт':String(d.account_status||'pending').toUpperCase();$("modernProfileStatus").classList.toggle('inactive',!active);
- const flag=countryFlag(d.phone_country||d.country);$("modernProfilePhone").textContent=d.phone?(flag?flag+' ':'')+d.phone:'Телефон не указан';$("modernProfileEmail").textContent=d.email||'Email не указан';$("modernProfileLanguage").textContent=languageName(d.language||'ru');
- $("modernProfileDeposit").textContent=money(Number(d.deposit_amount||0));$("modernProfileLimit").textContent=money(Number(d.bid_limit||0));$("modernProfileCars").textContent=String((myCarsSnapshot.pending?.length||0)+(myCarsSnapshot.tracking?.length||0));$("modernProfileRegistered").textContent=d.created_at?new Date(d.created_at).toLocaleDateString('ru-RU'):'Дата недоступна';$("openAdminFromProfile").style.display=d.is_admin?'block':'none';
+ const flag=countryFlag(d.phone_country||d.country);$("modernProfilePhone").textContent=d.phone?(flag?flag+' ':'')+d.phone:'Добавить телефон';$("modernProfileEmail").textContent=d.email||'Добавить email';$("modernProfileLanguage").textContent=languageName(d.language||'ru');
+ $("modernProfileDeposit").textContent=money(Number(d.deposit_amount||0));$("modernProfileLimit").textContent=money(Number(d.bid_limit||0));$("modernProfileCars").textContent=String((myCarsSnapshot.pending?.length||0)+(myCarsSnapshot.tracking?.length||0)+(myCarsSnapshot.documents?.length||0));$("modernProfileRegistered").textContent=d.created_at?new Date(d.created_at).toLocaleDateString('ru-RU'):'Дата недоступна';$("openAdminFromProfile").style.display=d.is_admin?'block':'none';
 }
 function update(){
  const waiting=stateRow?.status==='waiting';const bonus=whiteIsBonus();
@@ -485,12 +485,27 @@ async function loadAccountProfile(){
     return;
   }
   hint.textContent="Загрузка профиля…";
+  const loadState=$("profileLoadState"),edit=$("profileEdit");
+  if(loadState){loadState.className="profileLoadState loading";loadState.textContent="Загрузка профиля…";}
+  if(edit)edit.disabled=true;
   try{
     await registrationReady;
-    const response=await fetch('/api/profile',{headers:{'x-telegram-init-data':tg?.initData||''},cache:'no-store'}),payload=await response.json();
-    if(!response.ok||!payload.profile)throw Error(payload.error||'Профиль не найден');const data=payload.profile;
+    // This is the original authoritative binding used before the redesign.
+    // Read proven columns first so an optional new column can never blank the
+    // user's identity, balance, limits or role.
+    const baseFields="telegram_id,username,first_name,last_name,email,phone,phone_country,avatar_url,country,deposit_amount,deposit_method,bid_limit,account_status,deposit_updated_at,created_at,is_admin";
+    let {data,error}=await db.from("auction_users").select(baseFields).eq("telegram_id",String(tgUser.id)).single();
+    if(error||!data){
+      const response=await fetch('/api/profile',{headers:{'x-telegram-init-data':tg?.initData||''},cache:'no-store'}),payload=await response.json();
+      if(!response.ok||!payload.profile)throw Error(payload.error||error?.message||'Профиль не найден');
+      data=payload.profile;
+    }
+    const languageResult=await db.from("auction_users").select("language").eq("telegram_id",String(tgUser.id)).maybeSingle();
+    if(!languageResult.error&&languageResult.data?.language)data.language=languageResult.data.language;
     currentAccountProfile=data;
-    window.accountData=data;syncModernProfile();refreshRegisteredCount();await refreshAdminAccess();
+    window.accountData=data;syncModernProfile();refreshRegisteredCount();await Promise.all([refreshAdminAccess(),refreshMyCars()]);syncModernProfile();
+    if(loadState){loadState.className="profileLoadState ready";loadState.textContent="";}
+    if(edit)edit.disabled=false;
     const name=[data.first_name,data.last_name].filter(Boolean).join(" ") || data.username || "Telegram user";
     $("accountName").textContent=name;
     $("accountUsername").textContent=data.username?"@"+data.username:"Без username";
@@ -506,7 +521,10 @@ async function loadAccountProfile(){
     hint.textContent=active?"Участие в аукционе активировано.":"После получения наличного депозита администратор активирует ваш лимит ставок.";
   }catch(err){
     console.error("Account profile load failed",err);
-    hint.textContent="Не удалось загрузить профиль. Нажмите «Обновить данные».";
+    const message="Не удалось загрузить профиль. Проверьте подключение и повторите загрузку.";
+    hint.textContent=message;
+    if(loadState){loadState.className="profileLoadState error";loadState.innerHTML='Ошибка загрузки профиля. <button type="button" id="profileRetry">Повторить</button>';$("profileRetry").onclick=loadAccountProfile;}
+    if(edit)edit.disabled=!window.accountData;
   }
 }
 function openAccount(){

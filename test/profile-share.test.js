@@ -54,7 +54,27 @@ test('LIVE button URL carries an idempotent launch intent',()=>{
   }finally{if(old===undefined)delete process.env.TELEGRAM_WEB_APP_URL;else process.env.TELEGRAM_WEB_APP_URL=old}
 });
 
-const {editableProfile}=require('../api/profile');
+const {editableProfile,profileFields}=require('../api/profile');
+test('profile reads established account data without depending on optional language migration',()=>{
+  for(const field of ['username','first_name','last_name','email','phone','phone_country','avatar_url','country','deposit_amount','bid_limit','account_status','created_at','is_admin']) assert.ok(profileFields.split(',').includes(field),field);
+  assert.equal(profileFields.split(',').includes('language'),false);
+});
+test('authenticated profile response preserves real account values and admin role',async()=>{
+  const crypto=require('crypto'),handler=require('../api/profile'),token='test-token',user={id:777,username:'existing_user',first_name:'Existing'};
+  const params=new URLSearchParams({auth_date:'1700000000',query_id:'test',user:JSON.stringify(user)});
+  const data=[...params].sort(([a],[b])=>a.localeCompare(b)).map(([k,v])=>`${k}=${v}`).join('\n');
+  const secret=crypto.createHmac('sha256','WebAppData').update(token).digest();
+  params.set('hash',crypto.createHmac('sha256',secret).update(data).digest('hex'));
+  const profile={telegram_id:'777',username:'existing_user',first_name:'Existing',last_name:'Account',email:'real@example.com',phone:'+971501234567',phone_country:'AE',avatar_url:'https://example.test/avatar.jpg',country:'AE',deposit_amount:5000,bid_limit:25000,account_status:'active',created_at:'2025-01-02T00:00:00Z',is_admin:true};
+  const oldToken=process.env.TELEGRAM_BOT_TOKEN,oldKey=process.env.SUPABASE_SERVICE_ROLE_KEY,oldFetch=global.fetch;
+  process.env.TELEGRAM_BOT_TOKEN=token;process.env.SUPABASE_SERVICE_ROLE_KEY='service-key';
+  global.fetch=async url=>{assert.match(String(url),/telegram_id=eq\.777/);return{ok:true,json:async()=>[profile]}};
+  let status,body;
+  try{await handler({method:'GET',headers:{'x-telegram-init-data':params.toString()}},{status(code){status=code;return this},json(value){body=value;return this}})}finally{
+    global.fetch=oldFetch;if(oldToken===undefined)delete process.env.TELEGRAM_BOT_TOKEN;else process.env.TELEGRAM_BOT_TOKEN=oldToken;if(oldKey===undefined)delete process.env.SUPABASE_SERVICE_ROLE_KEY;else process.env.SUPABASE_SERVICE_ROLE_KEY=oldKey;
+  }
+  assert.equal(status,200);assert.deepEqual(body.profile,profile);
+});
 test('profile update validates and persists only editable profile metadata',()=>{
   const patch=editableProfile({firstName:' Aisha ',lastName:'K',email:'AISHA@EXAMPLE.COM',phone:'+971501234567',phoneCountry:'ae',language:'ar',avatarUrl:'data:image/webp;base64,AAAA'});
   assert.equal(patch.first_name,'Aisha');
