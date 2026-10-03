@@ -150,7 +150,7 @@ async function fetchAuctionState(){
  }catch(e){console.warn("Auction state read",e.message)}
 }
 function normalizedPhotos(l){const seen=new Set();return [...(l.images||[]).sort((a,b)=>(Number(a.sort_order)||0)-(Number(b.sort_order)||0)).map(x=>x?.image_url),l.primary_image].filter(u=>{u=String(u||'').trim();if(!u||seen.has(u))return false;seen.add(u);return true;});}
-function upsertServerLot(l){if(!l)return;const no=String(l.lot_number).padStart(3,'0'),photos=normalizedPhotos(l);const sourceDetails=[["Specs",l.specs],["Engine",l.engine],["Interior",l.interior_color],["Exterior",l.exterior_color],["Seats",l.seats],["VIN",l.vin],["Auction location",l.auction_location||l.auction_yard||l.location],["Estimated retail value",l.estimated_retail_value==null?null:money(Number(l.estimated_retail_value))],["Primary damage",l.primary_damage]];const q={id:l.id,no,title:[l.make,l.model,l.year].filter(Boolean).join(' '),price:Number(l.starting_bid||0),meta:[l.mileage==null?'—':`${Number(l.mileage).toLocaleString()} km`,l.fuel||'—',l.transmission||'—',l.drive||'—'],photos,details:sourceDetails.filter(d=>d[1]!==null&&d[1]!==undefined&&String(d[1]).trim()!=='')};const idx=lots.findIndex(x=>String(x.id||'')===String(l.id||'')||Number(x.no)===Number(l.lot_number));if(idx>=0){if(!q.photos.length)q.photos=lots[idx].photos;if(q.meta.every(v=>v==='—'||v==='0 km'))q.meta=lots[idx].meta;lots[idx]={...lots[idx],...q};}else lots.push(q);}
+function upsertServerLot(l){if(!l)return;const no=String(l.lot_number).padStart(3,'0'),photos=normalizedPhotos(l);const sourceDetails=[["Mileage",l.mileage==null?null:`${Number(l.mileage).toLocaleString()} km`],["Engine",l.engine],["Fuel",l.fuel],["Transmission",l.transmission],["Drive",l.drive],["Interior",l.interior_color],["Exterior",l.exterior_color],["VIN",l.vin],["Auction location",l.auction_location||l.auction_yard||l.location],["Estimated retail value",l.estimated_retail_value==null?null:money(Number(l.estimated_retail_value))],["Primary damage",l.primary_damage],["Specs",l.specs],["Seats",l.seats]];const q={id:l.id,no,title:[l.make,l.model,l.year].filter(Boolean).join(' '),price:Number(l.starting_bid||0),meta:[l.mileage==null?'—':`${Number(l.mileage).toLocaleString()} km`,l.fuel||'—',l.transmission||'—',l.drive||'—'],photos,details:sourceDetails.filter(d=>d[1]!==null&&d[1]!==undefined&&String(d[1]).trim()!=='')};const idx=lots.findIndex(x=>String(x.id||'')===String(l.id||'')||Number(x.no)===Number(l.lot_number));if(idx>=0){if(!q.photos.length)q.photos=lots[idx].photos;if(q.meta.every(v=>v==='—'||v==='0 km'))q.meta=lots[idx].meta;lots[idx]={...lots[idx],...q};}else lots.push(q);}
 function applyAuctionState(row,forceRender=false){
  if(!row)return;
  const incomingAudioKey=String(row.lot_id||1)+"|"+String(row.phase||"red")+"|"+String(row.phase_started_at||"");
@@ -271,22 +271,25 @@ function attachHeroSwipe(){
 }
 function ensureHeroCounter(){ /* Counter is anchored to photoFrame in the HTML. */ }
 
-function updateDetailFav(idx){$("detailFav").textContent=isFavorite(idx)?'★ Удалить из списка ожидания':'☆ Добавить в список ожидания';}
-function openLotDetail(idx){detailIndex=idx;const q=lots[idx];if(!q)return;const photos=(q.photos||[]).filter(Boolean);$("detailHero").src=photos[0]||'';$("detailHero").style.display=photos.length?'block':'none';$("detailThumbs").innerHTML=photos.map((u,k)=>`<img src="${whiteEscape(u)}" class="${k===0?'active':''}" data-dphoto="${whiteEscape(u)}">`).join('');$("detailThumbs").querySelectorAll('img').forEach(im=>im.onclick=()=>{$("detailHero").src=im.dataset.dphoto;$("detailThumbs").querySelectorAll('img').forEach(z=>z.classList.remove('active'));im.classList.add('active')});$("detailLot").textContent="";$("detailTitle").textContent=q.title;$("detailChips").innerHTML=q.meta.map(v=>`<span class="chip">${v}</span>`).join('');$("detailSpecs").innerHTML=q.details.map(d=>`<div class="detailrow"><span>${whiteEscape(({'Auction location':'Площадка / место аукциона','Estimated retail value':'Ожидаемая розничная стоимость','Primary damage':'Основной ущерб'})[d[0]]||d[0])}</span><b>${whiteEscape(d[1])}</b></div>`).join('');$("detailStart").textContent=money(q.price);updateDetailFav(idx);$("catalogOverlay").classList.remove('open');$("queueOverlay").classList.remove('open');$("detailOverlay").classList.add('open');}
+const vehicleLabels={Mileage:'Пробег',Engine:'Двигатель',Fuel:'Топливо',Transmission:'Трансмиссия',Drive:'Привод',Interior:'Салон',Exterior:'Цвет',VIN:'VIN','Auction location':'Площадка аукциона','Estimated retail value':'Ожидаемая стоимость','Primary damage':'Основной ущерб',Specs:'Спецификация',Seats:'Места'};
+function completeVehicleDetails(q){const present=new Set((q.details||[]).map(x=>x[0])),fromMeta=[['Mileage',q.meta?.[0]],['Fuel',q.meta?.[1]],['Transmission',q.meta?.[2]],['Drive',q.meta?.[3]]];return [...fromMeta.filter(x=>!present.has(x[0])&&x[1]&&x[1]!=='—'),...(q.details||[])];}
+function detailCountdown(){if(stateRow?.status==='waiting'&&galaxyStartAt)return galaxyFormatCountdown(new Date(galaxyStartAt).getTime()-serverNowMs());return closed?'Завершено':whiteTime(seconds)}
+function syncDetailBid(){if(!$('detailOverlay')?.classList.contains('open'))return;const q=lots[detailIndex],isCurrent=Number(q?.no)===Number(lots[i]?.no);$('detailCurrentBid').textContent=money(isCurrent?price:Number(q?.price||0));$('detailMyBid').textContent=isCurrent&&myLatestBidAmount!=null?money(myLatestBidAmount):'—';$('detailBidTime').textContent=isCurrent?detailCountdown():'Торги по расписанию';$('detailBidAmount').textContent=money((isCurrent?price:Number(q?.price||0))+inc);$('detailBidSubmit').disabled=!isCurrent||closed||bidSubmitting;}
+function openLotDetail(idx){detailIndex=idx;const q=lots[idx];if(!q)return;const photos=(q.photos||[]).filter(Boolean);$("detailHero").src=photos[0]||'';$("detailHero").style.display=photos.length?'block':'none';$("detailThumbs").innerHTML=photos.map((u,k)=>`<img src="${whiteEscape(u)}" class="${k===0?'active':''}" data-dphoto="${whiteEscape(u)}">`).join('');$("detailThumbs").querySelectorAll('img').forEach(im=>im.onclick=()=>{$("detailHero").src=im.dataset.dphoto;$("detailThumbs").querySelectorAll('img').forEach(z=>z.classList.remove('active'));im.classList.add('active')});$("detailTitle").textContent=q.title;$("detailChips").replaceChildren();$("detailSpecs").innerHTML=completeVehicleDetails(q).map(d=>`<div class="detailrow"><span>${whiteEscape(vehicleLabels[d[0]]||d[0])}</span><b>${whiteEscape(d[1]||'—')}</b></div>`).join('');syncDetailBid();$("catalogOverlay").classList.remove('open');$("queueOverlay").classList.remove('open');$("detailOverlay").classList.add('open');syncDetailBid();}
 
 function render(doSubscribe=true){
  const x=lots[i];
  const qp=liveTodayQueue.indexOf(Number(x.no));
  $("count").textContent=qp>=0?`Позиция ${qp+1} из ${liveTodayQueue.length||0}`:`Позиция — из ${liveTodayQueue.length||0}`;
  $("lot").textContent=auctionDateLabel(); $("title").textContent=x.title;
- $("chips").innerHTML=x.meta.map(v=>`<span class="chip">${whiteEscape(v)}</span>`).join("");
+ $("chips").replaceChildren();
  $("lotsBtn").textContent=`Лоты (${liveTodayQueue.length}) ›`;
  $("gallery").innerHTML=x.photos.map((u,k)=>`<img src="${whiteEscape(u)}" data-photo-index="${k}" alt="Фото ${k+1}">`).join("");
  if(whitePhotoLot!==x.no){currentPhotoIndex=0;whitePhotoLot=x.no;}
  setLivePhoto(currentPhotoIndex);attachHeroSwipe();
  renderWatchlist();renderCatalog();
- const labels={Specs:'Спецификация',Engine:'Двигатель',Interior:'Салон',Exterior:'Цвет',Steering:'Руль',Seats:'Места',Warranty:'Гарантия',Power:'Мощность','Primary damage':'Повреждения',Key:'Ключи'};
- $("details").innerHTML=x.details.map(d=>`<div class="detailrow"><span>${whiteEscape(labels[d[0]]||d[0])}</span><b>${whiteEscape(d[1])}</b></div>`).join("");
+ const labels={...vehicleLabels,Steering:'Руль',Warranty:'Гарантия',Power:'Мощность',Key:'Ключи'};
+ $("details").innerHTML=completeVehicleDetails(x).map(d=>`<div class="detailrow"><span>${whiteEscape(labels[d[0]]||d[0])}</span><b>${whiteEscape(d[1]||'—')}</b></div>`).join("");
  if(doSubscribe)subscribeLot();syncRecentBidders();update();
 }
 
@@ -357,9 +360,10 @@ function renderModernMarkets(){
 async function renderModernMyBids(){
  whiteRenderBidRows();
 }
+function setProfileAvatar(el,d,name){if(!el)return;const url=d.avatar_url||tgUser?.photo_url;el.textContent=(name.slice(0,2)||'MK').toUpperCase();el.style.backgroundImage=url?`url("${String(url).replace(/["\\]/g,"\\$&")}")`:'';el.classList.toggle('hasPhoto',!!url)}
 function syncModernProfile(){
- if(!window.accountData)return;const d=window.accountData;const name=[d.first_name,d.last_name].filter(Boolean).join(' ')||d.username||'Telegram user';
- $("modernProfileName").textContent=name;$("modernProfileUser").textContent=d.username?'@'+d.username:String(d.telegram_id||'');$("modernProfileAvatar").textContent=(name.slice(0,2)||'MK').toUpperCase();$("modernProfileDeposit").textContent=money(Number(d.deposit_amount||0));$("modernProfileLimit").textContent=money(Number(d.bid_limit||0));$("openAdminFromProfile").style.display=d.is_admin?'block':'none';
+ if(!window.accountData)return;const d=window.accountData,name=[d.first_name,d.last_name].filter(Boolean).join(' ')||d.username||'Telegram user';
+ $("modernProfileName").textContent=name;$("modernProfileUser").textContent=d.username?'@'+d.username:String(d.telegram_id||'');setProfileAvatar($("modernProfileAvatar"),d,name);$("modernProfileStatus").textContent=String(d.account_status||'pending').toUpperCase();$("modernProfileDeposit").textContent=money(Number(d.deposit_amount||0));$("modernProfileLimit").textContent=money(Number(d.bid_limit||0));$("modernProfileCars").textContent=String((myCarsSnapshot.pending?.length||0)+(myCarsSnapshot.tracking?.length||0));$("modernProfileRegistered").textContent=d.created_at?new Date(d.created_at).toLocaleDateString('ru-RU'):'—';$("openAdminFromProfile").style.display=d.is_admin?'block':'none';
 }
 function update(){
  const waiting=stateRow?.status==='waiting';const bonus=whiteIsBonus();
@@ -374,7 +378,7 @@ function update(){
  ring.style.setProperty('--progress',waiting?'0%':Math.max(0,Math.min(100,remaining/phaseDuration*100)).toFixed(3)+'%');
  $("soundStatus").textContent=waiting?'Перерыв между аукционами':(bonus?'BONUS TIME':(soundOn?'LIVE AUCTION · Звук включён':'LIVE AUCTION'));
  $("bid").textContent=closed?'ЛОТ ЗАКРЫТ':(bidSubmitting?'Проверка…':'СДЕЛАТЬ СТАВКУ');
- $("bid").disabled=closed||bidSubmitting;
+ $("bid").disabled=closed||bidSubmitting;syncDetailBid();
  const live=document.querySelector('header .live');live.textContent=waiting?'':'● LIVE';live.classList.toggle('paused',waiting);
  updateBidVisualState();
 }
@@ -450,7 +454,9 @@ $("closeCatalog").onclick=()=>$("catalogOverlay").classList.remove("open");
 $("catalogOverlay").onclick=e=>{if(e.target===$("catalogOverlay"))$("catalogOverlay").classList.remove("open")};
 $("detailClose").onclick=$("detailBack").onclick=()=>$("detailOverlay").classList.remove("open");
 $("detailOverlay").onclick=e=>{if(e.target===$("detailOverlay"))$("detailOverlay").classList.remove("open")};
-$("detailFav").onclick=()=>toggleFavorite(detailIndex);
+$("detailBidMinus").onclick=()=>{let k=Math.max(0,incs.indexOf(inc)-1);inc=incs[k];update();syncDetailBid()};
+$("detailBidPlus").onclick=()=>{let k=Math.min(incs.length-1,incs.indexOf(inc)+1);inc=incs[k];update();syncDetailBid()};
+$("detailBidSubmit").onclick=submitBid;
 
 $("mkBtn").onclick=()=>{$("queueOverlay").classList.remove("open");$("marketRadial").classList.toggle("open")};
 document.querySelectorAll("[data-market]").forEach(b=>b.onclick=()=>{selectedCountry=b.dataset.market;document.querySelectorAll("[data-market]").forEach(x=>x.classList.toggle("selected",x===b));$("marketRadial").classList.remove("open")});
@@ -478,7 +484,7 @@ async function loadAccountProfile(){
   hint.textContent="Загрузка профиля…";
   try{
     await registrationReady;
-    const {data,error}=await db.from("auction_users").select("telegram_id,username,first_name,last_name,country,deposit_amount,deposit_method,bid_limit,account_status,deposit_updated_at,created_at,is_admin").eq("telegram_id",String(tgUser.id)).single();
+    const {data,error}=await db.from("auction_users").select("telegram_id,username,first_name,last_name,email,phone,phone_country,avatar_url,country,deposit_amount,deposit_method,bid_limit,account_status,deposit_updated_at,created_at,is_admin").eq("telegram_id",String(tgUser.id)).single();
     if(error) throw error;
     currentAccountProfile=data;
     window.accountData=data;syncModernProfile();refreshRegisteredCount();await refreshAdminAccess();
@@ -511,11 +517,18 @@ renderModernMarkets();
 document.querySelectorAll("[data-close-modern]").forEach(b=>b.onclick=()=>{closeModernScreens();setModernActive("home");$("homeScreen").classList.add("open")});
 document.querySelectorAll("#modernBottomNav [data-modern]").forEach(b=>b.onclick=()=>{const k=b.dataset.modern;closeModernScreens();setModernActive(k);if(k==="home")$("homeScreen").classList.add("open");else if(k==="markets")$("marketsScreen").classList.add("open");else if(k==="bids"){renderModernMyBids();$("myBidsScreen").classList.add("open")}else if(k==="profile"){syncModernProfile();loadAccountProfile();$("profileScreen").classList.add("open")}});
 document.querySelectorAll("[data-home-auction]").forEach(b=>b.onclick=()=>{closeModernScreens();setModernActive("markets");$("marketsScreen").classList.add("open");});
-$("openAccountFromProfile").onclick=()=>{closeModernScreens();openAccount()};
 $("openAdminFromProfile").onclick=()=>{closeModernScreens();openAdminPanel()};
 $("accountClose").onclick=()=>$("accountOverlay").classList.remove("open");
 $("accountOverlay").onclick=e=>{if(e.target===$("accountOverlay"))$("accountOverlay").classList.remove("open")};
 $("accountRefresh").onclick=loadAccountProfile;
+
+
+let pendingProfileAvatar='';
+function openProfileEditor(){const d=window.accountData||{},name=[d.first_name,d.last_name].filter(Boolean).join(' ')||d.username||'MK';$('profileFirstName').value=d.first_name||'';$('profileLastName').value=d.last_name||'';$('profileEmail').value=d.email||'';$('profilePhone').value=d.phone||'';$('profilePhoneCountry').value=d.phone_country||'AE';setProfileAvatar($('profileEditAvatar'),d,name);pendingProfileAvatar='';$('profileEditMsg').textContent='';$('profileEditOverlay').classList.add('open');$('profileEditOverlay').setAttribute('aria-hidden','false')}
+function closeProfileEditor(){$('profileEditOverlay').classList.remove('open');$('profileEditOverlay').setAttribute('aria-hidden','true')}
+async function profilePhotoChanged(e){const f=e.target.files?.[0];if(!f)return;try{pendingProfileAvatar=await fileToCompressedDataUrl(f);$('profileEditAvatar').style.backgroundImage=`url("${pendingProfileAvatar}")`; $('profileEditAvatar').textContent=''}catch(err){$('profileEditMsg').textContent='Ошибка фото: '+err.message}}
+async function saveOwnProfile(){const btn=$('profileSave'),msg=$('profileEditMsg');btn.disabled=true;msg.textContent='Сохранение…';try{const r=await fetch('/api/profile',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:tg?.initData,firstName:$('profileFirstName').value,lastName:$('profileLastName').value,email:$('profileEmail').value,phone:$('profilePhone').value,phoneCountry:$('profilePhoneCountry').value,avatarUrl:pendingProfileAvatar})}),out=await r.json();if(!r.ok)throw Error(out.error||'Не удалось сохранить');window.accountData={...window.accountData,...out.profile};syncModernProfile();closeProfileEditor()}catch(e){msg.textContent='Ошибка: '+e.message;msg.className='adminSaveMsg error'}finally{btn.disabled=false}}
+$('profileEdit').onclick=openProfileEditor;$('profileEditClose').onclick=closeProfileEditor;$('profilePhoto').onchange=profilePhotoChanged;$('profileSave').onclick=saveOwnProfile;$('profileEditOverlay').onclick=e=>{if(e.target===$('profileEditOverlay'))closeProfileEditor()};
 
 
 async function adminApi(path,payload={}){
@@ -601,8 +614,8 @@ let adminManagedLot=null;
 function openAdminLotManage(l){
   adminManagedLot=l;const pic=l.primary_image||l.images?.[0]?.image_url||"";
   $("adminLotManagePic").src=pic;$("adminLotManagePic").style.display=pic?'block':'none';$("adminLotManageTitle").textContent=`${l.make||""} ${l.model||""} ${l.year||""}`;
-  const stNow=String(l.status||"draft").toLowerCase(), stLabel=stNow==='draft'?'В НАЛИЧИИ':stNow==='upcoming'?'ПРЕДСТОЯЩИЙ':stNow==='live'?'LIVE':stNow==='pending'?'ОЖИДАЕТ ПОДТВЕРЖДЕНИЯ':stNow==='sold'?'ПРОДАНО':stNow.toUpperCase();
-  $("adminLotManageMeta").textContent=`${l.mileage==null?'—':Number(l.mileage).toLocaleString()+' km'} • Starting ${adminMoney(l.starting_bid)}${l.vin?' • VIN '+l.vin:''}`;
+  const stNow=String(l.status||"draft").toLowerCase(),rejected=stNow==='draft'&&/\[\[rejected:/.test(String(l.description||'')), stLabel=rejected?'ПРОДАЖА ОТКЛОНЕНА':stNow==='draft'?'В НАЛИЧИИ':stNow==='upcoming'?'ПРЕДСТОЯЩИЙ':stNow==='live'?'LIVE':stNow==='pending'?'ОЖИДАЕТ ПОДТВЕРЖДЕНИЯ':stNow==='sold'?'ПРОДАЖА ПОДТВЕРЖДЕНА':stNow.toUpperCase();
+  $("adminLotManageMeta").innerHTML=`<span>${l.year||'—'} год</span><span>VIN: ${whiteEscape(l.vin||'—')}</span><span>Lot ID: ${whiteEscape(l.lot_number??l.id??'—')}</span>`;
   $("adminLotManageStatus").textContent=stLabel;$("adminLotManageStatus").className=`adminLotManageStatus ${l.status||"draft"}`;const pd=$("adminPendingDecision");if(pd){const isPending=stNow==="pending";pd.style.display=isPending?"block":"none";if(isPending){$("adminPendingWinner").textContent="🏆 Победитель: "+(l.winner_username||l.winner_user_id||"—");$("adminPendingAmount").textContent="Финальная ставка: "+adminMoney(l.winning_bid||0);}}
   $("manageMake").value=l.make||'';$("manageModel").value=l.model||'';$("manageYear").value=l.year||'';$("manageMileage").value=l.mileage??'';$("manageVin").value=l.vin||'';$("manageStarting").value=Number(l.starting_bid||0);$("manageDescription").value=l.description||'';
   const hasBids=Number(l.bid_count||0)>0, sold=stNow==='sold';$("adminLotDelete").disabled=hasBids||sold;$("adminLotDelete").title=hasBids||sold?'Лот со ставками/SOLD нельзя удалить':'';
@@ -613,7 +626,7 @@ function openAdminLotManage(l){
   $("adminLotManageOverlay").classList.add("open");
 }
 async function saveManagedLot(){if(!adminManagedLot)return;const msg=$("adminLotManageMsg"),btn=$("adminLotSaveChanges");btn.disabled=true;msg.textContent='Сохраняю…';try{const out=await adminApi('/api/admin-update-lot',{lotId:adminManagedLot.id,make:$("manageMake").value.trim(),model:$("manageModel").value.trim(),year:$("manageYear").value?Number($("manageYear").value):null,mileage:$("manageMileage").value?Number($("manageMileage").value):null,vin:$("manageVin").value.trim()||null,startingBid:Number($("manageStarting").value||0),description:$("manageDescription").value.trim()||null});adminManagedLot={...adminManagedLot,...out.lot,description:$("manageDescription").value.trim()||null};msg.textContent='✅ Изменения сохранены';msg.className='adminSaveMsg ok';await loadAdminLots();const fresh=adminLots.find(x=>String(x.id)===String(adminManagedLot.id));if(fresh)openAdminLotManage(fresh)}catch(e){msg.textContent='Ошибка: '+e.message;msg.className='adminSaveMsg error'}finally{btn.disabled=false}}
-async function adminPendingAction(decision){if(!adminManagedLot)return;const msg=$("adminLotManageMsg");try{const out=await adminApi('/api/admin-pending-action',{lotId:adminManagedLot.id,decision});msg.textContent=decision==='approve'?'✅ Продажа подтверждена':'↩️ Автомобиль возвращён в «Все»';msg.className='adminSaveMsg ok';await loadAdminLots();if(decision==='approve')await refreshHomeSales();const fresh=adminLots.find(x=>String(x.id)===String(adminManagedLot.id));if(fresh)openAdminLotManage(fresh);}catch(e){msg.textContent='Ошибка: '+e.message;msg.className='adminSaveMsg error'}}
+async function adminPendingAction(decision){if(!adminManagedLot||String(adminManagedLot.status).toLowerCase()!=='pending')return;const msg=$("adminLotManageMsg");try{const out=await adminApi('/api/admin-pending-action',{lotId:adminManagedLot.id,decision});msg.textContent=decision==='approve'?'✅ Продажа подтверждена':'↩️ Автомобиль возвращён в «Все»';msg.className='adminSaveMsg ok';await loadAdminLots();if(decision==='approve')await refreshHomeSales();const fresh=adminLots.find(x=>String(x.id)===String(adminManagedLot.id));if(fresh)openAdminLotManage(fresh);}catch(e){msg.textContent='Ошибка: '+e.message;msg.className='adminSaveMsg error'}}
 async function archiveManagedLot(){if(!adminManagedLot)return;if(!confirm(`Архивировать ${adminManagedLot.make||""} ${adminManagedLot.model||""}? История сохранится.`))return;await adminLotAction('archive')}
 async function deleteManagedLot(){if(!adminManagedLot)return;if(!confirm(`Удалить ${adminManagedLot.make||""} ${adminManagedLot.model||""} навсегда?`))return;const msg=$("adminLotManageMsg");try{await adminApi('/api/admin-delete-lot',{lotId:adminManagedLot.id});msg.textContent='✅ Лот удалён';msg.className='adminSaveMsg ok';await loadAdminLots();setTimeout(()=>$("adminLotManageOverlay").classList.remove('open'),500)}catch(e){msg.textContent='Ошибка: '+e.message;msg.className='adminSaveMsg error'}}
 async function adminLotAction(action){
@@ -852,7 +865,7 @@ setInterval(()=>{if(!stateRow||stateRow.status!=='waiting'||!galaxyStartAt)retur
 /* Telegram launch intents contain only an opaque lot id or the public route name. */
 function decodeLaunchValue(value){try{return decodeURIComponent(atob(String(value||'').replace(/-/g,'+').replace(/_/g,'/')))}catch(e){return ''}}
 function readLaunchIntent(){const raw=String(tg?.initDataUnsafe?.start_param||new URLSearchParams(location.search).get('tgWebAppStartParam')||'');if(raw==='live')return {live:true};if(raw.startsWith('lot_'))return {lotId:decodeLaunchValue(raw.slice(4))};return {}}
-function applyLaunchIntent(){const intent=readLaunchIntent();if(intent.live){closeModernScreens();setModernActive('markets');return;}openSharedLot();}
+function applyLaunchIntent(){const intent=readLaunchIntent();if(intent.live){closeModernScreens();document.body.classList.add('telegramLiveLaunch');setModernActive('');window.scrollTo(0,0);return;}registrationReady.finally(openSharedLot);}
 /* Share uses one path for the live vehicle and every row in the lot queue. */
 function sharedLotUrl(q){const u=new URL('/api/share',window.location.origin);if(q.id)u.searchParams.set('id',q.id);else u.searchParams.set('lot',Number(q.no));return u.toString();}
 async function shareLot(idx){
