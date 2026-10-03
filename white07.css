@@ -638,6 +638,26 @@ body.mk-white .catalogOverlay.open{display:flex!important;align-items:flex-end!i
 body.mk-white .catalogSheet{height:min(86vh,760px)!important;max-height:86vh!important;display:flex!important;flex-direction:column!important;border-radius:24px 24px 0 0!important}
 body.mk-white #catalogList{flex:1!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch!important;padding-bottom:calc(90px + env(safe-area-inset-bottom))!important}
 
+/* Galaxy modal surfaces: lots and admin use the same white/blue visual system. */
+body.mk-white .catalogSheet,body.mk-white .adminSheet{background:#fff!important;color:#10233d!important;border:0!important;border-radius:24px 24px 0 0!important;box-shadow:0 -18px 52px rgba(16,35,61,.18)!important;font-family:inherit!important}
+body.mk-white .catalogSheet .sheetHead,body.mk-white .adminSheet .sheetHead{min-height:58px!important;padding:12px 16px!important;background:#fff!important;border-bottom:1px solid #e2eaf2!important}
+body.mk-white .catalogSheet .sheetHead b,body.mk-white .adminSheet .sheetHead b{font-size:16px!important;font-weight:900!important;color:#10233d!important;letter-spacing:0!important}
+body.mk-white .catalogSheet .sheetClose,body.mk-white .adminSheet .sheetClose{width:38px!important;height:38px!important;border-radius:12px!important;background:#eaf4ff!important;color:#1688f8!important}
+body.mk-white #catalogList{padding:8px 16px calc(90px + env(safe-area-inset-bottom))!important}
+body.mk-white .catalogItem{grid-template-columns:78px minmax(0,1fr) 40px!important;gap:12px!important;align-items:center!important;margin:0!important;padding:12px 0!important;background:#fff!important;border:0!important;border-bottom:1px solid #e6edf5!important;border-radius:0!important}
+body.mk-white .catalogItem img{width:78px!important;height:58px!important;border-radius:12px!important;object-fit:cover!important}
+body.mk-white .catalogItem b{font-size:12px!important;color:#1688f8!important}.catalogItem small{line-height:1.35!important}
+body.mk-white .catalogItem .starBtn{width:38px!important;height:38px!important;border-radius:12px!important;background:#eef6ff!important;color:#1688f8!important;border:0!important}
+body.mk-white .adminTabs{gap:8px!important;padding:12px 16px 4px!important}
+body.mk-white .adminTabs button{min-height:44px!important;border:1px solid #d6e3ef!important;border-radius:12px!important;background:#f4f8fc!important;color:#536b82!important;font-family:inherit!important;font-size:13px!important}
+body.mk-white .adminTabs button.active{background:#1688f8!important;border-color:#1688f8!important;color:#fff!important}
+body.mk-white .adminToolbar input,body.mk-white .adminLotSearchRow input{min-height:44px!important;border:1px solid #d6e3ef!important;border-radius:12px!important;background:#f8fbff!important;font-family:inherit!important}
+body.mk-white .adminClient,body.mk-white .adminLotCard{border:1px solid #e0e9f2!important;border-radius:16px!important;background:#fff!important;padding:11px!important;box-shadow:0 4px 14px rgba(23,48,71,.05)!important}
+
+/* Bidder identity is intentionally username-only: no country flags or substitute icons. */
+body.mk-white .liveBidder{grid-template-columns:minmax(0,1fr) auto!important}
+body.mk-white .whiteSheet .recentBidder{grid-template-columns:minmax(0,1fr) auto auto!important}
+
 /* FINAL-77: enlarge Galaxy Auctions branding only; no layout/logic changes */
 body.mk-white header .galaxyBrand{height:50px!important;max-width:330px!important}
 body.mk-white header .galaxyBrand img{height:44px!important;max-width:320px!important}

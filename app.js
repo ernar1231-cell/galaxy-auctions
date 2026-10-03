@@ -72,7 +72,7 @@ const lots=[
 {no:"014",title:"Lamborghini Huracan EVO Spyder 2023",price:145000,meta:["4,005 km","Petrol","Automatic","Convertible"],photos:["images/lot14-1.webp","images/lot14-2.webp"],details:[["Specs","GCC Specs"],["Engine","4000+ cc / V10"],["Power","600–699 HP"],["Interior","Black"],["Exterior","Yellow"],["Steering","Left Hand"],["Seats","2"]]},
 {no:"015",title:"Lamborghini Huracan EVO Coupe 2021",price:250000,meta:["14,563 km","Petrol","Automatic","Coupe"],photos:["images/lot15-1.webp"],details:[["Specs","GCC Specs"],["Engine","4000+ cc / V10"],["Power","600–699 HP"],["Interior","Black"],["Exterior","Red"],["Steering","Left Hand"],["Seats","2"]]},
 ]
-let managedLotStatuses={};let liveTodayQueue=[];let liveTodayDay="";
+let managedLotStatuses={};let liveTodayQueue=[];let liveTodayDay="";let galaxyStartAt=null;
 let i=0,seconds=10,phase="red",price=lots[0].price,inc=1000,soundOn=false,audioCtx=null,timerId=null,bidder=318,closed=false;
 const LOT_SECONDS=10, BONUS_SECONDS=10, SOLD_SECONDS=2, WAIT_SECONDS=600;
 let lastPhaseAudioKey="";
@@ -88,16 +88,6 @@ function bidderInitials(name){
  const parts=clean.split(/[\s_.-]+/).filter(Boolean);
  return (parts.length>1?(parts[0][0]+parts[1][0]):clean.slice(0,2)).toUpperCase();
 }
-function countryFlag(country){
- const key=String(country||"").trim().toLowerCase();
- const flags={
-  "dubai":"🇦🇪","uae":"🇦🇪","united arab emirates":"🇦🇪","emirates":"🇦🇪",
-  "america":"🇺🇸","usa":"🇺🇸","us":"🇺🇸","united states":"🇺🇸",
-  "georgia":"🇬🇪","kazakhstan":"🇰🇿","kz":"🇰🇿","қазақстан":"🇰🇿","china":"🇨🇳","japan":"🇯🇵","canada":"🇨🇦",
-  "korea":"🇰🇷","south korea":"🇰🇷"
- };
- return flags[key]||"🌐";
-}
 function renderRecentBidders(rows){
  const bids=(rows||[]).slice(0,4);
  const markup=bids.map((b,idx)=>{
@@ -105,7 +95,7 @@ function renderRecentBidders(rows){
   const safe=name.replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   const amount=Number(b.amount||0);
   const leader=idx===0;
-  return `<div class="liveBidder ${leader?'leader':''}"><span class="liveFlag">${countryFlag(b.country)}</span><span class="liveName">${safe}</span><span class="liveAmount">${money(amount)}</span></div>`;
+  return `<div class="liveBidder ${leader?'leader':''}"><span class="liveName">${safe}</span><span class="liveAmount">${money(amount)}</span></div>`;
  }).join("");
  const feed=$("liveBidFeed");if(feed)feed.innerHTML=markup;
  $("recentBidders").innerHTML=bids.map(b=>{
@@ -113,7 +103,7 @@ function renderRecentBidders(rows){
   const safe=name.replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   const amount=Number(b.amount||0);
   const tm=b.created_at?new Date(b.created_at).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit",second:"2-digit"}):"";
-  return `<div class="recentBidder"><div class="recentBidderCircle" title="${String(b.country||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}">${countryFlag(b.country)}</div><span class="recentBidderName">${safe}</span><span class="recentBidderAmount">${money(amount)}</span><span class="recentBidderTime">${tm}</span></div>`;
+  return `<div class="recentBidder"><span class="recentBidderName">${safe}</span><span class="recentBidderAmount">${money(amount)}</span><span class="recentBidderTime">${tm}</span></div>`;
  }).join("");
 }
 let latestLeaderUserId=null;
@@ -241,13 +231,19 @@ function saveWatchlist(v){localStorage.setItem(watchKey(),JSON.stringify([...new
 function isFavorite(idx){return getWatchlist().includes(idx)}
 function toggleFavorite(idx){let w=getWatchlist();w=w.includes(idx)?w.filter(x=>x!==idx):[...w,idx];saveWatchlist(w);if($("detailOverlay").classList.contains("open"))updateDetailFav(idx);}
 function lotStatus(idx){const st=String(managedLotStatuses[String(Number(lots[idx]?.no))]||"").toLowerCase();if(st==="archived")return "ARCHIVED";if(st==="sold")return "SOLD";if(st==="live")return "🔴 LIVE";if(st==="draft")return "DRAFT";if(st==="upcoming")return "UPCOMING";return closed?"UPCOMING":(idx<i?"SOLD":idx===i?"🔴 LIVE":"UPCOMING")}
+function hourlyAuctionTime(position){
+ const base=galaxyStartAt?new Date(galaxyStartAt):new Date();
+ if(!galaxyStartAt)base.setMinutes(0,0,0);
+ base.setHours(base.getHours()+position);
+ return base.toLocaleTimeString('ru-RU',{timeZone:'Asia/Dubai',hour:'2-digit',minute:'2-digit',hour12:false});
+}
 function renderCatalog(){
  const root=$("catalogList"); if(!root)return;
  const day=currentAuctionDay(), dayName=AUCTION_DAY_FULL[day]||"Сегодня";
  const allowed=new Set(liveTodayQueue.map(Number));
  const rows=lots.map((q,idx)=>({q,idx})).filter(({q})=>allowed.has(Number(q.no))&&String(managedLotStatuses[String(Number(q.no))]||"").toLowerCase()!=="archived"&&String(managedLotStatuses[String(Number(q.no))]||"").toLowerCase()!=="draft");
  const head=document.querySelector('#catalogOverlay .sheetHead b'); if(head)head.textContent=`${dayName.toUpperCase()} · ЛОТЫ (${rows.length})`;
- root.innerHTML=rows.map(({q,idx},pos)=>`<div class="catalogItem" data-open-lot="${idx}"><img src="${q.photos[0]}"><div><b>${dayName} · Позиция ${pos+1} из 50</b><small>${q.title}</small><small>${q.meta[0]} • ${q.meta[1]} • <strong>${lotStatus(idx)}</strong></small></div><button class="starBtn ${isFavorite(idx)?'on':''}" data-star="${idx}" aria-label="Favorite">${isFavorite(idx)?'★':'☆'}</button></div>`).join("")||`<div class="emptyWatch">На ${dayName.toLowerCase()} активных лотов пока нет.</div>`;
+ root.innerHTML=rows.map(({q,idx},pos)=>`<div class="catalogItem" data-open-lot="${idx}"><img src="${q.photos[0]}"><div><b>${dayName} · ${hourlyAuctionTime(pos)}</b><small>${q.title}</small><small>Позиция ${pos+1} из ${rows.length} • ${q.meta[0]} • ${q.meta[1]} • <strong>${lotStatus(idx)}</strong></small></div><button class="starBtn ${isFavorite(idx)?'on':''}" data-star="${idx}" aria-label="Favorite">${isFavorite(idx)?'★':'☆'}</button></div>`).join("")||`<div class="emptyWatch">На ${dayName.toLowerCase()} активных лотов пока нет.</div>`;
  root.querySelectorAll('[data-star]').forEach(b=>b.onclick=e=>{e.stopPropagation();toggleFavorite(Number(b.dataset.star))});
  root.querySelectorAll('[data-open-lot]').forEach(el=>el.onclick=()=>openLotDetail(Number(el.dataset.openLot)));
 }
@@ -859,7 +855,6 @@ fetchAuctionState().then(()=>{
 })();
 
 /* FINAL GALAXY schedule + public preview queue */
-let galaxyStartAt=null;
 function galaxyFormatCountdown(ms){const t=Math.max(0,Math.floor(ms/1000)),h=Math.floor(t/3600),m=Math.floor((t%3600)/60),s=t%60;return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`}
 function galaxyDayLabel(day){return AUCTION_DAY_FULL[day]||day||'Аукцион'}
 async function refreshPublicLots(){try{const r=await fetch('/api/public-lots?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;const d=await r.json();(d.lots||[]).forEach(l=>upsertServerLot(l));renderCatalog();renderWatchlist();window.dispatchEvent(new Event('galaxy-public-lots-updated'));}catch(e){}}
