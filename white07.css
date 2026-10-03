@@ -736,3 +736,8 @@ body.mk-white .profileHeroCard .profileContacts b{color:#17283d}
 body.mk-white .profileIdentity em.inactive{background:#fff3df;color:#9a6500}
 body.mk-white button.profileCard{font:inherit;text-align:left;cursor:pointer}
 body.mk-white .profileSectionOverlay{position:fixed;inset:0;z-index:131;background:rgba(13,31,50,.4);display:none;align-items:flex-end}.profileSectionOverlay.open{display:flex}.profileSectionSheet{box-sizing:border-box;width:100%;min-height:240px;background:#fff;border-radius:22px 22px 0 0;padding:16px 16px calc(24px + env(safe-area-inset-bottom))}.profileSectionBody{padding:24px 8px;color:#61748a;line-height:1.55}.profileSectionBody strong{display:block;color:#17283d;font-size:18px;margin-bottom:8px}
+body.mk-white .profileLoadState{margin:8px 16px;padding:11px 13px;border-radius:12px;background:#eef6ff;color:#536b84;font-size:12px}
+body.mk-white .profileLoadState.ready:empty{display:none}
+body.mk-white .profileLoadState.error{background:#fff0f0;color:#a53636}
+body.mk-white .profileLoadState button{margin-left:6px;border:0;background:transparent;color:#0877d8;font:inherit;font-weight:800;text-decoration:underline}
+body.mk-white #profileEdit:disabled{opacity:.45}
