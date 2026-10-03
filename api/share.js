@@ -3,6 +3,7 @@ const base=()=>String(process.env.SUPABASE_URL||'https://exfxcgiuotraszeqefha.su
 const key=()=>process.env.SUPABASE_SERVICE_ROLE_KEY;
 async function sf(path){const k=key();if(!k)throw new Error('SUPABASE_SERVICE_ROLE_KEY is not configured');return fetch(base()+'/rest/v1/'+path,{headers:{apikey:k,Authorization:`Bearer ${k}`}})}
 function orderedImages(images){return (images||[]).filter(x=>x&&x.image_url).sort((a,b)=>(Number(a.sort_order)||0)-(Number(b.sort_order)||0));}
+function launchToken(id){return Buffer.from(String(id),'utf8').toString('base64url')}
 module.exports=async(req,res)=>{
   const id=String(req.query.id||'').trim(), lot=Number(req.query.lot||0);
   if(!id&&(!Number.isInteger(lot)||lot<=0))return res.status(400).send('Invalid lot');
@@ -14,12 +15,16 @@ module.exports=async(req,res)=>{
   const proto=(req.headers['x-forwarded-proto']||'https').split(',')[0];
   const host=req.headers['x-forwarded-host']||req.headers.host;
   const origin=`${proto}://${host}`;
-  const target=`${origin}/?lotId=${encodeURIComponent(row.id)}`;
+  const fallback=`${origin}/?lotId=${encodeURIComponent(row.id)}`;
+  const bot=String(process.env.TELEGRAM_BOT_USERNAME||'').replace(/^@/,'').trim();
+  const target=bot?`https://t.me/${encodeURIComponent(bot)}?start=lot_${launchToken(row.id)}`:fallback;
   const rawImage=orderedImages(row.auction_lot_images)[0]?.image_url;
   const image=rawImage?new URL(rawImage,origin).toString():null;
   const desc=`Лот ${String(row.lot_number).padStart(3,'0')} · Starting bid $${price.toLocaleString('en-US')}${meta?' · '+meta:''}`;
   res.setHeader('Content-Type','text/html; charset=utf-8');
   res.setHeader('Cache-Control','public, max-age=0, s-maxage=300');
   const imageMeta=image?`<meta property="og:image" content="${esc(image)}"><meta property="og:image:secure_url" content="${esc(image)}"><meta name="twitter:image" content="${esc(image)}">`:'';
-  res.end(`<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(title)} · Galaxy Auctions</title><meta name="description" content="${esc(desc)}"><meta property="og:type" content="website"><meta property="og:site_name" content="Galaxy Auctions"><meta property="og:title" content="${esc(title)} · Galaxy Auctions"><meta property="og:description" content="${esc(desc)}">${imageMeta}<meta property="og:url" content="${esc(origin+'/api/share?id='+encodeURIComponent(row.id))}"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="${esc(title)} · Galaxy Auctions"><meta name="twitter:description" content="${esc(desc)}"><link rel="canonical" href="${esc(target)}"><meta http-equiv="refresh" content="0;url=${esc(target)}"></head><body><p><a href="${esc(target)}">Открыть ${esc(title)} в Galaxy Auctions</a></p><script>location.replace(${JSON.stringify(target)})<\/script></body></html>`);
+  res.end(`<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(title)} · Galaxy Auctions</title><meta name="description" content="${esc(desc)}"><meta property="og:type" content="website"><meta property="og:site_name" content="Galaxy Auctions"><meta property="og:title" content="${esc(title)} · Galaxy Auctions"><meta property="og:description" content="${esc(desc)}">${imageMeta}<meta property="og:url" content="${esc(origin+'/api/share?id='+encodeURIComponent(row.id))}"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="${esc(title)} · Galaxy Auctions"><meta name="twitter:description" content="${esc(desc)}"><link rel="canonical" href="${esc(fallback)}"><meta http-equiv="refresh" content="0;url=${esc(target)}"></head><body><p><a href="${esc(target)}">Открыть ${esc(title)} через Telegram</a></p><p><a href="${esc(fallback)}">Открыть веб-версию</a></p><script>location.replace(${JSON.stringify(target)})<\/script></body></html>`);
 };
+
+module.exports.launchToken=launchToken;
