@@ -53,3 +53,19 @@ test('LIVE button URL carries an idempotent launch intent',()=>{
     assert.equal(reopened.href,first.href);
   }finally{if(old===undefined)delete process.env.TELEGRAM_WEB_APP_URL;else process.env.TELEGRAM_WEB_APP_URL=old}
 });
+
+const {editableProfile}=require('../api/profile');
+test('profile update validates and persists only editable profile metadata',()=>{
+  const patch=editableProfile({firstName:' Aisha ',lastName:'K',email:'AISHA@EXAMPLE.COM',phone:'+971501234567',phoneCountry:'ae',language:'ar',avatarUrl:'data:image/webp;base64,AAAA'});
+  assert.equal(patch.first_name,'Aisha');
+  assert.equal(patch.email,'aisha@example.com');
+  assert.equal(patch.phone_country,'AE');
+  assert.equal(patch.country,'AE');
+  assert.equal(patch.language,'ar');
+  for(const protectedField of ['deposit_amount','bid_limit','account_status','is_admin','telegram_id']) assert.equal(Object.hasOwn(patch,protectedField),false);
+});
+
+test('profile update rejects unsupported languages and invalid phone numbers',()=>{
+  assert.throws(()=>editableProfile({firstName:'A',phoneCountry:'AE',language:'de'}),/Некорректный язык/);
+  assert.throws(()=>editableProfile({firstName:'A',phoneCountry:'AE',phone:'050123',language:'ru'}),/международном формате/);
+});
