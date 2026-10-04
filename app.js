@@ -363,14 +363,17 @@ async function renderModernMyBids(){
 const PROFILE_LANGUAGES={ru:'Русский',en:'English',ar:'العربية'};
 const PROFILE_FLAGS={AE:'🇦🇪',KZ:'🇰🇿',RU:'🇷🇺',US:'🇺🇸',GB:'🇬🇧',GE:'🇬🇪'};
 function setProfileAvatar(el,d,name){if(!el)return;const url=d.avatar_url||tgUser?.photo_url||'';el.textContent=(name.trim().slice(0,2)||'MK').toUpperCase();el.style.backgroundImage=url?`url("${String(url).replace(/["\\]/g,"\\$&")}")`:'';el.classList.toggle('hasPhoto',!!url)}
+function profileLanguageKey(){return 'galaxyLanguage:'+(tgUser?.id||'guest')}
+function selectedProfileLanguage(){try{const code=localStorage.getItem(profileLanguageKey());return Object.hasOwn(PROFILE_LANGUAGES,code)?code:'ru'}catch{return 'ru'}}
+function syncProfileLanguage(){const code=selectedProfileLanguage();$('modernProfileLanguage').textContent=PROFILE_LANGUAGES[code];document.querySelectorAll('[data-profile-language]').forEach(b=>b.classList.toggle('active',b.dataset.profileLanguage===code))}
 function syncModernProfile(){
- const d=window.accountData||tgUser;if(!d)return;const name=[d.first_name,d.last_name].filter(Boolean).join(' ')||d.username||'Telegram user';
- $("modernProfileName").textContent=name;$("modernProfileUser").textContent=d.username?'@'+d.username:String(d.telegram_id||'');setProfileAvatar($("modernProfileAvatar"),d,name);
- const active=String(d.account_status||'').toLowerCase()==='active';$("modernProfileStatus").textContent=active?'● Активный аккаунт':'● '+(String(d.account_status||'Аккаунт').toUpperCase());$("modernProfileStatus").classList.toggle('inactive',!active);
- const phone=String(d.phone||'').trim(),flag=PROFILE_FLAGS[String(d.phone_country||'').toUpperCase()]||'';$("modernProfilePhone").textContent=phone?`${flag?flag+' ':''}${phone}`:'📞 Добавить телефон';$("modernProfileEmail").textContent=d.email?'✉️ '+d.email:'✉️ Добавить email';$("modernProfileLanguage").textContent=PROFILE_LANGUAGES[d.language||localStorage.getItem('galaxyLanguage:'+(tgUser?.id||'guest'))]||PROFILE_LANGUAGES.ru;
- if(window.accountData){$("modernProfileDeposit").textContent=money(Number(d.deposit_amount||0));$("modernProfileLimit").textContent=money(Number(d.bid_limit||0));$("openAdminFromProfile").style.display=d.is_admin?'block':'none'};
+ if(!window.accountData)return;const d=window.accountData;const name=[d.first_name,d.last_name].filter(Boolean).join(' ')||d.username||'Telegram user';
+ $("modernProfileName").textContent=name;$("modernProfileUser").textContent=d.username?'@'+d.username:String(d.telegram_id||'');$("modernProfileAvatar").textContent=(name.slice(0,2)||'MK').toUpperCase();$("modernProfileDeposit").textContent=money(Number(d.deposit_amount||0));$("modernProfileLimit").textContent=money(Number(d.bid_limit||0));$("openAdminFromProfile").style.display=d.is_admin?'block':'none';
+ setProfileAvatar($("modernProfileAvatar"),d,name);
+ const active=String(d.account_status||'').toLowerCase()==='active';$("modernProfileStatus").textContent=active?'● Активный аккаунт':'● '+String(d.account_status||'ОЖИДАЕТ АКТИВАЦИИ').toUpperCase();$("modernProfileStatus").classList.toggle('inactive',!active);
+ const phone=String(d.phone||'').trim(),flag=PROFILE_FLAGS[String(d.phone_country||'').toUpperCase()]||'';$("modernProfilePhone").textContent=phone?`${flag?flag+' ':''}${phone}`:'📞 Телефон не указан';$("modernProfileEmail").textContent=d.email?'✉️ '+d.email:'✉️ Email не указан';
+ syncProfileLanguage();
 }
-async function loadEditableProfile(){if(!tg?.initData)return;try{const r=await fetch('/api/profile',{headers:{'x-telegram-init-data':tg.initData}}),out=await r.json();if(!r.ok)throw Error(out.error||'Profile details unavailable');window.accountData={...window.accountData,...out.profile};syncModernProfile()}catch(e){console.warn('Optional profile details',e.message)}}
 function update(){
  const waiting=stateRow?.status==='waiting';const bonus=whiteIsBonus();
  $("selectedInc").textContent="+"+money(inc);$("price").textContent=money(price);$("leaderPrice").textContent=money(price);$("bidder").textContent="Bidder #"+bidder;
@@ -494,7 +497,7 @@ async function loadAccountProfile(){
     const {data,error}=await db.from("auction_users").select("telegram_id,username,first_name,last_name,deposit_amount,deposit_method,bid_limit,account_status,deposit_updated_at,is_admin").eq("telegram_id",String(tgUser.id)).single();
     if(error) throw error;
     currentAccountProfile=data;
-    window.accountData=data;syncModernProfile();loadEditableProfile();refreshRegisteredCount();await refreshAdminAccess();
+    window.accountData=data;syncModernProfile();refreshRegisteredCount();await refreshAdminAccess();
     const name=[data.first_name,data.last_name].filter(Boolean).join(" ") || data.username || "Telegram user";
     $("accountName").textContent=name;
     $("accountUsername").textContent=data.username?"@"+data.username:"Без username";
@@ -530,17 +533,15 @@ $("accountClose").onclick=()=>$("accountOverlay").classList.remove("open");
 $("accountOverlay").onclick=e=>{if(e.target===$("accountOverlay"))$("accountOverlay").classList.remove("open")};
 $("accountRefresh").onclick=loadAccountProfile;
 
-let pendingProfileAvatar='';
-function openProfileEditor(focusId=''){const d=window.accountData||{},name=[d.first_name,d.last_name].filter(Boolean).join(' ')||d.username||'MK';$('profileFirstName').value=d.first_name||'';$('profilePhone').value=d.phone||'';$('profilePhoneCountry').value=d.phone_country||'AE';$('profileEmail').value=d.email||'';$('profileLanguage').value=d.language||localStorage.getItem('galaxyLanguage:'+(tgUser?.id||'guest'))||'ru';setProfileAvatar($('profileEditAvatar'),d,name);pendingProfileAvatar='';$('profileEditMsg').textContent='';$('profileEditMsg').className='adminSaveMsg';$('profileEditOverlay').classList.add('open');$('profileEditOverlay').setAttribute('aria-hidden','false');setTimeout(()=>$(focusId||'profileFirstName')?.focus(),100)}
-function closeProfileEditor(){$('profileEditOverlay').classList.remove('open');$('profileEditOverlay').setAttribute('aria-hidden','true')}
-async function compressProfilePhoto(file){if(!/^image\/(jpeg|png|webp)$/.test(file.type))throw Error('Выберите JPEG, PNG или WebP');const url=URL.createObjectURL(file);try{const img=new Image();await new Promise((ok,bad)=>{img.onload=ok;img.onerror=bad;img.src=url});const scale=Math.min(1,640/Math.max(img.naturalWidth,img.naturalHeight)),c=document.createElement('canvas');c.width=Math.max(1,Math.round(img.naturalWidth*scale));c.height=Math.max(1,Math.round(img.naturalHeight*scale));c.getContext('2d').drawImage(img,0,0,c.width,c.height);return c.toDataURL('image/jpeg',.78)}finally{URL.revokeObjectURL(url)}}
-async function profilePhotoChanged(e){const file=e.target.files?.[0];if(!file)return;try{pendingProfileAvatar=await compressProfilePhoto(file);$('profileEditAvatar').style.backgroundImage=`url("${pendingProfileAvatar}")`;$('profileEditAvatar').textContent='';$('profileEditAvatar').classList.add('hasPhoto')}catch(err){$('profileEditMsg').textContent='Ошибка фото: '+err.message}}
-async function saveProfilePatch(patch){if(!tg?.initData)throw Error('Откройте приложение через Telegram');const r=await fetch('/api/profile',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:tg.initData,...patch})}),out=await r.json();if(!r.ok)throw Error(out.error||'Не удалось сохранить');window.accountData={...window.accountData,...out.profile};syncModernProfile();return out.profile}
-async function saveOwnProfile(){const btn=$('profileSave'),msg=$('profileEditMsg');btn.disabled=true;msg.textContent='Сохранение…';try{await saveProfilePatch({firstName:$('profileFirstName').value,lastName:window.accountData?.last_name||'',phone:$('profilePhone').value,phoneCountry:$('profilePhoneCountry').value,email:$('profileEmail').value,language:$('profileLanguage').value,avatarUrl:pendingProfileAvatar});msg.textContent='Сохранено';setTimeout(closeProfileEditor,350)}catch(e){msg.textContent='Ошибка: '+e.message;msg.className='adminSaveMsg error'}finally{btn.disabled=false}}
-function openProfileLanguage(){$('profileLanguageOverlay').classList.add('open');$('profileLanguageOverlay').setAttribute('aria-hidden','false');document.querySelectorAll('[data-profile-language]').forEach(b=>b.classList.toggle('active',b.dataset.profileLanguage===(window.accountData?.language||'ru')))}
-function closeProfileLanguage(){$('profileLanguageOverlay').classList.remove('open');$('profileLanguageOverlay').setAttribute('aria-hidden','true')}
-$('profileEdit').onclick=()=>openProfileEditor();$('profilePhoneRow').onclick=()=>openProfileEditor('profilePhone');$('profileEmailRow').onclick=()=>openProfileEditor('profileEmail');$('profileEditClose').onclick=closeProfileEditor;$('profileEditOverlay').onclick=e=>{if(e.target===$('profileEditOverlay'))closeProfileEditor()};$('profilePhoto').onchange=profilePhotoChanged;$('profileSave').onclick=saveOwnProfile;$('profileLanguageRow').onclick=openProfileLanguage;$('profileLanguageClose').onclick=closeProfileLanguage;$('profileLanguageOverlay').onclick=e=>{if(e.target===$('profileLanguageOverlay'))closeProfileLanguage()};document.querySelectorAll('[data-profile-language]').forEach(b=>b.onclick=()=>{localStorage.setItem('galaxyLanguage:'+(tgUser?.id||'guest'),b.dataset.profileLanguage);window.accountData={...window.accountData,language:b.dataset.profileLanguage};syncModernProfile();closeProfileLanguage()});$('profilePhoneCountry').onchange=()=>{const input=$('profilePhone'),code=$('profilePhoneCountry').selectedOptions[0]?.dataset.code||'';if(!input.value.trim())input.value=code};
 
+// Top-card controls use the existing account flow; language is a device preference.
+function openProfileAccount(){closeModernScreens();openAccount()}
+function openProfileLanguage(){syncProfileLanguage();$('profileLanguageOverlay').classList.add('open');$('profileLanguageOverlay').setAttribute('aria-hidden','false')}
+function closeProfileLanguage(){$('profileLanguageOverlay').classList.remove('open');$('profileLanguageOverlay').setAttribute('aria-hidden','true')}
+$('profileEdit').onclick=openProfileAccount;$('profilePhoneRow').onclick=openProfileAccount;$('profileEmailRow').onclick=openProfileAccount;
+$('profileLanguageRow').onclick=openProfileLanguage;$('profileLanguageClose').onclick=closeProfileLanguage;$('profileLanguageOverlay').onclick=e=>{if(e.target===$('profileLanguageOverlay'))closeProfileLanguage()};
+document.querySelectorAll('[data-profile-language]').forEach(b=>b.onclick=()=>{const code=b.dataset.profileLanguage;if(!Object.hasOwn(PROFILE_LANGUAGES,code))return;try{localStorage.setItem(profileLanguageKey(),code)}catch{}syncProfileLanguage();closeProfileLanguage()});
+syncProfileLanguage();
 
 async function adminApi(path,payload={}){
   if(!tg?.initData) throw new Error("Откройте приложение через Telegram");

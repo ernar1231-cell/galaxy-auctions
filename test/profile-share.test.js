@@ -58,38 +58,16 @@ const fs=require('node:fs');
 const path=require('node:path');
 const source=file=>fs.readFileSync(path.join(__dirname,'..',file),'utf8');
 
-test('profile keeps the proven Telegram account data path for balances and identity',()=>{
+test('profile uses the pre-redesign Telegram account data path',()=>{
   const app=source('app.js');
   const html=source('index.html');
   assert.match(app,/const tgUser=tg\?\.initDataUnsafe\?\.user \|\| null/);
   assert.match(app,/register_telegram_user/);
   assert.match(app,/from\("auction_users"\)\.select\("telegram_id,username,first_name,last_name,deposit_amount,deposit_method,bid_limit,account_status,deposit_updated_at,is_admin"\)\.eq\("telegram_id",String\(tgUser\.id\)\)\.single\(\)/);
-  assert.match(html,/id="modernProfileDeposit"/);
-  assert.match(html,/id="modernProfileLimit"/);
   assert.match(html,/id="openAccountFromProfile"/);
-  assert.match(html,/id="openAdminFromProfile"/);
-});
-
-test('top profile card has persistent edit, contact, language and verification controls',()=>{
-  const app=source('app.js');
-  const html=source('index.html');
-  for(const id of ['profileEdit','profilePhoneRow','profileEmailRow','profileLanguageRow','profileEditOverlay','profilePhoto','profileSave'])assert.match(html,new RegExp(`id="${id}"`));
-  assert.match(html,/data-profile-language="ru"/);
-  assert.match(html,/data-profile-language="en"/);
-  assert.match(html,/data-profile-language="ar"/);
-  assert.match(html,/data-info="Верификация/);
-  assert.match(app,/saveProfilePatch/);
-  assert.match(app,/avatarUrl:pendingProfileAvatar/);
-  assert.match(app,/loadEditableProfile\(\)/);
-});
-
-test('profile API keeps main authentication and lookup contract',()=>{
-  const api=source('api/profile.js');
-  assert.match(api,/req\.method==='POST'\?req\.body\?\.initData:req\.headers\['x-telegram-init-data'\]/);
-  assert.match(api,/auction_users\?telegram_id=eq\.\$\{encodeURIComponent\(String\(user\.id\)\)\}/);
-  assert.match(api,/deposit_amount,bid_limit,account_status,created_at,is_admin/);
-  assert.doesNotMatch(api,/const optionalFields|readOnly===true|editableProfile/);
-  assert.doesNotMatch(api,/telegram_id:|deposit_amount:|bid_limit:|is_admin:/);
+  assert.match(html,/Мой аккаунт/);
+  assert.doesNotMatch(html,/id="profileEditOverlay"|profileHeroCard/);
+  assert.doesNotMatch(app,/saveOwnProfile|\/api\/profile/);
 });
 
 test('admin entry uses verified role access and opens the existing panel',()=>{
@@ -102,4 +80,19 @@ test('admin entry uses verified role access and opens the existing panel',()=>{
   assert.match(access,/verifyTelegram\(req\.body\?\.initData/);
   assert.match(access,/is_admin=eq\.true/);
   assert.match(html,/id="adminOverlay"/);
+  assert.match(html,/id="openAdminFromProfile"/);
+});
+
+test('top profile card preserves contact, language and verification controls',()=>{
+  const app=source('app.js');
+  const html=source('index.html');
+  const card=html.match(/<section class="profileTop profileContactCard">.*?<\/section>/)?.[0];
+  assert.ok(card);
+  for(const id of ['modernProfileAvatar','modernProfileName','modernProfileUser','modernProfileStatus','profileEdit','profilePhoneRow','profileEmailRow','profileLanguageRow'])assert.match(card,new RegExp(`id="${id}"`));
+  for(const language of ['ru','en','ar'])assert.match(html,new RegExp(`data-profile-language="${language}"`));
+  assert.match(card,/data-info="Верификация/);
+  assert.match(app,/setProfileAvatar\(\$\("modernProfileAvatar"\),d,name\)/);
+  assert.match(app,/function openProfileAccount\(\)\{closeModernScreens\(\);openAccount\(\)\}/);
+  assert.match(app,/localStorage\.setItem\(profileLanguageKey\(\),code\)/);
+  assert.doesNotMatch(app,/saveProfilePatch|loadEditableProfile/);
 });
