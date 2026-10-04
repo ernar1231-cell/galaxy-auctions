@@ -965,3 +965,18 @@ body.mk-white .livegrid .bidbox>.historyLink{margin:6px auto 0!important;min-hei
     justify-self:stretch!important;
   }
 }
+
+
+/* Final micro-adjustment: only Live spec VALUES move closer to the right divider. */
+@media (max-width:600px){
+  body.mk-white .livegrid .specColumn .detailrow{
+    grid-template-columns:minmax(72px,32%) minmax(0,1fr)!important;
+  }
+  body.mk-white .livegrid .specColumn .detailrow b{
+    width:100%!important;
+    text-align:right!important;
+    justify-self:end!important;
+    padding-right:2px!important;
+    box-sizing:border-box!important;
+  }
+}
