@@ -884,289 +884,72 @@ body.mk-white.liveViewportLocked .app>#tradeControls .bidbtn{
 }
 body.mk-white .livegrid .bidbox>.historyLink{margin:6px auto 0!important;min-height:24px!important}
 
-/* FINAL approved Live Auction mobile layout — matches reference screenshot #3. */
-@media (max-width:600px){
-  body.mk-white .livegrid{
-    padding-left:8px!important;padding-right:8px!important;padding-bottom:6px!important;
-  }
-  body.mk-white .livegrid .photoFrame{
-    border-radius:12px!important;overflow:hidden!important;background:#f3f6f9!important;
-  }
-  body.mk-white .livegrid .photoFrame .hero{
-    width:100%!important;max-height:clamp(245px,38dvh,330px)!important;
-    object-fit:contain!important;object-position:center!important;
-  }
-  body.mk-white .livegrid .auctionLower{
-    display:grid!important;
-    grid-template-columns:minmax(0,1.12fr) minmax(158px,.88fr)!important;
-    column-gap:7px!important;align-items:start!important;margin-top:6px!important;
-  }
-  body.mk-white .livegrid .specColumn{
-    min-width:0!important;align-self:start!important;height:auto!important;padding-right:0!important;
-  }
-  body.mk-white .livegrid .specColumn>.liveVehicleTitle{
-    font-size:16px!important;line-height:1.08!important;margin:0 0 5px!important;
-  }
-  body.mk-white .livegrid .specColumn .details{
-    height:auto!important;min-height:0!important;margin:0!important;padding:0!important;
-  }
-  body.mk-white .livegrid .specColumn .detailrow{
-    grid-template-columns:minmax(80px,44%) minmax(0,1fr)!important;
-    min-height:20px!important;padding:2px 1px!important;font-size:10.5px!important;
-  }
-  body.mk-white .livegrid .specColumn .detailrow>span{font-size:10px!important}
-  body.mk-white .livegrid .specColumn .detailrow b{font-size:10.5px!important}
-  body.mk-white .livegrid .auctionLower>.bidcol{
-    align-self:start!important;min-width:0!important;height:auto!important;
-    margin:0!important;padding:5px!important;border-radius:13px!important;
-  }
-  body.mk-white .livegrid .auctionLower>.bidcol .bidbox{padding:0!important}
-  body.mk-white .livegrid .bidStateBanner{
-    min-height:21px!important;margin:0 0 3px!important;padding:3px!important;font-size:9.5px!important;
-  }
-  body.mk-white .livegrid .bidcircle{
-    width:clamp(104px,27vw,118px)!important;margin:2px auto 4px!important;
-  }
-  body.mk-white .livegrid .circleTime{font-size:25px!important}
-  body.mk-white .livegrid .currentAmount{margin-top:2px!important}
-  body.mk-white .livegrid .currentAmount .price{
-    font-size:clamp(21px,5.6vw,25px)!important;line-height:1.1!important;
-  }
-  body.mk-white .livegrid .liveBidFeed{margin-top:4px!important;gap:1px!important}
-  body.mk-white .livegrid .liveBidder{
-    min-height:19px!important;padding:2px 4px!important;font-size:9.5px!important;
-  }
-  body.mk-white .livegrid .bidbox>.historyLink{margin-top:2px!important;min-height:19px!important}
-  body.mk-white.liveViewportLocked .app>#tradeControls{
-    position:static!important;flex:0 0 112px!important;height:112px!important;
-    width:100%!important;max-width:520px!important;margin:0 auto!important;
-    padding:6px 9px 8px!important;background:#fff!important;
-  }
-  body.mk-white.liveViewportLocked .app>#tradeControls .circlecontrols{
-    grid-template-columns:44px minmax(0,1fr) 44px!important;gap:6px!important;margin:0 0 6px!important;
-  }
-  body.mk-white.liveViewportLocked .app>#tradeControls .bidbtn{
-    height:44px!important;min-height:44px!important;padding:6px!important;
-    font-size:12px!important;white-space:nowrap!important;
-  }
-  body.mk-white.liveViewportLocked .app>#tradeControls .bidbtn:not(:disabled){
-    background:#173d70!important;color:#fff!important;border-color:#173d70!important;font-weight:850!important;
-  }
-}
-
-
-/* Live Auction final flow fix: let the approved layout grow vertically instead of clipping content. */
+/* FINAL Live Auction mobile layout — single source of truth. */
 @media (max-width:600px){
   body.mk-white.liveViewportLocked,
   body.mk-white.liveViewportLocked .app{
-    height:auto!important;
-    min-height:100dvh!important;
-    overflow:visible!important;
-    touch-action:pan-y!important;
+    height:auto!important;min-height:100dvh!important;overflow:visible!important;
   }
-  body.mk-white.liveViewportLocked .livegrid{
-    display:block!important;
-    flex:none!important;
-    height:auto!important;
-    min-height:0!important;
-    max-height:none!important;
-    overflow:visible!important;
-    padding-bottom:6px!important;
-  }
-  body.mk-white.liveViewportLocked .livegrid .carcol,
-  body.mk-white.liveViewportLocked .livegrid .main,
-  body.mk-white.liveViewportLocked .livegrid .auctionLower,
-  body.mk-white.liveViewportLocked .livegrid .specColumn,
-  body.mk-white.liveViewportLocked .livegrid .bidcol{
-    height:auto!important;
-    min-height:0!important;
-    max-height:none!important;
-    overflow:visible!important;
-  }
-  body.mk-white.liveViewportLocked .app>#tradeControls{
-    position:static!important;
-    flex:none!important;
-    height:auto!important;
-    min-height:112px!important;
-    margin:0 auto!important;
-  }
-  body.mk-white.liveViewportLocked .app>nav,
-  body.mk-white.liveViewportLocked .app>.bottomnav,
-  body.mk-white.liveViewportLocked .app>.bottomNav{
-    position:static!important;
-    flex:none!important;
-  }
-}
-
-
-/* Stable compact Live Auction mobile viewport — approved Oct 4 adjustments. */
-@media (max-width:600px){
-  body.mk-white .status{
-    height:20px!important;min-height:20px!important;padding:0 8px!important;
-    font-size:9px!important;
-  }
-  body.mk-white .status .sound{display:none!important}
-  body.mk-white .progress{
-    height:22px!important;min-height:22px!important;padding:0 9px!important;gap:4px!important;
-  }
-  body.mk-white .progress #liveAudience{display:inline-flex!important}
-  body.mk-white .livegrid .photoFrame .hero{
-    max-height:clamp(205px,31dvh,270px)!important;
-  }
-  body.mk-white .livegrid .auctionLower{
-    grid-template-columns:minmax(0,1.13fr) minmax(154px,.87fr)!important;
-    column-gap:6px!important;
-  }
-  body.mk-white .livegrid .specColumn .detailrow{
-    min-height:19px!important;padding:2px 1px!important;
-  }
-  body.mk-white .livegrid .auctionLower>.bidcol{
-    min-height:0!important;padding:4px!important;
-  }
-  body.mk-white .livegrid .liveBidFeed{
-    height:78px!important;min-height:78px!important;max-height:78px!important;
-    overflow:hidden!important;justify-content:flex-start!important;
-  }
-  body.mk-white .livegrid .liveBidder{
-    min-height:18px!important;height:18px!important;padding:1px 4px!important;
-  }
-  body.mk-white.liveViewportLocked .app>#tradeControls{
-    position:sticky!important;bottom:calc(68px + env(safe-area-inset-bottom))!important;
-    z-index:40!important;min-height:82px!important;height:82px!important;
-    padding:5px 8px 6px!important;background:#fff!important;
-    border-top:1px solid #e2ecf5!important;
-  }
-  body.mk-white.liveViewportLocked .app>#tradeControls .circlecontrols{
-    grid-template-columns:40px minmax(0,1fr) 40px!important;
-    gap:5px!important;margin:0 0 4px!important;
-  }
-  body.mk-white.liveViewportLocked .app>#tradeControls .circlecontrols button,
-  body.mk-white.liveViewportLocked .app>#tradeControls .selected{
-    height:34px!important;min-height:34px!important;
-  }
-  body.mk-white.liveViewportLocked .app>#tradeControls .bidbtn{
-    height:36px!important;min-height:36px!important;padding:4px!important;
-    font-size:11px!important;
-  }
-}
-
-
-/* Oct 4 polish: one status row + visually closed specification panel. */
-@media (max-width:600px){
-  body.mk-white .status{
-    display:flex!important;height:20px!important;min-height:20px!important;
-  }
-  body.mk-white .status #soundStatus{display:block!important}
-  body.mk-white .progress #lot{display:none!important}
-  body.mk-white .progress{
-    justify-content:flex-end!important;
-  }
-  body.mk-white .progress #count{margin-right:auto!important}
-  body.mk-white .livegrid .auctionLower{
-    align-items:stretch!important;
-  }
-  body.mk-white .livegrid .specColumn{
-    align-self:stretch!important;
-    border-bottom:1px solid #e2ecf5!important;
-    border-right:1px solid #e2ecf5!important;
-    padding-bottom:4px!important;
-  }
-}
-
-
-/* Final Live polish: align spec values to the divider and remove footer dead space. */
-@media (max-width:600px){
-  body.mk-white .livegrid .specColumn .detailrow{
-    grid-template-columns:minmax(0,1fr) auto!important;
-    column-gap:6px!important;
-  }
-  body.mk-white .livegrid .specColumn .detailrow b{
-    justify-self:end!important;
-    text-align:right!important;
-    width:auto!important;
-    max-width:100%!important;
-    padding-right:3px!important;
-  }
-  body.mk-white.liveViewportLocked .app>#tradeControls{
-    margin-bottom:0!important;
-  }
-  body.mk-white.liveViewportLocked .modernBottomNav,
-  body.mk-white.liveViewportLocked .bottomnav,
-  body.mk-white.liveViewportLocked .bottomNav{
-    margin-top:0!important;
-  }
-  body.mk-white.liveViewportLocked .app{
-    padding-bottom:0!important;
-  }
-}
-
-
-/* Approved Live Auction reference — final mobile composition. */
-@media (max-width:600px){
   body.mk-white .status{
     display:flex!important;height:20px!important;min-height:20px!important;
     padding:0 9px!important;font-size:9px!important;
   }
   body.mk-white .status #soundStatus{display:block!important}
+  body.mk-white .status .sound{display:none!important}
   body.mk-white .progress{
     display:flex!important;height:23px!important;min-height:23px!important;
     padding:0 9px!important;gap:5px!important;justify-content:space-between!important;
   }
-  body.mk-white .progress #lot{
-    display:block!important;flex:1 1 auto!important;min-width:0!important;
-    overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;
-  }
+  body.mk-white .progress #lot{display:block!important;flex:1 1 auto!important;min-width:0!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
   body.mk-white .progress #count{margin:0!important;white-space:nowrap!important}
   body.mk-white .progress #liveAudience{display:inline-flex!important;white-space:nowrap!important}
-  body.mk-white .livegrid{padding:0 8px 2px!important}
+  body.mk-white .livegrid{
+    display:block!important;flex:none!important;height:auto!important;min-height:0!important;
+    max-height:none!important;overflow:visible!important;padding:0 8px!important;
+  }
   body.mk-white .livegrid .photoFrame .hero{
-    max-height:clamp(220px,33dvh,285px)!important;
+    width:100%!important;max-height:clamp(220px,33dvh,285px)!important;
     object-fit:contain!important;object-position:center!important;
   }
   body.mk-white .livegrid .auctionLower{
-    grid-template-columns:minmax(0,1.16fr) minmax(154px,.84fr)!important;
+    display:grid!important;grid-template-columns:minmax(0,1.16fr) minmax(154px,.84fr)!important;
     column-gap:6px!important;align-items:stretch!important;margin-top:5px!important;
+    height:auto!important;overflow:visible!important;
   }
   body.mk-white .livegrid .specColumn{
-    align-self:stretch!important;border-right:1px solid #e2ecf5!important;
-    border-bottom:1px solid #e2ecf5!important;padding:0 4px 3px 0!important;
+    align-self:stretch!important;height:auto!important;overflow:visible!important;
+    border-right:1px solid #e2ecf5!important;border-bottom:1px solid #e2ecf5!important;
+    padding:0 4px 3px 0!important;
   }
-  body.mk-white .livegrid .specColumn>.liveVehicleTitle{
-    font-size:16px!important;line-height:1.08!important;margin:0 0 5px!important;
-  }
+  body.mk-white .livegrid .specColumn>.liveVehicleTitle{font-size:16px!important;line-height:1.08!important;margin:0 0 5px!important}
+  body.mk-white .livegrid .specColumn .details{height:auto!important;min-height:0!important;margin:0!important;padding:0!important}
   body.mk-white .livegrid .specColumn .detailrow{
-    grid-template-columns:minmax(0,1fr) auto!important;
-    column-gap:6px!important;min-height:19px!important;padding:2px 1px!important;
+    grid-template-columns:minmax(0,1fr) auto!important;column-gap:6px!important;
+    min-height:19px!important;padding:2px 1px!important;
   }
   body.mk-white .livegrid .specColumn .detailrow b{
     justify-self:end!important;text-align:right!important;padding-right:3px!important;
   }
   body.mk-white .livegrid .auctionLower>.bidcol{
-    align-self:stretch!important;padding:4px!important;margin:0!important;
+    align-self:stretch!important;height:auto!important;min-height:0!important;
+    overflow:hidden!important;padding:4px!important;margin:0!important;
   }
   body.mk-white .livegrid .liveBidFeed{
-    height:76px!important;min-height:76px!important;max-height:76px!important;
-    overflow:hidden!important;
+    height:76px!important;min-height:76px!important;max-height:76px!important;overflow:hidden!important;
   }
   body.mk-white.liveViewportLocked .app>#tradeControls{
-    position:static!important;z-index:40!important;
-    height:80px!important;min-height:80px!important;
-    margin:0!important;padding:4px 8px 5px!important;background:#fff!important;
-    border-top:1px solid #e2ecf5!important;
+    position:static!important;flex:none!important;width:100%!important;max-width:520px!important;
+    height:80px!important;min-height:80px!important;margin:0 auto!important;
+    padding:4px 8px 5px!important;background:#fff!important;border-top:1px solid #e2ecf5!important;
   }
   body.mk-white.liveViewportLocked .app>#tradeControls .circlecontrols{
-    grid-template-columns:40px minmax(0,1fr) 40px!important;gap:5px!important;
-    margin:0 0 4px!important;
+    grid-template-columns:40px minmax(0,1fr) 40px!important;gap:5px!important;margin:0 0 4px!important;
   }
   body.mk-white.liveViewportLocked .app>#tradeControls .circlecontrols button,
-  body.mk-white.liveViewportLocked .app>#tradeControls .selected{
-    height:34px!important;min-height:34px!important;
-  }
-  body.mk-white.liveViewportLocked .app>#tradeControls .bidbtn{
-    height:35px!important;min-height:35px!important;padding:4px!important;font-size:11px!important;
-  }
+  body.mk-white.liveViewportLocked .app>#tradeControls .selected{height:34px!important;min-height:34px!important}
+  body.mk-white.liveViewportLocked .app>#tradeControls .bidbtn{height:35px!important;min-height:35px!important;padding:4px!important;font-size:11px!important}
   body.mk-white.liveViewportLocked .modernBottomNav{
-    margin-top:0!important;border-top:1px solid #e2ecf5!important;
+    position:static!important;flex:none!important;margin:0!important;border-top:1px solid #e2ecf5!important;
   }
   body.mk-white.liveViewportLocked .app{padding-bottom:0!important}
 }
