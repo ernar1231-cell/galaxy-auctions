@@ -360,9 +360,19 @@ function renderModernMarkets(){
 async function renderModernMyBids(){
  whiteRenderBidRows();
 }
+const PROFILE_LANGUAGES={ru:'Русский',en:'English',ar:'العربية'};
+const PROFILE_FLAGS={AE:'🇦🇪',KZ:'🇰🇿',RU:'🇷🇺',US:'🇺🇸',GB:'🇬🇧',GE:'🇬🇪'};
+function setProfileAvatar(el,d,name){if(!el)return;const url=d.avatar_url||tgUser?.photo_url||'';el.textContent=(name.trim().slice(0,2)||'MK').toUpperCase();el.style.backgroundImage=url?`url("${String(url).replace(/["\\]/g,"\\$&")}")`:'';el.classList.toggle('hasPhoto',!!url)}
+function profileLanguageKey(){return 'galaxyLanguage:'+(tgUser?.id||'guest')}
+function selectedProfileLanguage(){try{const code=localStorage.getItem(profileLanguageKey());return Object.hasOwn(PROFILE_LANGUAGES,code)?code:'ru'}catch{return 'ru'}}
+function syncProfileLanguage(){const code=selectedProfileLanguage();$('modernProfileLanguage').textContent=PROFILE_LANGUAGES[code];document.querySelectorAll('[data-profile-language]').forEach(b=>b.classList.toggle('active',b.dataset.profileLanguage===code))}
 function syncModernProfile(){
  if(!window.accountData)return;const d=window.accountData;const name=[d.first_name,d.last_name].filter(Boolean).join(' ')||d.username||'Telegram user';
  $("modernProfileName").textContent=name;$("modernProfileUser").textContent=d.username?'@'+d.username:String(d.telegram_id||'');$("modernProfileAvatar").textContent=(name.slice(0,2)||'MK').toUpperCase();$("modernProfileDeposit").textContent=money(Number(d.deposit_amount||0));$("modernProfileLimit").textContent=money(Number(d.bid_limit||0));$("openAdminFromProfile").style.display=d.is_admin?'block':'none';
+ setProfileAvatar($("modernProfileAvatar"),d,name);
+ const active=String(d.account_status||'').toLowerCase()==='active';$("modernProfileStatus").textContent=active?'● Активный аккаунт':'● '+String(d.account_status||'ОЖИДАЕТ АКТИВАЦИИ').toUpperCase();$("modernProfileStatus").classList.toggle('inactive',!active);
+ const phone=String(d.phone||'').trim(),flag=PROFILE_FLAGS[String(d.phone_country||'').toUpperCase()]||'';$("modernProfilePhone").textContent=phone?`${flag?flag+' ':''}${phone}`:'📞 Телефон не указан';$("modernProfileEmail").textContent=d.email?'✉️ '+d.email:'✉️ Email не указан';
+ syncProfileLanguage();
 }
 function update(){
  const waiting=stateRow?.status==='waiting';const bonus=whiteIsBonus();
@@ -523,6 +533,15 @@ $("accountClose").onclick=()=>$("accountOverlay").classList.remove("open");
 $("accountOverlay").onclick=e=>{if(e.target===$("accountOverlay"))$("accountOverlay").classList.remove("open")};
 $("accountRefresh").onclick=loadAccountProfile;
 
+
+// Top-card controls use the existing account flow; language is a device preference.
+function openProfileAccount(){closeModernScreens();openAccount()}
+function openProfileLanguage(){syncProfileLanguage();$('profileLanguageOverlay').classList.add('open');$('profileLanguageOverlay').setAttribute('aria-hidden','false')}
+function closeProfileLanguage(){$('profileLanguageOverlay').classList.remove('open');$('profileLanguageOverlay').setAttribute('aria-hidden','true')}
+$('profileEdit').onclick=openProfileAccount;$('profilePhoneRow').onclick=openProfileAccount;$('profileEmailRow').onclick=openProfileAccount;
+$('profileLanguageRow').onclick=openProfileLanguage;$('profileLanguageClose').onclick=closeProfileLanguage;$('profileLanguageOverlay').onclick=e=>{if(e.target===$('profileLanguageOverlay'))closeProfileLanguage()};
+document.querySelectorAll('[data-profile-language]').forEach(b=>b.onclick=()=>{const code=b.dataset.profileLanguage;if(!Object.hasOwn(PROFILE_LANGUAGES,code))return;try{localStorage.setItem(profileLanguageKey(),code)}catch{}syncProfileLanguage();closeProfileLanguage()});
+syncProfileLanguage();
 
 async function adminApi(path,payload={}){
   if(!tg?.initData) throw new Error("Откройте приложение через Telegram");

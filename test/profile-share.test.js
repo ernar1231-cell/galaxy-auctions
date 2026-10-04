@@ -66,7 +66,7 @@ test('profile uses the pre-redesign Telegram account data path',()=>{
   assert.match(app,/from\("auction_users"\)\.select\("telegram_id,username,first_name,last_name,deposit_amount,deposit_method,bid_limit,account_status,deposit_updated_at,is_admin"\)\.eq\("telegram_id",String\(tgUser\.id\)\)\.single\(\)/);
   assert.match(html,/id="openAccountFromProfile"/);
   assert.match(html,/Мой аккаунт/);
-  assert.doesNotMatch(html,/id="profileEdit"|id="profileEditOverlay"|profileHeroCard/);
+  assert.doesNotMatch(html,/id="profileEditOverlay"|profileHeroCard/);
   assert.doesNotMatch(app,/saveOwnProfile|\/api\/profile/);
 });
 
@@ -81,4 +81,18 @@ test('admin entry uses verified role access and opens the existing panel',()=>{
   assert.match(access,/is_admin=eq\.true/);
   assert.match(html,/id="adminOverlay"/);
   assert.match(html,/id="openAdminFromProfile"/);
+});
+
+test('top profile card preserves contact, language and verification controls',()=>{
+  const app=source('app.js');
+  const html=source('index.html');
+  const card=html.match(/<section class="profileTop profileContactCard">.*?<\/section>/)?.[0];
+  assert.ok(card);
+  for(const id of ['modernProfileAvatar','modernProfileName','modernProfileUser','modernProfileStatus','profileEdit','profilePhoneRow','profileEmailRow','profileLanguageRow'])assert.match(card,new RegExp(`id="${id}"`));
+  for(const language of ['ru','en','ar'])assert.match(html,new RegExp(`data-profile-language="${language}"`));
+  assert.match(card,/data-info="Верификация/);
+  assert.match(app,/setProfileAvatar\(\$\("modernProfileAvatar"\),d,name\)/);
+  assert.match(app,/function openProfileAccount\(\)\{closeModernScreens\(\);openAccount\(\)\}/);
+  assert.match(app,/localStorage\.setItem\(profileLanguageKey\(\),code\)/);
+  assert.doesNotMatch(app,/saveProfilePatch|loadEditableProfile/);
 });
