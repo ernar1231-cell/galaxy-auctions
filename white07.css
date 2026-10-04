@@ -986,3 +986,28 @@ body.mk-white .livegrid .bidbox>.historyLink{margin:6px auto 0!important;min-hei
     row-gap:0!important;
   }
 }
+
+
+/* Match the user-marked Live reference: lower section ends directly after specs/bid card. */
+@media (max-width:600px){
+  body.mk-white .livegrid .auctionLower{
+    align-items:start!important;
+    min-height:0!important;
+    height:auto!important;
+  }
+  body.mk-white .livegrid .specColumn{
+    align-self:start!important;
+    height:auto!important;
+    min-height:0!important;
+  }
+  body.mk-white .livegrid .auctionLower>.bidcol{
+    align-self:start!important;
+    height:auto!important;
+    min-height:0!important;
+  }
+  body.mk-white.liveViewportLocked .app>#tradeControls{
+    position:static!important;
+    margin-top:0!important;
+    margin-bottom:0!important;
+  }
+}
