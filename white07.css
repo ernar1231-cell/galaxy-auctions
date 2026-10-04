@@ -953,3 +953,36 @@ body.mk-white .livegrid .bidbox>.historyLink{margin:6px auto 0!important;min-hei
   }
   body.mk-white.liveViewportLocked .app{padding-bottom:0!important}
 }
+
+
+/* Three visible Live fixes from IMG_7490: no duplicate date, values at divider, no dead footer zone. */
+@media (max-width:600px){
+  body.mk-white .status #soundStatus{
+    display:block!important;
+    font-size:0!important;
+  }
+  body.mk-white .status #soundStatus::after{
+    content:"LIVE AUCTION · Звук включён";
+    font-size:9px!important;
+    font-weight:800!important;
+  }
+  body.mk-white .progress #lot{display:block!important}
+  body.mk-white .livegrid .specColumn .detailrow{
+    grid-template-columns:minmax(0,1fr) minmax(112px,52%)!important;
+  }
+  body.mk-white .livegrid .specColumn .detailrow b{
+    width:100%!important;
+    justify-self:stretch!important;
+    text-align:right!important;
+    padding-right:2px!important;
+  }
+  body.mk-white.liveViewportLocked .app>#tradeControls{
+    margin-bottom:0!important;
+  }
+  body.mk-white.liveViewportLocked #modernBottomNav{
+    margin-top:0!important;
+  }
+  body.mk-white.liveViewportLocked .app{
+    row-gap:0!important;
+  }
+}
