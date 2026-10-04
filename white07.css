@@ -883,3 +883,26 @@ body.mk-white.liveViewportLocked .app>#tradeControls .bidbtn{
   padding:6px!important;white-space:nowrap!important;
 }
 body.mk-white .livegrid .bidbox>.historyLink{margin:6px auto 0!important;min-height:24px!important}
+
+
+/* LIVE compact specs hotfix: do not stretch the specification column to the bid card height. */
+@media (max-width:600px){
+  body.mk-white .livegrid .auctionLower{
+    align-items:start!important;
+  }
+  body.mk-white .livegrid .specColumn{
+    align-self:start!important;
+    height:auto!important;
+    flex:none!important;
+  }
+  body.mk-white .livegrid .specColumn .details{
+    flex:0 0 auto!important;
+    height:auto!important;
+    min-height:0!important;
+    justify-content:start!important;
+    align-content:start!important;
+  }
+  body.mk-white .livegrid .specColumn .detailrow{
+    flex:0 0 auto!important;
+  }
+}
