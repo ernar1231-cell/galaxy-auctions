@@ -906,3 +906,44 @@ body.mk-white .livegrid .bidbox>.historyLink{margin:6px auto 0!important;min-hei
     flex:0 0 auto!important;
   }
 }
+
+
+/* Live Auction reference layout: visual-only alignment to the approved screen. */
+@media (max-width:600px){
+  body.mk-white .livegrid{padding-left:8px!important;padding-right:8px!important}
+  body.mk-white .livegrid .photoFrame{
+    border-radius:12px!important;overflow:hidden!important;background:#f3f6f9!important;
+  }
+  body.mk-white .livegrid .photoFrame .hero{
+    width:100%!important;max-height:clamp(240px,39dvh,340px)!important;
+    object-fit:contain!important;object-position:center!important;
+  }
+  body.mk-white .livegrid .auctionLower{
+    grid-template-columns:minmax(0,1.15fr) minmax(150px,.85fr)!important;
+    gap:10px!important;margin-top:7px!important;
+  }
+  body.mk-white .livegrid .specColumn>.liveVehicleTitle{
+    font-size:16px!important;line-height:1.12!important;margin-bottom:5px!important;
+  }
+  body.mk-white .livegrid .specColumn .detailrow{
+    grid-template-columns:minmax(86px,44%) minmax(0,1fr)!important;
+    min-height:21px!important;padding:3px 1px!important;font-size:11px!important;
+  }
+  body.mk-white .livegrid .specColumn .detailrow>span{font-size:10.5px!important}
+  body.mk-white .livegrid .specColumn .detailrow b{font-size:11px!important}
+  body.mk-white .livegrid .auctionLower>.bidcol{
+    padding:6px!important;border-radius:14px!important;
+  }
+  body.mk-white .livegrid .bidcircle{
+    width:clamp(108px,29vw,126px)!important;margin:4px auto 6px!important;
+  }
+  body.mk-white .livegrid .circleTime{font-size:27px!important}
+  body.mk-white .livegrid .currentAmount .price{font-size:clamp(22px,6vw,27px)!important}
+  body.mk-white.liveViewportLocked .app>#tradeControls{
+    flex-basis:112px!important;height:112px!important;padding:6px 9px 8px!important;
+  }
+  body.mk-white.liveViewportLocked .app>#tradeControls .bidbtn:not(:disabled){
+    background:#173d70!important;color:#fff!important;border-color:#173d70!important;
+    font-size:13px!important;font-weight:850!important;
+  }
+}
