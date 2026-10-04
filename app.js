@@ -373,6 +373,7 @@ function syncModernProfile(){
  const active=String(d.account_status||'').toLowerCase()==='active';$("modernProfileStatus").textContent=active?'● Активный аккаунт':'● '+String(d.account_status||'ОЖИДАЕТ АКТИВАЦИИ').toUpperCase();$("modernProfileStatus").classList.toggle('inactive',!active);
  const phone=String(d.phone||'').trim(),flag=PROFILE_FLAGS[String(d.phone_country||'').toUpperCase()]||'';$("modernProfilePhone").textContent=phone?`${flag?flag+' ':''}${phone}`:'📞 Телефон не указан';$("modernProfileEmail").textContent=d.email?'✉️ '+d.email:'✉️ Email не указан';
  syncProfileLanguage();
+ syncPersonalInformationCard();
 }
 function update(){
  const waiting=stateRow?.status==='waiting';const bonus=whiteIsBonus();
@@ -473,13 +474,37 @@ $("waitBtn").onclick=()=>{$("marketRadial").classList.remove("open");renderWatch
 let currentAccountProfile=null;
 let adminClients=[];
 let adminAccess={admin:false,owner:false};
+function syncPersonalInformationCard(){
+  const data=window.accountData;if(!data)return;
+  const name=data.full_name||[data.first_name,data.last_name].filter(Boolean).join(' ')||data.username||'Telegram user';
+  $("modernProfileName").textContent=name;
+  setProfileAvatar($("modernProfileAvatar"),data,name);
+  const phone=window.GalaxyAccountInformation.formatPhone(data.phone,data.phone_country);
+  const flag=PROFILE_FLAGS[String(data.phone_country||'').toUpperCase()]||'';
+  $("modernProfilePhone").textContent=phone?(flag?flag+' ':'')+phone:'📞 Телефон не указан';
+  $("modernProfileEmail").textContent=data.email?'✉️ '+data.email:'✉️ Email не указан';
+}
+const personalInformation=window.GalaxyAccountInformation.createAccountInformation({
+  document,
+  getAccountData:()=>window.accountData||{},
+  setAccountData:data=>{window.accountData=data;currentAccountProfile=data;},
+  getTelegramUser:()=>tgUser,
+  getInitData:()=>tg?.initData||"",
+  fetch:(url,options)=>fetch(url,options),
+  ready:()=>registrationReady,
+  beforeLoad:()=>loadAccountProfile({skipPersonalInformation:true}),
+  onSync:syncPersonalInformationCard,
+  onOpen:()=>{closeModernScreens();setModernActive("profile");$("accountOverlay").classList.remove("open");},
+  onClose:()=>{setModernActive("profile");$("profileScreen").classList.add("open");}
+});
+
 async function refreshAdminAccess(){
   if(!tgUser?.id){adminAccess={admin:false,owner:false};return adminAccess;}
   try{const r=await fetch("/api/admin-access",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({initData:tg?.initData||""})});const d=await r.json();adminAccess=r.ok?d:{admin:false,owner:false};}
   catch(e){adminAccess={admin:false,owner:false};}
   const show=!!adminAccess.admin; const p=$("openAdminFromProfile"),q=$("adminQuick"),a=$("adminAccountBtn"); if(p)p.style.display=show?"block":"none";if(q)q.style.display=show?"inline-flex":"none";if(a)a.style.display=show?"block":"none";return adminAccess;
 }
-async function loadAccountProfile(){
+async function loadAccountProfile(options={}){
   const hint=$("accountHint");
   if(!tgUser?.id){
     $("accountName").textContent="Откройте через Telegram";
@@ -497,7 +522,7 @@ async function loadAccountProfile(){
     const {data,error}=await db.from("auction_users").select("telegram_id,username,first_name,last_name,deposit_amount,deposit_method,bid_limit,account_status,deposit_updated_at,is_admin").eq("telegram_id",String(tgUser.id)).single();
     if(error) throw error;
     currentAccountProfile=data;
-    window.accountData=data;syncModernProfile();refreshRegisteredCount();await refreshAdminAccess();
+    window.accountData={...window.accountData,...data};syncModernProfile();refreshRegisteredCount();await refreshAdminAccess();
     const name=[data.first_name,data.last_name].filter(Boolean).join(" ") || data.username || "Telegram user";
     $("accountName").textContent=name;
     $("accountUsername").textContent=data.username?"@"+data.username:"Без username";
@@ -511,6 +536,7 @@ async function loadAccountProfile(){
     $("accountStatus").classList.toggle("active",active);
     $("accountAvatar").textContent=(name.trim().slice(0,2)||"MK").toUpperCase();
     hint.textContent=active?"Участие в аукционе активировано.":"После получения наличного депозита администратор активирует ваш лимит ставок.";
+    if(!options.skipPersonalInformation)await personalInformation.load({silent:true});
   }catch(err){
     console.error("Account profile load failed",err);
     hint.textContent="Не удалось загрузить профиль. Нажмите «Обновить данные».";
@@ -519,8 +545,7 @@ async function loadAccountProfile(){
 function openAccount(){
   $("marketRadial").classList.remove("open");
   $("queueOverlay").classList.remove("open");
-  $("accountOverlay").classList.add("open");
-  loadAccountProfile();
+  return personalInformation.open();
 }
 $("settingsBtn").onclick=openAccount;
 renderModernMarkets();

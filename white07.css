@@ -727,3 +727,53 @@ body.mk-white .profileContactCard .profileAvatar{width:56px!important;height:56p
 body.mk-white #profileEdit{border:1px solid #1688f8;border-radius:10px;background:#fff;color:#0877d8;padding:8px 9px;font-size:10px;font-weight:800}
 body.mk-white .profileContactRows{border-top:1px solid #edf2f7}.profileContactRows button{display:flex;align-items:center;width:100%;min-height:43px;padding:9px 12px;border:0;border-bottom:1px solid #edf2f7;background:#fff;color:#203b58;text-align:left;font:inherit}.profileContactRows button:last-child{border-bottom:0}.profileContactRows button span{flex:1;font-size:12px}.profileContactRows button i{color:#8a9aab;font-size:20px;font-style:normal}
 .profileEditOverlay,.profileLanguageOverlay{position:fixed;inset:0;z-index:1700;display:none;align-items:flex-end;justify-content:center;background:rgba(13,31,50,.48)}.profileEditOverlay.open,.profileLanguageOverlay.open{display:flex}.profileEditSheet,.profileLanguageSheet{box-sizing:border-box;width:min(100%,520px);max-height:94dvh;overflow-y:auto;border-radius:22px 22px 0 0;background:#fff;padding:15px 16px calc(22px + env(safe-area-inset-bottom));box-shadow:0 -15px 45px #10233d33}.profileEditSheet>label,.profilePhoneRow label{display:grid;gap:5px;margin:10px 0;color:#61748a;font-size:11px;font-weight:800}.profileEditSheet input,.profileEditSheet select{box-sizing:border-box;width:100%;min-height:44px;border:1px solid #dce7f2;border-radius:11px;padding:10px;background:#fff;color:#18334f;font:inherit}.profilePhoneRow{display:grid;grid-template-columns:.8fr 1.4fr;gap:8px}.profilePhotoPick{place-items:center}.profilePhotoPick span{display:grid;place-items:center;width:76px;height:76px;border-radius:50%;background:#e9f4ff center/cover;color:#1688f8;font-size:20px}.profilePhotoPick span.hasPhoto{font-size:0}.profilePhotoPick b{font-size:12px;color:#1688f8}.profileLanguageOptions{display:grid;gap:7px;padding-top:10px}.profileLanguageOptions button{display:flex;justify-content:space-between;min-height:46px;padding:12px;border:1px solid #e1eaf3;border-radius:12px;background:#fff;color:#18334f;font-weight:800}.profileLanguageOptions button i{visibility:hidden;color:#1688f8}.profileLanguageOptions button.active{border-color:#1688f8;background:#eef7ff}.profileLanguageOptions button.active i{visibility:visible}
+/* Personal information uses the existing screen navigation and account identity. */
+body.mk-white .personalInformationPage{
+  position:fixed!important;inset:0!important;left:0!important;right:0!important;bottom:0!important;
+  display:block!important;box-sizing:border-box!important;width:100%!important;max-width:520px!important;
+  height:100dvh!important;max-height:100dvh!important;margin:0 auto!important;transform:none!important;
+  padding:0 16px calc(24px + env(safe-area-inset-bottom))!important;background:#f8fbff!important;color:#18334f!important;
+  z-index:1600!important;overflow-y:auto!important;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;
+}
+body.mk-white .personalInformationPage[hidden],body.mk-white .personalInformationEditor[hidden]{display:none!important}
+body.mk-white .personalInformationPage>.personalInformationHeader{display:block!important;height:auto!important;min-height:0!important;position:sticky!important;top:0!important;z-index:1;padding:calc(14px + env(safe-area-inset-top)) 0 14px!important;background:#f8fbff!important;border-bottom:0!important}
+.personalInformationHeader>button{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:0;border:0;background:none;color:#1688f8;font:inherit;font-weight:700;cursor:pointer}
+.personalInformationHeader h1{margin:5px 0 0;font-size:23px;line-height:1.25;letter-spacing:-.5px;color:#18334f}
+.personalInformationIdentity{display:flex;align-items:center;gap:12px;padding:16px;background:#fff;border:1px solid #e2ecf6;border-radius:16px;box-shadow:0 6px 20px #1e64aa0a}
+.personalInformationAvatar{display:grid;place-items:center;flex:0 0 56px;width:56px;height:56px;border-radius:50%;background:#e9f4ff center/cover no-repeat;color:#1688f8;font-size:18px;font-weight:800}
+.personalInformationAvatar.hasPhoto{font-size:0}
+.personalInformationIdentityText{display:grid;gap:4px;min-width:0}
+.personalInformationIdentityText>b{font-size:17px;overflow-wrap:anywhere}
+.personalInformationIdentityText>span{font-size:12px;color:#718198;overflow-wrap:anywhere}
+.personalInformationIdentityText>em{font-size:11px;font-style:normal;font-weight:700;color:#129052}
+.personalInformationIdentityText>em.inactive{color:#8794a9}
+.personalInformationMessage{margin:14px 0 0;font-size:12px;color:#61748a;line-height:1.5;overflow-wrap:anywhere}
+.personalInformationMessage:empty{display:none}
+.personalInformationRetry{min-height:40px;margin-top:8px;padding:8px 12px;border:1px solid #1688f8;border-radius:10px;background:#fff;color:#0877d8;font:inherit;font-size:12px;font-weight:700}
+.personalInformationRows{margin-top:18px;padding:0 14px;background:#fff;border:1px solid #e2ecf6;border-radius:16px}
+.personalInformationRow{display:flex;align-items:center;gap:12px;min-height:78px;padding:12px 0;box-sizing:border-box;border-bottom:1px solid #edf2f7}
+.personalInformationRow:last-child{border-bottom:0}
+.personalInformationRow>div{display:grid;flex:1;gap:5px;min-width:0}
+.personalInformationLabel{font-size:11px;color:#718198}
+.personalInformationRow b{font-size:13px;line-height:1.5;font-weight:600;overflow-wrap:anywhere}
+.personalInformationRow b.empty{color:#8a97a8;font-weight:400}
+.personalInformationRow>button{flex:0 0 auto;min-height:44px;padding:4px 0 4px 6px;border:0;background:none;color:#1688f8;font:inherit;font-size:11px;font-weight:700;cursor:pointer}
+.personalInformationEditor{position:fixed;inset:0;z-index:1800;display:flex;align-items:flex-end;justify-content:center;background:#10233d77;overscroll-behavior:contain}
+.personalInformationForm{box-sizing:border-box;width:min(100%,520px);max-height:94dvh;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:20px 16px calc(22px + env(safe-area-inset-bottom));border-radius:22px 22px 0 0;background:#fff;color:#18334f;box-shadow:0 -15px 45px #10233d33}
+.personalInformationForm>h2{margin:0 0 18px;font-size:20px;line-height:1.3}
+.personalInformationFields,.personalInformationField,#personalInformationMailingFields{display:grid;gap:12px}
+.personalInformationField{gap:6px}
+.personalInformationField>label{font-size:12px;font-weight:700;color:#61748a}
+.personalInformationField>input,.personalInformationField>select{box-sizing:border-box;width:100%;min-height:48px;padding:11px 12px;border:1px solid #dce7f2;border-radius:11px;background:#fff;color:#18334f;font:inherit;font-size:16px}
+.personalInformationField>input:focus,.personalInformationField>select:focus{outline:2px solid #1688f8;outline-offset:1px}
+.personalInformationFieldHint{margin:0;color:#718198;font-size:12px;line-height:1.5}
+.personalInformationSameAddress{display:flex;align-items:center;gap:10px;min-height:44px;font-size:13px;font-weight:600;cursor:pointer}
+.personalInformationSameAddress>input{width:20px;height:20px;flex:0 0 20px;accent-color:#1688f8}
+#personalInformationMailingFields[hidden]{display:none}
+.personalInformationError{margin:12px 0;color:#c53d49;font-size:12px;line-height:1.5;overflow-wrap:anywhere}
+.personalInformationError:empty{display:none}
+.personalInformationActions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px}
+.personalInformationActions>button{min-height:48px;padding:12px;border:1px solid #1688f8;border-radius:12px;background:#fff;color:#1688f8;font:inherit;font-size:14px;font-weight:800;cursor:pointer}
+.personalInformationActions>#personalInformationSave{background:#1688f8;color:#fff}
+.personalInformationActions>button:disabled{opacity:.6;cursor:wait}
+@media(min-width:600px){.personalInformationEditor{align-items:center;padding:20px}.personalInformationForm{border-radius:22px;max-height:90dvh}}
