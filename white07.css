@@ -1099,3 +1099,74 @@ body.mk-white .livegrid .bidbox>.historyLink{margin:6px auto 0!important;min-hei
     padding-bottom:0!important;
   }
 }
+
+
+/* Approved Live Auction reference — final mobile composition. */
+@media (max-width:600px){
+  body.mk-white .status{
+    display:flex!important;height:20px!important;min-height:20px!important;
+    padding:0 9px!important;font-size:9px!important;
+  }
+  body.mk-white .status #soundStatus{display:block!important}
+  body.mk-white .progress{
+    display:flex!important;height:23px!important;min-height:23px!important;
+    padding:0 9px!important;gap:5px!important;justify-content:space-between!important;
+  }
+  body.mk-white .progress #lot{
+    display:block!important;flex:1 1 auto!important;min-width:0!important;
+    overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;
+  }
+  body.mk-white .progress #count{margin:0!important;white-space:nowrap!important}
+  body.mk-white .progress #liveAudience{display:inline-flex!important;white-space:nowrap!important}
+  body.mk-white .livegrid{padding:0 8px 2px!important}
+  body.mk-white .livegrid .photoFrame .hero{
+    max-height:clamp(220px,33dvh,285px)!important;
+    object-fit:contain!important;object-position:center!important;
+  }
+  body.mk-white .livegrid .auctionLower{
+    grid-template-columns:minmax(0,1.16fr) minmax(154px,.84fr)!important;
+    column-gap:6px!important;align-items:stretch!important;margin-top:5px!important;
+  }
+  body.mk-white .livegrid .specColumn{
+    align-self:stretch!important;border-right:1px solid #e2ecf5!important;
+    border-bottom:1px solid #e2ecf5!important;padding:0 4px 3px 0!important;
+  }
+  body.mk-white .livegrid .specColumn>.liveVehicleTitle{
+    font-size:16px!important;line-height:1.08!important;margin:0 0 5px!important;
+  }
+  body.mk-white .livegrid .specColumn .detailrow{
+    grid-template-columns:minmax(0,1fr) auto!important;
+    column-gap:6px!important;min-height:19px!important;padding:2px 1px!important;
+  }
+  body.mk-white .livegrid .specColumn .detailrow b{
+    justify-self:end!important;text-align:right!important;padding-right:3px!important;
+  }
+  body.mk-white .livegrid .auctionLower>.bidcol{
+    align-self:stretch!important;padding:4px!important;margin:0!important;
+  }
+  body.mk-white .livegrid .liveBidFeed{
+    height:76px!important;min-height:76px!important;max-height:76px!important;
+    overflow:hidden!important;
+  }
+  body.mk-white.liveViewportLocked .app>#tradeControls{
+    position:static!important;z-index:40!important;
+    height:80px!important;min-height:80px!important;
+    margin:0!important;padding:4px 8px 5px!important;background:#fff!important;
+    border-top:1px solid #e2ecf5!important;
+  }
+  body.mk-white.liveViewportLocked .app>#tradeControls .circlecontrols{
+    grid-template-columns:40px minmax(0,1fr) 40px!important;gap:5px!important;
+    margin:0 0 4px!important;
+  }
+  body.mk-white.liveViewportLocked .app>#tradeControls .circlecontrols button,
+  body.mk-white.liveViewportLocked .app>#tradeControls .selected{
+    height:34px!important;min-height:34px!important;
+  }
+  body.mk-white.liveViewportLocked .app>#tradeControls .bidbtn{
+    height:35px!important;min-height:35px!important;padding:4px!important;font-size:11px!important;
+  }
+  body.mk-white.liveViewportLocked .modernBottomNav{
+    margin-top:0!important;border-top:1px solid #e2ecf5!important;
+  }
+  body.mk-white.liveViewportLocked .app{padding-bottom:0!important}
+}
