@@ -848,3 +848,38 @@ body.mk-white .personalInformationPage>.personalInformationHeader{display:block!
   body.mk-white .livegrid .liveName{min-width:0!important}
   body.mk-white .livegrid #tradeControls{margin-top:8px!important}
 }
+
+/* Live content scrolls above the existing bid controls and iPhone navigation. */
+body.mk-white.liveViewportLocked{touch-action:pan-y!important}
+body.mk-white.liveViewportLocked .app{touch-action:pan-y!important}
+body.mk-white.liveViewportLocked .app>header,
+body.mk-white.liveViewportLocked .app>.status,
+body.mk-white.liveViewportLocked .app>.progress{flex-shrink:0!important}
+body.mk-white.liveViewportLocked .livegrid{
+  display:block!important;flex:1 1 0!important;min-height:0!important;
+  height:auto!important;overflow-y:auto!important;overflow-x:hidden!important;
+  touch-action:pan-y!important;overscroll-behavior:contain!important;-webkit-overflow-scrolling:touch;
+  padding-bottom:10px!important;
+}
+body.mk-white.liveViewportLocked .livegrid .carcol,
+body.mk-white.liveViewportLocked .livegrid .main,
+body.mk-white.liveViewportLocked .livegrid .auctionLower,
+body.mk-white.liveViewportLocked .livegrid .bidcol{height:auto!important;overflow:visible!important}
+body.mk-white.liveViewportLocked .app>#tradeControls{
+  position:static!important;flex:0 0 108px!important;height:108px!important;
+  width:100%!important;max-width:520px!important;box-sizing:border-box!important;
+  margin:0 auto!important;padding:6px 8px!important;border-top:1px solid #e2ecf5!important;
+  background:#fff!important;
+}
+body.mk-white.liveViewportLocked .app>#tradeControls .circlecontrols{
+  grid-template-columns:44px minmax(0,1fr) 44px!important;margin:0 0 6px!important;gap:6px!important;
+}
+body.mk-white.liveViewportLocked .app>#tradeControls .circlecontrols button,
+body.mk-white.liveViewportLocked .app>#tradeControls .selected{
+  width:auto!important;height:44px!important;min-height:44px!important;box-sizing:border-box!important;
+}
+body.mk-white.liveViewportLocked .app>#tradeControls .bidbtn{
+  height:44px!important;min-height:44px!important;font-size:12px!important;line-height:1.2!important;
+  padding:6px!important;white-space:nowrap!important;
+}
+body.mk-white .livegrid .bidbox>.historyLink{margin:6px auto 0!important;min-height:24px!important}

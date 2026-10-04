@@ -317,10 +317,11 @@ function applyReferenceLayout(){
  const main=document.querySelector('.main'),details=$("details"),bid=document.querySelector('.bidcol');
  const lower=document.createElement('div');lower.className='auctionLower';
  details.parentNode.insertBefore(lower,details);const specs=document.createElement('div');specs.className='specColumn';lower.append(specs,bid);specs.append(details); const participants=document.querySelector('.participants'); if(participants) participants.remove();
- // Bid controls are part of the Live Auction content itself. They scroll together
- // with the photo, specs, timer and bidder feed — never fixed/sticky and never global.
+ // Keep the existing controls in the app footer above the bottom navigation.
  const controls=$("tradeControls");
- if(controls) main.append(controls);
+ if(controls) document.querySelector('.app').append(controls);
+ const history=$("whiteHistory");
+ if(history) bid.querySelector('.bidbox').append(history);
 }
 let liveAudienceBaseline=null;
 async function loadRegisteredUsersCount(){
@@ -834,8 +835,8 @@ fetchAuctionState().then(()=>{
   };
   const obs=new MutationObserver(sync);
   document.querySelectorAll('.modernScreen,.soldScreen,.overlay,.catalogOverlay,.queueOverlay,.detailOverlay,.accountOverlay,.adminOverlay,.adminLotOverlay,.adminEditOverlay').forEach(el=>obs.observe(el,{attributes:true,attributeFilter:['class']}));
-  document.addEventListener('touchmove',e=>{if(body.classList.contains('liveViewportLocked'))e.preventDefault()},{passive:false});
-  document.addEventListener('wheel',e=>{if(body.classList.contains('liveViewportLocked'))e.preventDefault()},{passive:false});
+  document.addEventListener('touchmove',e=>{if(body.classList.contains('liveViewportLocked')&&!e.target.closest?.('.livegrid'))e.preventDefault()},{passive:false});
+  document.addEventListener('wheel',e=>{if(body.classList.contains('liveViewportLocked')&&!e.target.closest?.('.livegrid'))e.preventDefault()},{passive:false});
   document.addEventListener('scroll',()=>{if(body.classList.contains('liveViewportLocked')){window.scrollTo(0,0);document.documentElement.scrollTop=0;body.scrollTop=0;}},{passive:true});
   sync();
 })();
