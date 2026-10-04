@@ -272,7 +272,16 @@ function attachHeroSwipe(){
 function ensureHeroCounter(){ /* Counter is anchored to photoFrame in the HTML. */ }
 
 const vehicleLabels={Mileage:'Пробег',Engine:'Двигатель',Fuel:'Топливо',Transmission:'Трансмиссия',Drive:'Привод',Interior:'Салон',Exterior:'Цвет',VIN:'VIN','Auction location':'Площадка аукциона','Estimated retail value':'Ожидаемая стоимость','Primary damage':'Основной ущерб',Specs:'Спецификация',Seats:'Места'};
-function completeVehicleDetails(q){const present=new Set((q.details||[]).map(x=>x[0])),fromMeta=[['Mileage',q.meta?.[0]],['Fuel',q.meta?.[1]],['Transmission',q.meta?.[2]],['Drive',q.meta?.[3]]];return [...fromMeta.filter(x=>!present.has(x[0])&&x[1]&&x[1]!=='—'),...(q.details||[])];}
+const liveVehicleFieldOrder=['Mileage','Engine','Fuel','Transmission','Drive','Interior','Exterior','VIN','Specs','Seats'];
+function completeVehicleDetails(q){
+ const values=new Map();
+ const meta=[['Mileage',q.meta?.[0]],['Fuel',q.meta?.[1]],['Transmission',q.meta?.[2]],['Drive',q.meta?.[3]]];
+ for(const [key,value] of meta)if(value&&value!=='—')values.set(key,value);
+ for(const item of (q.details||[])){if(!Array.isArray(item)||!item[0])continue;values.set(item[0],item[1]||'—');}
+ const ordered=liveVehicleFieldOrder.map(key=>[key,values.has(key)?values.get(key):'—']);
+ for(const item of (q.details||[])){if(Array.isArray(item)&&item[0]&&!liveVehicleFieldOrder.includes(item[0]))ordered.push([item[0],item[1]||'—']);}
+ return ordered;
+}
 function detailCountdown(){if(stateRow?.status==='waiting'&&galaxyStartAt)return galaxyFormatCountdown(new Date(galaxyStartAt).getTime()-serverNowMs());return closed?'Завершено':whiteTime(seconds)}
 function syncDetailBid(){if(!$('detailOverlay')?.classList.contains('open'))return;const q=lots[detailIndex],isCurrent=Number(q?.no)===Number(lots[i]?.no);$('detailCurrentBid').textContent=money(isCurrent?price:Number(q?.price||0));$('detailMyBid').textContent=isCurrent&&myLatestBidAmount!=null?money(myLatestBidAmount):'—';$('detailBidTime').textContent=isCurrent?detailCountdown():'Торги по расписанию';$('detailBidAmount').textContent=money((isCurrent?price:Number(q?.price||0))+inc);$('detailBidSubmit').disabled=!isCurrent||closed||bidSubmitting;}
 function openLotDetail(idx){detailIndex=idx;const q=lots[idx];if(!q)return;const photos=(q.photos||[]).filter(Boolean);$("detailHero").src=photos[0]||'';$("detailHero").style.display=photos.length?'block':'none';$("detailThumbs").innerHTML=photos.map((u,k)=>`<img src="${whiteEscape(u)}" class="${k===0?'active':''}" data-dphoto="${whiteEscape(u)}">`).join('');$("detailThumbs").querySelectorAll('img').forEach(im=>im.onclick=()=>{$("detailHero").src=im.dataset.dphoto;$("detailThumbs").querySelectorAll('img').forEach(z=>z.classList.remove('active'));im.classList.add('active')});$("detailTitle").textContent=q.title;$("detailChips").replaceChildren();$("detailSpecs").innerHTML=completeVehicleDetails(q).map(d=>`<div class="detailrow"><span>${whiteEscape(vehicleLabels[d[0]]||d[0])}</span><b>${whiteEscape(d[1]||'—')}</b></div>`).join('');syncDetailBid();$("catalogOverlay").classList.remove('open');$("queueOverlay").classList.remove('open');$("detailOverlay").classList.add('open');syncDetailBid();}
