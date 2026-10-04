@@ -424,7 +424,7 @@ async function updateFromClock(){
    seconds=remain; update();
    const txt=galaxyFormatCountdown(remain*1000),label=auctionDateLabel(),n=liveTodayQueue.length;
    $("circleTime").textContent=txt;$("circleLabel").textContent='до начала аукциона';
-   $("soundStatus").textContent=`${label} · ${lotCountLabel(n)} · через ${txt}`;
+   $("soundStatus").textContent=soundOn?'LIVE AUCTION · Звук включён':'LIVE AUCTION · Звук выключен';
    $("bid").disabled=true; $("bid").style.opacity=".45";
    if(soundOn){const a=$("auctionAudio");a.pause();a.currentTime=0}
    return;
@@ -911,7 +911,7 @@ fetchAuctionState().then(()=>{
 function galaxyFormatCountdown(ms){const t=Math.max(0,Math.floor(ms/1000)),h=Math.floor(t/3600),m=Math.floor((t%3600)/60),s=t%60;return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`}
 async function refreshPublicLots(){try{const r=await fetch('/api/public-lots?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;const d=await r.json();(d.lots||[]).forEach(l=>upsertServerLot(l));renderCatalog();renderWatchlist();window.dispatchEvent(new Event('galaxy-public-lots-updated'));}catch(e){}}
 refreshPublicLots();setInterval(refreshPublicLots,10000);
-setInterval(()=>{if(!stateRow||stateRow.status!=='waiting'||!galaxyStartAt)return;const remain=Math.max(0,new Date(galaxyStartAt).getTime()-serverNowMs()),txt=galaxyFormatCountdown(remain),n=liveTodayQueue.length;const st=$('soundStatus');if(st)st.textContent=`${auctionDateLabel()} · ${lotCountLabel(n)} · через ${txt}`;const ct=$('circleTime');if(ct)ct.textContent=txt;const cl=$('circleLabel');if(cl)cl.textContent='до начала аукциона';},250);
+setInterval(()=>{if(!stateRow||stateRow.status!=='waiting'||!galaxyStartAt)return;const remain=Math.max(0,new Date(galaxyStartAt).getTime()-serverNowMs()),txt=galaxyFormatCountdown(remain),n=liveTodayQueue.length;const st=$('soundStatus');if(st)st.textContent=soundOn?'LIVE AUCTION · Звук включён':'LIVE AUCTION · Звук выключен';const ct=$('circleTime');if(ct)ct.textContent=txt;const cl=$('circleLabel');if(cl)cl.textContent='до начала аукциона';},250);
 
 
 /* Telegram launch intents contain only an opaque lot id or the public route name. */
