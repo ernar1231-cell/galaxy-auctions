@@ -1049,3 +1049,26 @@ body.mk-white .livegrid .bidbox>.historyLink{margin:6px auto 0!important;min-hei
     font-size:11px!important;
   }
 }
+
+
+/* Oct 4 polish: one status row + visually closed specification panel. */
+@media (max-width:600px){
+  body.mk-white .status{
+    display:flex!important;height:20px!important;min-height:20px!important;
+  }
+  body.mk-white .status #soundStatus{display:block!important}
+  body.mk-white .progress #lot{display:none!important}
+  body.mk-white .progress{
+    justify-content:flex-end!important;
+  }
+  body.mk-white .progress #count{margin-right:auto!important}
+  body.mk-white .livegrid .auctionLower{
+    align-items:stretch!important;
+  }
+  body.mk-white .livegrid .specColumn{
+    align-self:stretch!important;
+    border-bottom:1px solid #e2ecf5!important;
+    border-right:1px solid #e2ecf5!important;
+    padding-bottom:4px!important;
+  }
+}
