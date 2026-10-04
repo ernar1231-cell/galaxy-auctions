@@ -983,3 +983,18 @@ body.mk-white .livegrid .bidbox>.historyLink{margin:6px auto 0!important;min-hei
     padding-bottom:0!important;
   }
 }
+
+
+/* Live Auction: tighten only the horizontal gap between specs and the LIVE card. */
+@media (max-width:600px){
+  body.mk-white .livegrid .auctionLower{
+    grid-template-columns:minmax(0,1.28fr) minmax(145px,.72fr)!important;
+    column-gap:2px!important;
+  }
+  body.mk-white .livegrid .specColumn{
+    padding-right:2px!important;
+  }
+  body.mk-white .livegrid .auctionLower>.bidcol{
+    margin-left:0!important;
+  }
+}
