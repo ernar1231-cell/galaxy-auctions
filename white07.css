@@ -953,3 +953,15 @@ body.mk-white .livegrid .bidbox>.historyLink{margin:6px auto 0!important;min-hei
     background:#173d70!important;color:#fff!important;border-color:#173d70!important;font-weight:850!important;
   }
 }
+
+
+/* One isolated visual tweak: move only Live specification VALUES toward the right divider. */
+@media (max-width:600px){
+  body.mk-white .livegrid .specColumn .detailrow{
+    grid-template-columns:minmax(80px,38%) minmax(0,1fr)!important;
+  }
+  body.mk-white .livegrid .specColumn .detailrow b{
+    text-align:right!important;
+    justify-self:stretch!important;
+  }
+}
