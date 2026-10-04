@@ -1113,3 +1113,72 @@ body.mk-white .livegrid .bidbox>.historyLink{margin:6px auto 0!important;min-hei
     pointer-events:none!important;
   }
 }
+
+
+/* LIVE FIXED REFERENCE — match approved IMG_7551 geometry.
+   Only locks geometry; no auction/data behavior changes. */
+@media (max-width:600px){
+  body.mk-white .livegrid .photoFrame{
+    flex:0 0 260px!important;
+    height:260px!important;
+    min-height:260px!important;
+    max-height:260px!important;
+    overflow:hidden!important;
+    background:#f3f6f9!important;
+  }
+  body.mk-white .livegrid .photoFrame .hero{
+    position:absolute!important;inset:0!important;
+    width:100%!important;height:100%!important;
+    min-height:100%!important;max-height:none!important;
+    object-fit:cover!important;object-position:center!important;
+  }
+  body.mk-white .livegrid .auctionLower{
+    height:566px!important;min-height:566px!important;max-height:566px!important;
+    grid-template-columns:minmax(0,1.12fr) minmax(158px,.88fr)!important;
+    align-items:stretch!important;overflow:hidden!important;
+  }
+  body.mk-white .livegrid .specColumn,
+  body.mk-white .livegrid .auctionLower>.bidcol{
+    height:566px!important;min-height:566px!important;max-height:566px!important;
+    align-self:stretch!important;overflow:hidden!important;
+  }
+  body.mk-white .livegrid .specColumn>.liveVehicleTitle{
+    height:58px!important;min-height:58px!important;max-height:58px!important;
+    margin:0!important;padding:7px 0 5px!important;
+    overflow:hidden!important;box-sizing:border-box!important;
+  }
+  body.mk-white .livegrid .specColumn .details{
+    height:500px!important;min-height:500px!important;max-height:500px!important;
+    overflow:hidden!important;
+  }
+  body.mk-white .livegrid .specColumn .detailrow{
+    height:39px!important;min-height:39px!important;max-height:39px!important;
+    padding:5px 1px!important;align-items:center!important;overflow:hidden!important;
+    box-sizing:border-box!important;
+  }
+  body.mk-white .livegrid .auctionLower>.bidcol{padding:5px!important}
+  body.mk-white .livegrid .auctionLower>.bidcol .bidbox{
+    height:554px!important;min-height:554px!important;max-height:554px!important;
+    overflow:hidden!important;
+  }
+  body.mk-white .livegrid .bidStateBanner{
+    height:34px!important;min-height:34px!important;max-height:34px!important;
+    flex:0 0 34px!important;
+  }
+  body.mk-white .livegrid .bidcircle{
+    width:154px!important;height:154px!important;
+    min-height:154px!important;max-height:154px!important;
+    flex:0 0 154px!important;margin:12px auto 10px!important;
+  }
+  body.mk-white .livegrid .currentAmount{
+    height:76px!important;min-height:76px!important;max-height:76px!important;
+    flex:0 0 76px!important;
+  }
+  body.mk-white .livegrid .liveBidFeed{
+    height:100px!important;min-height:100px!important;max-height:100px!important;
+    flex:0 0 100px!important;grid-template-rows:repeat(4,24px)!important;
+  }
+  body.mk-white .livegrid .liveBidder{
+    height:24px!important;min-height:24px!important;max-height:24px!important;
+  }
+}
