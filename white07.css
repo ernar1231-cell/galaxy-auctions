@@ -980,3 +980,20 @@ body.mk-white .livegrid .bidbox>.historyLink{margin:6px auto 0!important;min-hei
     box-sizing:border-box!important;
   }
 }
+
+
+/* Correct direction: keep labels fixed; push only Live spec VALUES to the far-right divider. */
+@media (max-width:600px){
+  body.mk-white .livegrid .specColumn .detailrow{
+    grid-template-columns:minmax(80px,44%) minmax(0,1fr)!important;
+  }
+  body.mk-white .livegrid .specColumn .detailrow b{
+    display:block!important;
+    width:100%!important;
+    margin-left:auto!important;
+    padding-right:1px!important;
+    box-sizing:border-box!important;
+    text-align:right!important;
+    justify-self:stretch!important;
+  }
+}
