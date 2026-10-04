@@ -986,3 +986,22 @@ body.mk-white .livegrid .bidbox>.historyLink{margin:6px auto 0!important;min-hei
     row-gap:0!important;
   }
 }
+
+
+/* Final single adjustment: use the full left spec column up to its divider. */
+@media (max-width:600px){
+  body.mk-white .livegrid .specColumn .detailrow{
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr) minmax(0,58%)!important;
+    width:100%!important;
+  }
+  body.mk-white .livegrid .specColumn .detailrow b{
+    display:block!important;
+    width:100%!important;
+    max-width:none!important;
+    justify-self:stretch!important;
+    text-align:right!important;
+    padding-right:2px!important;
+    box-sizing:border-box!important;
+  }
+}
