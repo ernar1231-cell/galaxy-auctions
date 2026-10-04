@@ -396,7 +396,7 @@ function update(){
  const remaining=Math.max(0,phaseDuration-elapsedSeconds());
  // Continuous fractional progress: the ring drains clockwise smoothly instead of jumping once per second.
  ring.style.setProperty('--progress',waiting?'0%':Math.max(0,Math.min(100,remaining/phaseDuration*100)).toFixed(3)+'%');
- $("soundStatus").textContent=waiting?'Перерыв между аукционами':(bonus?'BONUS TIME':(soundOn?'LIVE AUCTION · Звук включён':'LIVE AUCTION'));
+ $("soundStatus").textContent=waiting?'Перерыв между аукционами':(soundOn?'LIVE AUCTION · Звук включён':'LIVE AUCTION · Звук выключен');
  $("bid").textContent=closed?'ЛОТ ЗАКРЫТ':(bidSubmitting?'Проверка…':'СДЕЛАТЬ СТАВКУ');
  $("bid").disabled=closed||bidSubmitting;syncDetailBid();
  const live=document.querySelector('header .live');live.textContent=waiting?'':'● LIVE';live.classList.toggle('paused',waiting);

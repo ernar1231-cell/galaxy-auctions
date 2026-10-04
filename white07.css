@@ -997,3 +997,55 @@ body.mk-white .livegrid .bidbox>.historyLink{margin:6px auto 0!important;min-hei
     flex:none!important;
   }
 }
+
+
+/* Stable compact Live Auction mobile viewport — approved Oct 4 adjustments. */
+@media (max-width:600px){
+  body.mk-white .status{
+    height:20px!important;min-height:20px!important;padding:0 8px!important;
+    font-size:9px!important;
+  }
+  body.mk-white .status .sound{display:none!important}
+  body.mk-white .progress{
+    height:22px!important;min-height:22px!important;padding:0 9px!important;gap:4px!important;
+  }
+  body.mk-white .progress #liveAudience{display:inline-flex!important}
+  body.mk-white .livegrid .photoFrame .hero{
+    max-height:clamp(205px,31dvh,270px)!important;
+  }
+  body.mk-white .livegrid .auctionLower{
+    grid-template-columns:minmax(0,1.13fr) minmax(154px,.87fr)!important;
+    column-gap:6px!important;
+  }
+  body.mk-white .livegrid .specColumn .detailrow{
+    min-height:19px!important;padding:2px 1px!important;
+  }
+  body.mk-white .livegrid .auctionLower>.bidcol{
+    min-height:0!important;padding:4px!important;
+  }
+  body.mk-white .livegrid .liveBidFeed{
+    height:78px!important;min-height:78px!important;max-height:78px!important;
+    overflow:hidden!important;justify-content:flex-start!important;
+  }
+  body.mk-white .livegrid .liveBidder{
+    min-height:18px!important;height:18px!important;padding:1px 4px!important;
+  }
+  body.mk-white.liveViewportLocked .app>#tradeControls{
+    position:sticky!important;bottom:calc(68px + env(safe-area-inset-bottom))!important;
+    z-index:40!important;min-height:82px!important;height:82px!important;
+    padding:5px 8px 6px!important;background:#fff!important;
+    border-top:1px solid #e2ecf5!important;
+  }
+  body.mk-white.liveViewportLocked .app>#tradeControls .circlecontrols{
+    grid-template-columns:40px minmax(0,1fr) 40px!important;
+    gap:5px!important;margin:0 0 4px!important;
+  }
+  body.mk-white.liveViewportLocked .app>#tradeControls .circlecontrols button,
+  body.mk-white.liveViewportLocked .app>#tradeControls .selected{
+    height:34px!important;min-height:34px!important;
+  }
+  body.mk-white.liveViewportLocked .app>#tradeControls .bidbtn{
+    height:36px!important;min-height:36px!important;padding:4px!important;
+    font-size:11px!important;
+  }
+}
