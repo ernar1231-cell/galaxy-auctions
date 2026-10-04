@@ -947,3 +947,39 @@ body.mk-white .livegrid .bidbox>.historyLink{margin:6px auto 0!important;min-hei
     font-size:13px!important;font-weight:850!important;
   }
 }
+
+
+/* Live Auction fine tuning: reduce the empty lower area and make the bid card slightly shorter. */
+@media (max-width:600px){
+  body.mk-white .livegrid .auctionLower{
+    grid-template-columns:minmax(0,1.22fr) minmax(145px,.78fr)!important;
+    gap:6px!important;
+  }
+  body.mk-white .livegrid .auctionLower>.bidcol{
+    padding:4px!important;
+  }
+  body.mk-white .livegrid .bidcircle{
+    width:clamp(98px,25vw,112px)!important;
+    margin:1px auto 3px!important;
+  }
+  body.mk-white .livegrid .circleTime{font-size:24px!important}
+  body.mk-white .livegrid .currentAmount{margin-top:2px!important}
+  body.mk-white .livegrid .currentAmount .price{
+    font-size:clamp(20px,5.4vw,24px)!important;
+  }
+  body.mk-white .livegrid .liveBidFeed{
+    margin-top:3px!important;gap:1px!important;
+  }
+  body.mk-white .livegrid .liveBidder{
+    min-height:19px!important;padding:2px 4px!important;font-size:9.5px!important;
+  }
+  body.mk-white .livegrid .bidbox>.historyLink{
+    margin-top:3px!important;min-height:20px!important;
+  }
+  body.mk-white .livegrid .specColumn .details{
+    padding-bottom:0!important;margin-bottom:0!important;
+  }
+  body.mk-white.liveViewportLocked .livegrid{
+    padding-bottom:0!important;
+  }
+}
