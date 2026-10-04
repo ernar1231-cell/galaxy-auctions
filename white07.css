@@ -953,3 +953,47 @@ body.mk-white .livegrid .bidbox>.historyLink{margin:6px auto 0!important;min-hei
     background:#173d70!important;color:#fff!important;border-color:#173d70!important;font-weight:850!important;
   }
 }
+
+
+/* Live Auction final flow fix: let the approved layout grow vertically instead of clipping content. */
+@media (max-width:600px){
+  body.mk-white.liveViewportLocked,
+  body.mk-white.liveViewportLocked .app{
+    height:auto!important;
+    min-height:100dvh!important;
+    overflow:visible!important;
+    touch-action:pan-y!important;
+  }
+  body.mk-white.liveViewportLocked .livegrid{
+    display:block!important;
+    flex:none!important;
+    height:auto!important;
+    min-height:0!important;
+    max-height:none!important;
+    overflow:visible!important;
+    padding-bottom:6px!important;
+  }
+  body.mk-white.liveViewportLocked .livegrid .carcol,
+  body.mk-white.liveViewportLocked .livegrid .main,
+  body.mk-white.liveViewportLocked .livegrid .auctionLower,
+  body.mk-white.liveViewportLocked .livegrid .specColumn,
+  body.mk-white.liveViewportLocked .livegrid .bidcol{
+    height:auto!important;
+    min-height:0!important;
+    max-height:none!important;
+    overflow:visible!important;
+  }
+  body.mk-white.liveViewportLocked .app>#tradeControls{
+    position:static!important;
+    flex:none!important;
+    height:auto!important;
+    min-height:112px!important;
+    margin:0 auto!important;
+  }
+  body.mk-white.liveViewportLocked .app>nav,
+  body.mk-white.liveViewportLocked .app>.bottomnav,
+  body.mk-white.liveViewportLocked .app>.bottomNav{
+    position:static!important;
+    flex:none!important;
+  }
+}
