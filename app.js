@@ -493,7 +493,12 @@ const personalInformation=window.GalaxyAccountInformation.createAccountInformati
   getInitData:()=>tg?.initData||"",
   fetch:(url,options)=>fetch(url,options),
   ready:()=>registrationReady,
-  beforeLoad:()=>loadAccountProfile({skipPersonalInformation:true}),
+  // The personal-information endpoint is optional/additive. Do not block the
+  // account screen when the legacy profile lookup is temporarily unavailable.
+  beforeLoad:async()=>{
+    try{await loadAccountProfile({skipPersonalInformation:true});}
+    catch(error){console.warn("Legacy account preload failed",error);}
+  },
   onSync:syncPersonalInformationCard,
   onOpen:()=>{closeModernScreens();setModernActive("profile");$("accountOverlay").classList.remove("open");},
   onClose:()=>{setModernActive("profile");$("profileScreen").classList.add("open");}
