@@ -96,7 +96,7 @@ function renderRecentBidders(rows){
   const amount=Number(b.amount||0);
   const leader=idx===0;
   return `<div class="liveBidder ${leader?'leader':''}"><span class="liveName">${safe}</span><span class="liveAmount">${money(amount)}</span></div>`;
- }).join("");
+ }).join("") + Array.from({length:Math.max(0,4-bids.length)},()=>'<div class="liveBidder liveBidderPlaceholder" aria-hidden="true"><span class="liveName">&nbsp;</span><span class="liveAmount">&nbsp;</span></div>').join("");
  const feed=$("liveBidFeed");if(feed)feed.innerHTML=markup;
  $("recentBidders").innerHTML=bids.map(b=>{
   const name=String(b.username||b.user_id||"Guest");
