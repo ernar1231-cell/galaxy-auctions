@@ -342,14 +342,13 @@ function updateBidVisualState(){
 function closeModernScreens(){document.querySelectorAll(".modernScreen").forEach(x=>x.classList.remove("open"));document.querySelectorAll("#modernBottomNav button").forEach(x=>x.classList.remove("active"));}
 function setModernActive(key){document.querySelectorAll("#modernBottomNav button").forEach(x=>x.classList.toggle("active",x.dataset.modern===key));}
 function applyReferenceLayout(){
- const main=document.querySelector('.main'),details=$("details"),bid=document.querySelector('.bidcol');
- const lower=document.createElement('div');lower.className='auctionLower';
- details.parentNode.insertBefore(lower,details);const specs=document.createElement('div');specs.className='specColumn';lower.append(specs,bid);specs.append(details); const participants=document.querySelector('.participants'); if(participants) participants.remove();
- // Keep the existing controls in the app footer above the bottom navigation.
+ // The Live geometry is now explicit in index.html. Do not move Live nodes at runtime.
+ const participants=document.querySelector('.participants');
+ if(participants) participants.remove();
  const controls=$("tradeControls");
  if(controls) document.querySelector('.app').append(controls);
- const history=$("whiteHistory");
- if(history) bid.querySelector('.bidbox').append(history);
+ const history=$("whiteHistory"),bidbox=document.querySelector('.bidcol .bidbox');
+ if(history&&bidbox) bidbox.append(history);
 }
 let liveAudienceBaseline=null;
 async function loadRegisteredUsersCount(){
@@ -838,40 +837,14 @@ fetchAuctionState().then(()=>{
   },400);
 });
 
-/* LIVE-36: lock only the actual Live Auction and place vehicle title in the right column. */
+/* Live viewport state only. Structural placement is owned by index.html. */
 (function(){
-  const title=document.getElementById('title');
-  const main=document.querySelector('.main');
-  const details=document.getElementById('details');
-  if(title&&main){
-    title.classList.add('liveVehicleTitle');
-    // LIVE-39: vehicle name belongs INSIDE the left specs column, directly above GCC Specs.
-    // This removes the full-width title row and lets the right auction card start at the same height.
-    const specColumn=document.querySelector('.specColumn');
-    if(specColumn){
-      specColumn.insertBefore(title, specColumn.firstChild);
-    }else if(details&&details.parentNode){
-      details.parentNode.insertBefore(title,details);
-    }else{
-      main.appendChild(title);
-    }
-  }
-  const body=document.body;
-  const isLiveAuction=()=>{
-    const screenOpen=document.querySelector('.modernScreen.open,.soldScreen.open,.overlay.open,.catalogOverlay.open,.queueOverlay.open,.detailOverlay.open,.accountOverlay.open,.adminOverlay.open,.adminLotOverlay.open,.adminEditOverlay.open');
-    return !screenOpen;
-  };
-  const sync=()=>{
-    const lock=isLiveAuction();
-    body.classList.toggle('liveViewportLocked',lock);
-    if(lock){ window.scrollTo(0,0); document.documentElement.scrollTop=0; body.scrollTop=0; }
-  };
-  const obs=new MutationObserver(sync);
-  document.querySelectorAll('.modernScreen,.soldScreen,.overlay,.catalogOverlay,.queueOverlay,.detailOverlay,.accountOverlay,.adminOverlay,.adminLotOverlay,.adminEditOverlay').forEach(el=>obs.observe(el,{attributes:true,attributeFilter:['class']}));
-  document.addEventListener('touchmove',e=>{if(body.classList.contains('liveViewportLocked')&&!e.target.closest?.('.livegrid'))e.preventDefault()},{passive:false});
-  document.addEventListener('wheel',e=>{if(body.classList.contains('liveViewportLocked')&&!e.target.closest?.('.livegrid'))e.preventDefault()},{passive:false});
-  document.addEventListener('scroll',()=>{if(body.classList.contains('liveViewportLocked')){window.scrollTo(0,0);document.documentElement.scrollTop=0;body.scrollTop=0;}},{passive:true});
-  sync();
+ const body=document.body;
+ const isLiveAuction=()=>!document.querySelector('.modernScreen.open,.soldScreen.open,.overlay.open,.catalogOverlay.open,.queueOverlay.open,.detailOverlay.open,.accountOverlay.open,.adminOverlay.open,.adminLotOverlay.open,.adminEditOverlay.open');
+ const sync=()=>body.classList.toggle('liveViewportLocked',isLiveAuction());
+ const obs=new MutationObserver(sync);
+ document.querySelectorAll('.modernScreen,.soldScreen,.overlay,.catalogOverlay,.queueOverlay,.detailOverlay,.accountOverlay,.adminOverlay,.adminLotOverlay,.adminEditOverlay').forEach(el=>obs.observe(el,{attributes:true,attributeFilter:['class']}));
+ sync();
 })();
 
 // HOME-43: compact first screen + working services. Live Auction untouched.
