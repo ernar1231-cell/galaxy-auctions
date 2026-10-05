@@ -507,6 +507,8 @@ const personalInformation=window.GalaxyAccountInformation.createAccountInformati
   // The personal-information endpoint is optional/additive. Do not block the
   // account screen when the legacy profile lookup is temporarily unavailable.
   beforeLoad:async()=>{
+    // Account/profile enrichment is optional. Never let a profile read failure
+    // block the auction, bidding controls, or opening this screen.
     try{await loadAccountProfile({skipPersonalInformation:true});}
     catch(error){console.warn("Legacy account preload failed",error);}
   },
@@ -535,7 +537,7 @@ async function loadAccountProfile(options={}){
   }
   hint.textContent="Загрузка профиля…";
   try{
-    await registrationReady;
+    await registrationReady.catch(error=>{console.warn("Registration preload failed",error);return null;});
     const {data,error}=await db.from("auction_users").select("telegram_id,username,first_name,last_name,deposit_amount,deposit_method,bid_limit,account_status,deposit_updated_at,is_admin").eq("telegram_id",String(tgUser.id)).single();
     if(error) throw error;
     currentAccountProfile=data;
