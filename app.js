@@ -214,6 +214,7 @@ async function submitBid(){
      else if(out.code==="LIMIT_EXCEEDED") alert(`Лимит ставки превышен. Ваш лимит: ${money(Number(out.bidLimit||0))}`);
      else if(out.code==="BLOCKED") alert("Ваш аккаунт заблокирован для участия в торгах.");
      else if(out.code==="ACCOUNT_LOOKUP_FAILED"){console.error("Bid account lookup failed",out.error);alert("Ставка временно недоступна. Повторите через несколько секунд.");}
+     else if(out.code==="STALE_STATE"){await fetchAuctionState();return;}
      else alert(out.error||"Ставка не принята.");
      await fetchAuctionState(); return;
    }
