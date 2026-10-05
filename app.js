@@ -199,6 +199,7 @@ async function writeState(patch){
 let bidSubmitting=false;
 async function submitBid(){
  if(closed||bidSubmitting)return; ctx();
+ if(!accountCanBidFront()){alert('Для участия нужен активный депозит и разрешённый лимит ставок.');return;}
  if(!tgUser?.id || !tg?.initData){alert("Откройте Galaxy Auctions через Telegram для участия в торгах.");return;}
  const lotId=Number(lots[i]?.no||0);
  bidSubmitting=true;
@@ -224,7 +225,7 @@ async function submitBid(){
    if(soundOn){const bs=$("bidAudio");bs.currentTime=0;bs.play().catch(()=>{});}
    await fetchAuctionState(); await syncRecentBidders();
  }catch(e){console.error(e);alert("Не удалось отправить ставку. Проверьте соединение.");await fetchAuctionState();}
- finally{bidSubmitting=false;btn.disabled=closed;update();}
+ finally{bidSubmitting=false;btn.disabled=closed||!accountCanBidFront();update();}
 }
 
 function watchKey(){return "mkWatchlist:"+(tgUser?.id||"guest");}
@@ -402,8 +403,9 @@ function update(){
  // Continuous fractional progress: the ring drains clockwise smoothly instead of jumping once per second.
  ring.style.setProperty('--progress',waiting?'0%':Math.max(0,Math.min(100,remaining/phaseDuration*100)).toFixed(3)+'%');
  $("soundStatus").textContent=soundOn?'LIVE AUCTION · Звук включён':'LIVE AUCTION · Звук выключен';
- $("bid").textContent=closed?'ЛОТ ЗАКРЫТ':(bidSubmitting?'Проверка…':'СДЕЛАТЬ СТАВКУ');
- $("bid").disabled=closed||bidSubmitting;syncDetailBid();
+ const bidAllowed=frontBidEligibility.allowed||accountCanBidFront();
+ $("bid").textContent=closed?'ЛОТ ЗАКРЫТ':(!bidAllowed?'НУЖЕН ДЕПОЗИТ':(bidSubmitting?'Проверка…':'СДЕЛАТЬ СТАВКУ'));
+ $("bid").disabled=closed||bidSubmitting||!bidAllowed;$("bid").classList.toggle('depositReady',bidAllowed&&!closed);syncDetailBid();
  const live=document.querySelector('header .live');live.textContent=waiting?'':'● LIVE';live.classList.toggle('paused',waiting);
  updateBidVisualState();
 }
@@ -488,6 +490,17 @@ $("mkBtn").onclick=()=>{$("queueOverlay").classList.remove("open");$("marketRadi
 document.querySelectorAll("[data-market]").forEach(b=>b.onclick=()=>{selectedCountry=b.dataset.market;document.querySelectorAll("[data-market]").forEach(x=>x.classList.toggle("selected",x===b));$("marketRadial").classList.remove("open")});
 $("waitBtn").onclick=()=>{$("marketRadial").classList.remove("open");renderWatchlist();$("queueOverlay").classList.add("open")};
 let currentAccountProfile=null;
+let frontBidEligibility={loaded:false,allowed:false,reason:'deposit'};
+function accountCanBidFront(){
+ const d=currentAccountProfile||window.accountData||{},admin=!!(adminAccess?.admin||adminAccess?.owner||d.is_admin);
+ if(String(d.account_status||'').toLowerCase()==='blocked')return false;
+ if(admin)return true;
+ return String(d.account_status||'').toLowerCase()==='active'&&Number(d.deposit_amount||0)>0&&Number(d.bid_limit||0)>0;
+}
+function refreshFrontBidEligibility(){
+ frontBidEligibility={loaded:!!(currentAccountProfile||window.accountData),allowed:accountCanBidFront(),reason:'deposit'};
+ update();
+}
 let adminClients=[];
 let adminAccess={admin:false,owner:false};
 function syncPersonalInformationCard(){
@@ -545,7 +558,7 @@ async function loadAccountProfile(options={}){
     const {data,error}=await db.from("auction_users").select("telegram_id,username,first_name,last_name,deposit_amount,deposit_method,bid_limit,account_status,deposit_updated_at,is_admin").eq("telegram_id",String(tgUser.id)).single();
     if(error) throw error;
     currentAccountProfile=data;
-    window.accountData={...window.accountData,...data};syncModernProfile();refreshRegisteredCount();await refreshAdminAccess();
+    window.accountData={...window.accountData,...data};syncModernProfile();refreshRegisteredCount();await refreshAdminAccess();frontBidEligibility={loaded:true,allowed:accountCanBidFront(),reason:'deposit'};
     const name=[data.first_name,data.last_name].filter(Boolean).join(" ") || data.username || "Telegram user";
     $("accountName").textContent=name;
     $("accountUsername").textContent=data.username?"@"+data.username:"Без username";
