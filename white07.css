@@ -1225,3 +1225,37 @@ body.mk-white .livegrid .bidbox>.historyLink{margin:6px auto 0!important;min-hei
 .photoLightboxThumbs img{width:78px;height:62px;flex:0 0 78px;object-fit:cover;border-radius:8px;border:2px solid transparent}
 .photoLightboxThumbs img.active{border-color:#168cff}
 body.photoLightboxOpen{overflow:hidden!important}
+
+
+/* Gallery correction: smaller main photo; true viewport overlay without crop. */
+@media (max-width:600px){
+ body.mk-white .livegrid .photoFrame{
+   height:205px!important;min-height:205px!important;max-height:205px!important;flex:0 0 205px!important;
+ }
+ body.mk-white .livegrid .photoFrame .hero{
+   width:100%!important;height:100%!important;object-fit:cover!important;object-position:center!important;
+ }
+}
+body.photoLightboxOpen .photoLightbox{
+ position:fixed!important;inset:0!important;width:100vw!important;height:100dvh!important;
+ z-index:2147483647!important;background:#000!important;display:flex!important;align-items:center!important;justify-content:center!important;
+}
+body.photoLightboxOpen .photoLightboxImage{
+ position:absolute!important;inset:0!important;margin:auto!important;
+ width:100vw!important;height:100dvh!important;max-width:100vw!important;max-height:100dvh!important;
+ object-fit:contain!important;object-position:center!important;background:#000!important;
+}
+body.photoLightboxOpen .photoLightboxClose,
+body.photoLightboxOpen .photoLightboxCount,
+body.photoLightboxOpen .photoLightboxArrow,
+body.photoLightboxOpen .photoLightboxThumbs{position:fixed!important;z-index:2147483647!important}
+body.photoLightboxOpen .photoLightboxClose{top:max(16px,env(safe-area-inset-top))!important;left:16px!important}
+body.photoLightboxOpen .photoLightboxCount{top:max(26px,calc(env(safe-area-inset-top) + 8px))!important;left:50%!important}
+body.photoLightboxOpen .photoLightboxArrow{top:50%!important}
+body.photoLightboxOpen .photoLightboxThumbs{
+ left:12px!important;right:12px!important;bottom:max(18px,calc(env(safe-area-inset-bottom) + 8px))!important;
+ height:70px!important;
+}
+body.photoLightboxOpen .app,
+body.photoLightboxOpen #tradeControls,
+body.photoLightboxOpen .bottomNav{pointer-events:none!important}
