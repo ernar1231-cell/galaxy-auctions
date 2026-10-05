@@ -36,10 +36,11 @@
 <header><div class="brand galaxyBrand"><img src="assets/galaxy-auctions-logo.png" alt="Galaxy Auctions"></div><div class="top"><button class="adminQuick" id="adminQuick" style="display:none">ADMIN</button><button aria-label="Включить звук Live Auction" aria-pressed="false" class="headerBell" id="whiteNotifications"><svg aria-hidden="true" class="uiIcon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" viewbox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 8-3 7-3 9h18c0-2-3-1-3-9M9 20a3 3 0 0 0 6 0"></path></svg></button><span class="live" hidden>● LIVE</span></div></header>
 <div class="status"><span class="statusDot"></span><span id="soundStatus">Подключение к аукциону…</span></div>
 <div class="progress"><div class="lot" id="lot"></div><span id="count">LOT 1 OF 15</span><span id="liveAudience">👥 — участников</span><button class="lotsBtn" id="lotsBtn">15 LOTS ›</button></div>
-<div class="livegrid">
+<div class="livegrid liveStructureV1">
 <section class="carcol">
 <div class="photoFrame" id="photoFrame"><img alt="Фотография текущего автомобиля" class="hero" draggable="false" id="photo"/><button aria-label="Предыдущее фото" class="photoArrow prev" id="photoPrev">‹</button><button aria-label="Следующее фото" class="photoArrow next" id="photoNext">›</button><span class="heroCounter" id="heroCounter">1/1</span></div><div class="gallery" id="gallery"></div>
-<div class="photoLightbox" id="photoLightbox" hidden><button class="photoLightboxClose" id="photoLightboxClose" aria-label="Закрыть">×</button><span class="photoLightboxCount" id="photoLightboxCount">1/1</span><button class="photoLightboxArrow prev" id="photoLightboxPrev" aria-label="Предыдущее фото">‹</button><img id="photoLightboxImage" alt="Фото автомобиля крупно"><button class="photoLightboxArrow next" id="photoLightboxNext" aria-label="Следующее фото">›</button><div class="photoLightboxThumbs" id="photoLightboxThumbs"></div></div><div class="main"><div class="title" id="title"></div><div class="chips" id="chips"></div><div class="details" id="details"></div></div>
+<div class="photoLightbox" id="photoLightbox" hidden><button class="photoLightboxClose" id="photoLightboxClose" aria-label="Закрыть">×</button><span class="photoLightboxCount" id="photoLightboxCount">1/1</span><button class="photoLightboxArrow prev" id="photoLightboxPrev" aria-label="Предыдущее фото">‹</button><img id="photoLightboxImage" alt="Фото автомобиля крупно"><button class="photoLightboxArrow next" id="photoLightboxNext" aria-label="Следующее фото">›</button><div class="photoLightboxThumbs" id="photoLightboxThumbs"></div></div>
+<div class="auctionLower"><div class="specColumn"><div class="main"><div class="title liveVehicleTitle" id="title"></div><div class="chips" id="chips"></div><div class="details" id="details"></div></div></div>
 </section>
 <section class="bidcol">
 <div class="participants"><svg aria-hidden="true" class="uiIcon" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" viewbox="0 0 24 24"><circle cx="12" cy="7" r="4"></circle><path d="M4 22v-3a8 8 0 0 1 16 0v3z"></path></svg><div><b><span id="registeredCount">—</span> клиентов</b><small id="registeredToday">Загрузка…</small></div></div>
@@ -53,7 +54,7 @@
 
 </div>
 </section>
-</div></div>
+</div></div></div>
 <div class="radial" hidden="" id="radial"><button class="r1" data-menu="⭐ Избранное">⭐ Избранное</button><button class="r2" data-menu="🚗 Мои ставки">🚗 Мои ставки</button><button class="r3" data-menu="📄 Мои покупки">📄 Мои покупки</button><button class="r4" data-menu="🔨 Live Auction">🔨 Live Auction</button><button class="r5" data-menu="🧮 Калькулятор">🧮 Калькулятор</button></div>
 <div class="toast" id="toast"></div>
 <nav class="bottomnav" hidden=""><button class="navitem" data-menu="👤 Профиль"><b>👤</b>Профиль</button><button class="hammer" id="menuBtn">🔨</button><button class="navitem" data-menu="⚙️ Настройки"><b>⚙️</b>Настройки</button></nav>
