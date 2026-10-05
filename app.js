@@ -89,22 +89,26 @@ function bidderInitials(name){
  const parts=clean.split(/[\s_.-]+/).filter(Boolean);
  return (parts.length>1?(parts[0][0]+parts[1][0]):clean.slice(0,2)).toUpperCase();
 }
+function countryFlag(code){
+ const c=String(code||'').trim().toUpperCase();
+ return /^[A-Z]{2}$/.test(c)?String.fromCodePoint(...[...c].map(ch=>127397+ch.charCodeAt(0))):'';
+}
 function renderRecentBidders(rows){
  const bids=(rows||[]).slice(0,4);
  const markup=bids.map((b,idx)=>{
   const name=String(b.username||b.user_id||"Guest");
   const safe=name.replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-  const amount=Number(b.amount||0);
+  const flag=countryFlag(b.country), amount=Number(b.amount||0);
   const leader=idx===0;
-  return `<div class="liveBidder ${leader?'leader':''}"><span class="liveName">${safe}</span><span class="liveAmount">${money(amount)}</span></div>`;
+  return `<div class="liveBidder ${leader?'leader':''}"><span class="liveName">${flag?flag+' ':''}${safe}</span><span class="liveAmount">${money(amount)}</span></div>`;
  }).join("");
  const feed=$("liveBidFeed");if(feed)feed.innerHTML=markup;
  $("recentBidders").innerHTML=bids.map(b=>{
   const name=String(b.username||b.user_id||"Guest");
   const safe=name.replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-  const amount=Number(b.amount||0);
+  const flag=countryFlag(b.country), amount=Number(b.amount||0);
   const tm=b.created_at?new Date(b.created_at).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit",second:"2-digit"}):"";
-  return `<div class="recentBidder"><span class="recentBidderName">${safe}</span><span class="recentBidderAmount">${money(amount)}</span><span class="recentBidderTime">${tm}</span></div>`;
+  return `<div class="recentBidder"><span class="recentBidderName">${flag?flag+' ':''}${safe}</span><span class="recentBidderAmount">${money(amount)}</span><span class="recentBidderTime">${tm}</span></div>`;
  }).join("");
 }
 let latestLeaderUserId=null;
