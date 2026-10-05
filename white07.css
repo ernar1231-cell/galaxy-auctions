@@ -997,3 +997,23 @@ body.mk-white .livegrid .bidbox>.historyLink{margin:6px auto 0!important;min-hei
     justify-self:stretch!important;
   }
 }
+
+
+/* Final isolated fix: keep the four-item navigation visible below Live controls. */
+@media (max-width:600px){
+  body.mk-white.liveViewportLocked #modernBottomNav{
+    display:grid!important;
+    grid-template-columns:repeat(4,1fr)!important;
+    visibility:visible!important;
+    opacity:1!important;
+    position:static!important;
+    width:100%!important;
+    max-width:520px!important;
+    height:calc(70px + env(safe-area-inset-bottom))!important;
+    min-height:70px!important;
+    margin:0 auto!important;
+    padding:0 0 env(safe-area-inset-bottom)!important;
+    flex:none!important;
+    z-index:90!important;
+  }
+}
