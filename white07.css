@@ -1069,3 +1069,20 @@ body.mk-white .livegrid .bidbox>.historyLink{margin:6px auto 0!important;min-hei
  body.mk-white.liveViewportLocked .app>#tradeControls .historyLink{display:none!important}
 }
 
+
+
+/* Preview-only: move Live specification VALUES slightly toward the right divider.
+   Labels, title, auction column, photo, bid logic and lifecycle are untouched. */
+@media (max-width:600px){
+ body.mk-white .livegrid .specColumn .detailrow{
+   grid-template-columns:minmax(82px,42%) minmax(0,1fr)!important;
+ }
+ body.mk-white .livegrid .specColumn .detailrow b{
+   display:block!important;
+   width:100%!important;
+   box-sizing:border-box!important;
+   padding-right:0!important;
+   text-align:right!important;
+   justify-self:stretch!important;
+ }
+}
