@@ -997,3 +997,86 @@ body.mk-white .livegrid .bidbox>.historyLink{margin:6px auto 0!important;min-hei
     justify-self:stretch!important;
   }
 }
+
+
+/* COMPACT BID BAR V4 — visual-only change; existing bid controls/IDs and logic unchanged. */
+@media (max-width:600px){
+ body.mk-white.liveViewportLocked .app>#tradeControls{
+   display:grid!important;
+   grid-template-columns:minmax(0,1.45fr) minmax(150px,.95fr)!important;
+   align-items:center!important;
+   gap:7px!important;
+   height:58px!important;
+   min-height:58px!important;
+   max-height:58px!important;
+   padding:5px 9px!important;
+   margin:0!important;
+   overflow:hidden!important;
+   background:#fff!important;
+ }
+ body.mk-white.liveViewportLocked .app>#tradeControls .circlecontrols{
+   display:grid!important;
+   grid-template-columns:44px minmax(0,1fr) 44px!important;
+   gap:5px!important;
+   width:100%!important;
+   margin:0!important;
+   align-items:center!important;
+ }
+ body.mk-white.liveViewportLocked .app>#tradeControls .circlecontrols button,
+ body.mk-white.liveViewportLocked .app>#tradeControls .circlecontrols .selected{
+   width:100%!important;
+   height:48px!important;
+   min-height:48px!important;
+   max-height:48px!important;
+   margin:0!important;
+   box-sizing:border-box!important;
+   border:1px solid #e0e8f2!important;
+   border-radius:10px!important;
+   background:#f8faff!important;
+   color:#102a4b!important;
+ }
+ body.mk-white.liveViewportLocked .app>#tradeControls .circlecontrols button{
+   padding:0!important;
+   font-size:24px!important;
+   line-height:46px!important;
+   font-weight:700!important;
+ }
+ body.mk-white.liveViewportLocked .app>#tradeControls .circlecontrols .selected{
+   display:grid!important;
+   place-items:center!important;
+   padding:0 4px!important;
+   font-size:15px!important;
+   line-height:1!important;
+   font-weight:850!important;
+   white-space:nowrap!important;
+ }
+ body.mk-white.liveViewportLocked .app>#tradeControls .bidbtn{
+   display:flex!important;
+   align-items:center!important;
+   justify-content:center!important;
+   width:100%!important;
+   height:48px!important;
+   min-height:48px!important;
+   max-height:48px!important;
+   margin:0!important;
+   padding:5px 8px!important;
+   border:0!important;
+   border-radius:10px!important;
+   background:#087bfa!important;
+   color:#fff!important;
+   font-size:11px!important;
+   line-height:1.1!important;
+   font-weight:850!important;
+   white-space:nowrap!important;
+   overflow:hidden!important;
+ }
+ body.mk-white.liveViewportLocked .app>#tradeControls .bidbtn:disabled{
+   background:#e6ebf1!important;
+   color:#8a98ac!important;
+   opacity:1!important;
+ }
+ body.mk-white.liveViewportLocked .app>#tradeControls .steps,
+ body.mk-white.liveViewportLocked .app>#tradeControls .historyLink{
+   display:none!important;
+ }
+}
