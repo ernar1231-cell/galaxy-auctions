@@ -199,7 +199,7 @@ async function writeState(patch){
 let bidSubmitting=false;
 async function submitBid(){
  if(closed||bidSubmitting)return; ctx();
- if(!accountCanBidFront()){alert('Для участия нужен активный депозит и разрешённый лимит ставок.');return;}
+ if(!accountCanBidFront()){alert('Для участия администратор должен активировать аккаунт и лимит ставок.');return;}
  if(!tgUser?.id || !tg?.initData){alert("Откройте Galaxy Auctions через Telegram для участия в торгах.");return;}
  const lotId=Number(lots[i]?.no||0);
  bidSubmitting=true;
@@ -210,7 +210,7 @@ async function submitBid(){
    const out=await res.json().catch(()=>({}));
    if(out.serverNow) syncServerClock(out.serverNow,requestStarted);
    if(!res.ok){
-     if(out.code==="DEPOSIT_REQUIRED") alert("Для участия администратор должен активировать депозит и лимит ставок.");
+     if(out.code==="DEPOSIT_REQUIRED") alert("Для участия администратор должен активировать аккаунт и лимит ставок.");
      else if(out.code==="LIMIT_EXCEEDED") alert(`Лимит ставки превышен. Ваш лимит: ${money(Number(out.bidLimit||0))}`);
      else if(out.code==="BLOCKED") alert("Ваш аккаунт заблокирован для участия в торгах.");
      else if(out.code==="ACCOUNT_LOOKUP_FAILED"){console.error("Bid account lookup failed",out.error);alert("Ставка временно недоступна. Повторите через несколько секунд.");}
@@ -495,7 +495,7 @@ function accountCanBidFront(){
  const d=currentAccountProfile||window.accountData||{},admin=!!(adminAccess?.admin||adminAccess?.owner||d.is_admin);
  if(String(d.account_status||'').toLowerCase()==='blocked')return false;
  if(admin)return true;
- return String(d.account_status||'').toLowerCase()==='active'&&Number(d.deposit_amount||0)>0&&Number(d.bid_limit||0)>0;
+ return String(d.account_status||'').toLowerCase()==='active'&&Number(d.bid_limit||0)>0;
 }
 function refreshFrontBidEligibility(){
  frontBidEligibility={loaded:!!(currentAccountProfile||window.accountData),allowed:accountCanBidFront(),reason:'deposit'};
