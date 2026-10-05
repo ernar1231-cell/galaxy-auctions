@@ -12,6 +12,9 @@ module.exports=async(req,res)=>{if(req.method!=='GET'&&req.method!=='POST')retur
  const nowMs=Date.now(),nowIso=new Date(nowMs).toISOString(),started=Date.parse(state.phase_started_at||state.updated_at||nowIso),age=Math.max(0,(nowMs-started)/1000),phase=String(state.phase||'red').toLowerCase();
  let all=await activeLots(),queue=all.slice(0,50),startAt=scheduledStart(state,nowIso),canStart=state.status==='waiting'&&nowMs>=startAt.getTime();
  const currentNo=Number(state.lot_id||0), currentSelected=queue.find(x=>Number(x.lot_number)===currentNo);let patch=null;
+ // Keep the authoritative current bid aligned with the latest persisted bid.
+ // This prevents a stale starting/current_bid value from rendering beside a newer bid history.
+ if(state.status==='live'&&currentNo){const cr=await sfetch(`auction_bids?lot_id=eq.${currentNo}&select=amount,id&order=id.desc&limit=1`);const cb=cr.ok?(await cr.json())?.[0]:null;if(cb&&Number(cb.amount)>Number(state.current_bid||0)){state={...state,current_bid:Number(cb.amount)};await sfetch('auction_state?id=eq.1',{method:'PATCH',body:JSON.stringify({current_bid:Number(cb.amount),updated_at:nowIso})});}}
  // The full upcoming queue is available for preview, then starts on the next hour.
  if(state.status==='waiting'&&!canStart){const first=queue[0];if(first&&currentNo!==Number(first.lot_number))patch={lot_id:Number(first.lot_number),current_bid:Number(first.starting_bid||0),phase:'wait',status:'waiting'};}
  else if(!currentSelected){all=await activeLots();queue=all.slice(0,50);const first=queue[0];if(first&&canStart){await setLotStatus(first.lot_number,'live',nowIso);patch={lot_id:Number(first.lot_number),current_bid:Number(first.starting_bid||0),phase:'red',phase_started_at:nowIso,status:'live'};}else if(state.status!=='waiting')patch={phase:'wait',phase_started_at:nowIso,status:'waiting'};}
