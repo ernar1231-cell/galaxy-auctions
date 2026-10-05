@@ -997,3 +997,74 @@ body.mk-white .livegrid .bidbox>.historyLink{margin:6px auto 0!important;min-hei
     justify-self:stretch!important;
   }
 }
+
+/* COMPACT BID BAR V4 — single authoritative rule. */
+@media (max-width:600px){
+ body.mk-white.liveViewportLocked .app>#tradeControls{
+   position:static!important;
+   display:grid!important;
+   grid-template-columns:minmax(0,1.45fr) minmax(140px,.95fr)!important;
+   align-items:center!important;
+   gap:6px!important;
+   box-sizing:border-box!important;
+   width:100%!important;
+   max-width:520px!important;
+   flex:0 0 44px!important;
+   height:44px!important;
+   min-height:44px!important;
+   max-height:44px!important;
+   margin:0 auto!important;
+   padding:2px 9px!important;
+   overflow:hidden!important;
+   background:#fff!important;
+   border:0!important;
+   box-shadow:none!important;
+ }
+ body.mk-white.liveViewportLocked .app>#tradeControls .circlecontrols{
+   display:grid!important;
+   grid-template-columns:38px minmax(0,1fr) 38px!important;
+   gap:4px!important;
+   width:100%!important;
+   height:40px!important;
+   min-height:40px!important;
+   max-height:40px!important;
+   margin:0!important;
+   align-items:center!important;
+ }
+ body.mk-white.liveViewportLocked .app>#tradeControls .circlecontrols button,
+ body.mk-white.liveViewportLocked .app>#tradeControls .circlecontrols .selected,
+ body.mk-white.liveViewportLocked .app>#tradeControls .bidbtn{
+   height:40px!important;
+   min-height:40px!important;
+   max-height:40px!important;
+   margin:0!important;
+   box-sizing:border-box!important;
+   border-radius:9px!important;
+ }
+ body.mk-white.liveViewportLocked .app>#tradeControls .circlecontrols button,
+ body.mk-white.liveViewportLocked .app>#tradeControls .circlecontrols .selected{
+   width:100%!important;
+   padding:0!important;
+   border:1px solid #e0e8f2!important;
+   background:#f8faff!important;
+   color:#102a4b!important;
+ }
+ body.mk-white.liveViewportLocked .app>#tradeControls .circlecontrols button{
+   font-size:20px!important;line-height:38px!important;font-weight:700!important;
+ }
+ body.mk-white.liveViewportLocked .app>#tradeControls .circlecontrols .selected{
+   display:grid!important;place-items:center!important;
+   font-size:14px!important;line-height:1!important;font-weight:850!important;white-space:nowrap!important;
+ }
+ body.mk-white.liveViewportLocked .app>#tradeControls .bidbtn{
+   display:flex!important;align-items:center!important;justify-content:center!important;
+   width:100%!important;padding:4px 7px!important;border:0!important;
+   background:#087bfa!important;color:#fff!important;
+   font-size:10.5px!important;line-height:1!important;font-weight:850!important;white-space:nowrap!important;overflow:hidden!important;
+ }
+ body.mk-white.liveViewportLocked .app>#tradeControls .bidbtn:disabled{
+   background:#e6ebf1!important;color:#8a98ac!important;opacity:1!important;
+ }
+ body.mk-white.liveViewportLocked .app>#tradeControls .steps,
+ body.mk-white.liveViewportLocked .app>#tradeControls .historyLink{display:none!important}
+}
