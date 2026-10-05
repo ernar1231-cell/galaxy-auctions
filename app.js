@@ -116,7 +116,7 @@ let whiteMyRows=[];
 async function syncRecentBidders(){
  try{
   const lotId=Number(lots[i].no);
-  const {data,error}=await db.from("auction_bids").select("user_id,username,country,amount,created_at,id").eq("lot_id",lotId).order("id",{ascending:false}).limit(4);
+  const {data,error}=await db.from("auction_bids").select("user_id,username,country,amount,created_at,id").eq("lot_id",lotId).neq("country","PB").order("id",{ascending:false}).limit(4);
   if(error)throw error;
   renderRecentBidders(data);
   latestLeaderUserId=data?.[0]?.user_id?String(data[0].user_id):null;
@@ -130,7 +130,7 @@ async function syncRecentBidders(){
 async function syncLatestBid(){
  try{
   const lotId=Number(lots[i].no);
-  const {data,error}=await db.from("auction_bids").select("amount,user_id,username,country,created_at").eq("lot_id",lotId).order("created_at",{ascending:false}).limit(1);
+  const {data,error}=await db.from("auction_bids").select("amount,user_id,username,country,created_at").eq("lot_id",lotId).neq("country","PB").order("created_at",{ascending:false}).limit(1);
   if(error) throw error;
   if(data&&data[0]){price=Number(data[0].amount); bidder=data[0].username||data[0].user_id||"LIVE"; update();}
  }catch(e){console.warn("Supabase read",e.message)}
@@ -139,7 +139,7 @@ function subscribeLot(){
  if(realtimeChannel) db.removeChannel(realtimeChannel);
  const lotId=Number(lots[i].no);
  realtimeChannel=db.channel("auction_bids_"+lotId).on("postgres_changes",{event:"INSERT",schema:"public",table:"auction_bids",filter:`lot_id=eq.${lotId}`},payload=>{
-  const b=payload.new; bidder=b.username||b.user_id||"LIVE"; price=Number(b.amount||price); latestLeaderUserId=b.user_id?String(b.user_id):null; syncRecentBidders(); fetchAuctionState();
+  const b=payload.new;if(String(b.country||"").toUpperCase()==="PB"){fetchAuctionState();return;} bidder=b.username||b.user_id||"LIVE"; price=Number(b.amount||price); latestLeaderUserId=b.user_id?String(b.user_id):null; syncRecentBidders(); fetchAuctionState();
  }).subscribe();
 }
 async function fetchAuctionState(){
