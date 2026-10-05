@@ -269,6 +269,25 @@ function attachHeroSwipe(){
  hero.addEventListener("touchstart",e=>{const t=e.changedTouches[0]; sx=t.clientX; sy=t.clientY;},{passive:true});
  hero.addEventListener("touchend",e=>{const t=e.changedTouches[0]; const dx=t.clientX-sx, dy=t.clientY-sy; if(Math.abs(dx)>32 && Math.abs(dx)>Math.abs(dy)){ setLivePhoto(dx<0?currentPhotoIndex+1:currentPhotoIndex-1); }},{passive:true});
 }
+function openPhotoLightbox(){
+ const q=lots[i];if(!q?.photos?.length)return;
+ const box=$('photoLightbox');if(!box)return;box.hidden=false;document.body.classList.add('photoLightboxOpen');renderPhotoLightbox();
+}
+function closePhotoLightbox(){const box=$('photoLightbox');if(box)box.hidden=true;document.body.classList.remove('photoLightboxOpen');}
+function renderPhotoLightbox(){
+ const q=lots[i];if(!q?.photos?.length)return;
+ const img=$('photoLightboxImage'),count=$('photoLightboxCount'),thumbs=$('photoLightboxThumbs');
+ if(img)img.src=q.photos[currentPhotoIndex];if(count)count.textContent=`${currentPhotoIndex+1}/${q.photos.length}`;
+ if(thumbs)thumbs.innerHTML=q.photos.map((u,k)=>`<img src="${whiteEscape(u)}" data-lightbox-index="${k}" class="${k===currentPhotoIndex?'active':''}">`).join('');
+ thumbs?.querySelectorAll('[data-lightbox-index]').forEach(el=>el.onclick=()=>{setLivePhoto(Number(el.dataset.lightboxIndex));renderPhotoLightbox()});
+}
+function bindPhotoLightbox(){
+ const hero=$('photo');if(!hero||hero.dataset.lightboxBound==='1')return;hero.dataset.lightboxBound='1';hero.addEventListener('click',openPhotoLightbox);
+ $('photoLightboxClose')?.addEventListener('click',closePhotoLightbox);
+ $('photoLightboxPrev')?.addEventListener('click',()=>{setLivePhoto(currentPhotoIndex-1);renderPhotoLightbox()});
+ $('photoLightboxNext')?.addEventListener('click',()=>{setLivePhoto(currentPhotoIndex+1);renderPhotoLightbox()});
+ const img=$('photoLightboxImage');if(img){let sx=0;img.addEventListener('touchstart',e=>{sx=e.changedTouches[0].clientX},{passive:true});img.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-sx;if(Math.abs(dx)>32){setLivePhoto(dx<0?currentPhotoIndex+1:currentPhotoIndex-1);renderPhotoLightbox()}},{passive:true})}
+}
 function ensureHeroCounter(){ /* Counter is anchored to photoFrame in the HTML. */ }
 
 const vehicleLabels={Mileage:'Пробег',Engine:'Двигатель',Fuel:'Топливо',Transmission:'Трансмиссия',Drive:'Привод',Interior:'Салон',Exterior:'Цвет',VIN:'VIN','Auction location':'Площадка аукциона','Estimated retail value':'Ожидаемая стоимость','Primary damage':'Основной ущерб',Specs:'Спецификация',Seats:'Места'};
@@ -295,7 +314,7 @@ function render(doSubscribe=true){
  $("lotsBtn").textContent=`Лоты (${liveTodayQueue.length}) ›`;
  $("gallery").innerHTML=x.photos.map((u,k)=>`<img src="${whiteEscape(u)}" data-photo-index="${k}" alt="Фото ${k+1}">`).join("");
  if(whitePhotoLot!==x.no){currentPhotoIndex=0;whitePhotoLot=x.no;}
- setLivePhoto(currentPhotoIndex);attachHeroSwipe();
+ setLivePhoto(currentPhotoIndex);attachHeroSwipe();bindPhotoLightbox();
  renderWatchlist();renderCatalog();
  const labels={...vehicleLabels,Steering:'Руль',Warranty:'Гарантия',Power:'Мощность',Key:'Ключи'};
  $("details").innerHTML=completeVehicleDetails(x).map(d=>`<div class="detailrow"><span>${whiteEscape(labels[d[0]]||d[0])}</span><b>${whiteEscape(d[1]||'—')}</b></div>`).join("");
