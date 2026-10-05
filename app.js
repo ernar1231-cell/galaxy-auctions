@@ -116,7 +116,7 @@ let whiteMyRows=[];
 async function syncRecentBidders(){
  try{
   const lotId=Number(lots[i].no);
-  const {data,error}=await db.from("auction_bids").select("user_id,username,country,amount,created_at,id").eq("lot_id",lotId).order("id",{ascending:false}).limit(4);
+  const {data,error}=await db.from("auction_bids").select("user_id,username,country,amount,created_at,id").eq("lot_id",lotId).neq("country","PB").order("id",{ascending:false}).limit(4);
   if(error)throw error;
   renderRecentBidders(data);
   latestLeaderUserId=data?.[0]?.user_id?String(data[0].user_id):null;
@@ -130,7 +130,7 @@ async function syncRecentBidders(){
 async function syncLatestBid(){
  try{
   const lotId=Number(lots[i].no);
-  const {data,error}=await db.from("auction_bids").select("amount,user_id,username,country,created_at").eq("lot_id",lotId).order("created_at",{ascending:false}).limit(1);
+  const {data,error}=await db.from("auction_bids").select("amount,user_id,username,country,created_at").eq("lot_id",lotId).neq("country","PB").order("created_at",{ascending:false}).limit(1);
   if(error) throw error;
   if(data&&data[0]){price=Number(data[0].amount); bidder=data[0].username||data[0].user_id||"LIVE"; update();}
  }catch(e){console.warn("Supabase read",e.message)}
@@ -139,7 +139,7 @@ function subscribeLot(){
  if(realtimeChannel) db.removeChannel(realtimeChannel);
  const lotId=Number(lots[i].no);
  realtimeChannel=db.channel("auction_bids_"+lotId).on("postgres_changes",{event:"INSERT",schema:"public",table:"auction_bids",filter:`lot_id=eq.${lotId}`},payload=>{
-  const b=payload.new; bidder=b.username||b.user_id||"LIVE"; price=Number(b.amount||price); latestLeaderUserId=b.user_id?String(b.user_id):null; syncRecentBidders(); fetchAuctionState();
+  const b=payload.new;if(String(b.country||"").toUpperCase()==="PB"){fetchAuctionState();return;} bidder=b.username||b.user_id||"LIVE"; price=Number(b.amount||price); latestLeaderUserId=b.user_id?String(b.user_id):null; syncRecentBidders(); fetchAuctionState();
  }).subscribe();
 }
 async function fetchAuctionState(){
@@ -212,6 +212,7 @@ async function submitBid(){
      if(out.code==="DEPOSIT_REQUIRED") alert("Для участия администратор должен активировать депозит и лимит ставок.");
      else if(out.code==="LIMIT_EXCEEDED") alert(`Лимит ставки превышен. Ваш лимит: ${money(Number(out.bidLimit||0))}`);
      else if(out.code==="BLOCKED") alert("Ваш аккаунт заблокирован для участия в торгах.");
+     else if(out.code==="ACCOUNT_LOOKUP_FAILED"){console.error("Bid account lookup failed",out.error);alert("Ставка временно недоступна. Повторите через несколько секунд.");}
      else alert(out.error||"Ставка не принята.");
      await fetchAuctionState(); return;
    }
@@ -282,9 +283,11 @@ function completeVehicleDetails(q){
  for(const item of (q.details||[])){if(Array.isArray(item)&&item[0]&&!liveVehicleFieldOrder.includes(item[0]))ordered.push([item[0],item[1]||'—']);}
  return ordered;
 }
+let detailPrebid={lotId:null,currentBid:null,myMaximum:null,leader:null,canBid:false};
 function detailCountdown(){if(stateRow?.status==='waiting'&&galaxyStartAt)return galaxyFormatCountdown(new Date(galaxyStartAt).getTime()-serverNowMs());return closed?'Завершено':whiteTime(seconds)}
-function syncDetailBid(){if(!$('detailOverlay')?.classList.contains('open'))return;const q=lots[detailIndex],isCurrent=Number(q?.no)===Number(lots[i]?.no);$('detailCurrentBid').textContent=money(isCurrent?price:Number(q?.price||0));$('detailMyBid').textContent=isCurrent&&myLatestBidAmount!=null?money(myLatestBidAmount):'—';$('detailBidTime').textContent=isCurrent?detailCountdown():'Торги по расписанию';$('detailBidAmount').textContent=money((isCurrent?price:Number(q?.price||0))+inc);$('detailBidSubmit').disabled=!isCurrent||closed||bidSubmitting;}
-function openLotDetail(idx){detailIndex=idx;const q=lots[idx];if(!q)return;const photos=(q.photos||[]).filter(Boolean);$("detailHero").src=photos[0]||'';$("detailHero").style.display=photos.length?'block':'none';$("detailThumbs").innerHTML=photos.map((u,k)=>`<img src="${whiteEscape(u)}" class="${k===0?'active':''}" data-dphoto="${whiteEscape(u)}">`).join('');$("detailThumbs").querySelectorAll('img').forEach(im=>im.onclick=()=>{$("detailHero").src=im.dataset.dphoto;$("detailThumbs").querySelectorAll('img').forEach(z=>z.classList.remove('active'));im.classList.add('active')});$("detailTitle").textContent=q.title;$("detailChips").replaceChildren();$("detailSpecs").innerHTML=completeVehicleDetails(q).map(d=>`<div class="detailrow"><span>${whiteEscape(vehicleLabels[d[0]]||d[0])}</span><b>${whiteEscape(d[1]||'—')}</b></div>`).join('');syncDetailBid();$("catalogOverlay").classList.remove('open');$("queueOverlay").classList.remove('open');$("detailOverlay").classList.add('open');syncDetailBid();}
+async function loadDetailPrebid(){const q=lots[detailIndex];if(!q||!tg?.initData)return;try{const res=await fetch('/api/prebid',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:tg.initData,lotId:Number(q.no),action:'snapshot'})}),out=await res.json();if(res.ok)detailPrebid={lotId:Number(q.no),currentBid:Number(out.currentBid||q.price||0),myMaximum:out.myMaximum==null?null:Number(out.myMaximum),leader:out.leader||null,canBid:!!out.canBid};else detailPrebid={lotId:Number(q.no),currentBid:Number(q.price||0),myMaximum:null,leader:null,canBid:false};syncDetailBid()}catch(e){console.warn('Pre-bid snapshot',e.message)}}
+function syncDetailBid(){if(!$('detailOverlay')?.classList.contains('open'))return;const q=lots[detailIndex],isCurrent=Number(q?.no)===Number(lots[i]?.no),status=String(managedLotStatuses[String(Number(q?.no))]||'').toLowerCase(),pre=status==='upcoming'&&stateRow?.status!=='live',snap=detailPrebid.lotId===Number(q?.no)?detailPrebid:null,current=pre&&snap?Number(snap.currentBid||q.price||0):(isCurrent?price:Number(q?.price||0)),mine=pre&&snap?snap.myMaximum:(isCurrent?myLatestBidAmount:null),input=$('detailBidAmount');$('detailCurrentBid').textContent=money(current);$('detailMyBid').textContent=mine!=null?money(mine):'—';$('detailBidTime').textContent=isCurrent?detailCountdown():'Торги по расписанию';if(document.activeElement!==input)input.value=String(Math.round(mine!=null?mine:current+inc));$('detailBidSubmit').disabled=bidSubmitting||(pre?!snap?.canBid:(!isCurrent||closed));$('detailBidSubmit').textContent=pre?'🔨 СОХРАНИТЬ МАКС. СТАВКУ':'🔨 СДЕЛАТЬ СТАВКУ';}
+function openLotDetail(idx){detailIndex=idx;const q=lots[idx];if(!q)return;const photos=(q.photos||[]).filter(Boolean);$("detailHero").src=photos[0]||'';$("detailHero").style.display=photos.length?'block':'none';$("detailThumbs").innerHTML=photos.map((u,k)=>`<img src="${whiteEscape(u)}" class="${k===0?'active':''}" data-dphoto="${whiteEscape(u)}">`).join('');$("detailThumbs").querySelectorAll('img').forEach(im=>im.onclick=()=>{$("detailHero").src=im.dataset.dphoto;$("detailThumbs").querySelectorAll('img').forEach(z=>z.classList.remove('active'));im.classList.add('active')});$("detailTitle").textContent=q.title;$("detailChips").replaceChildren();$("detailSpecs").innerHTML=completeVehicleDetails(q).map(d=>`<div class="detailrow"><span>${whiteEscape(vehicleLabels[d[0]]||d[0])}</span><b>${whiteEscape(d[1]||'—')}</b></div>`).join('');syncDetailBid();$("catalogOverlay").classList.remove('open');$("queueOverlay").classList.remove('open');$("detailOverlay").classList.add('open');syncDetailBid();loadDetailPrebid();}
 
 function render(doSubscribe=true){
  const x=lots[i];
@@ -474,9 +477,9 @@ $("closeCatalog").onclick=()=>$("catalogOverlay").classList.remove("open");
 $("catalogOverlay").onclick=e=>{if(e.target===$("catalogOverlay"))$("catalogOverlay").classList.remove("open")};
 $("detailClose").onclick=$("detailBack").onclick=()=>$("detailOverlay").classList.remove("open");
 $("detailOverlay").onclick=e=>{if(e.target===$("detailOverlay"))$("detailOverlay").classList.remove("open")};
-$("detailBidMinus").onclick=()=>{let k=Math.max(0,incs.indexOf(inc)-1);inc=incs[k];update();syncDetailBid()};
-$("detailBidPlus").onclick=()=>{let k=Math.min(incs.length-1,incs.indexOf(inc)+1);inc=incs[k];update();syncDetailBid()};
-$("detailBidSubmit").onclick=submitBid;
+$("detailBidMinus").onclick=()=>{const el=$("detailBidAmount");el.value=String(Math.max(0,Number(el.value||0)-inc))};
+$("detailBidPlus").onclick=()=>{const el=$("detailBidAmount");el.value=String(Number(el.value||0)+inc)};
+$("detailBidSubmit").onclick=async()=>{const q=lots[detailIndex],status=String(managedLotStatuses[String(Number(q?.no))]||'').toLowerCase(),pre=status==='upcoming'&&stateRow?.status!=='live';if(!pre){submitBid();return}if(!tg?.initData){alert("Откройте Galaxy Auctions через Telegram.");return}const maximum=Math.round(Number($("detailBidAmount").value||0));bidSubmitting=true;syncDetailBid();try{const res=await fetch('/api/prebid',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:tg.initData,lotId:Number(q.no),action:'place',maximum})}),out=await res.json();if(!res.ok){if(out.code==='DEPOSIT_REQUIRED')alert('Для ставки нужен активный депозит и разрешение.');else if(out.code==='LIMIT_EXCEEDED')alert('Максимальная ставка выше лимита аккаунта: '+money(Number(out.bidLimit||0)));else alert(out.error||'Ставка не принята.');return}detailPrebid={lotId:Number(q.no),currentBid:Number(out.currentBid||0),myMaximum:out.myMaximum==null?null:Number(out.myMaximum),leader:out.leader||null,canBid:true};syncDetailBid();await fetchAuctionState()}finally{bidSubmitting=false;syncDetailBid()}};
 
 $("mkBtn").onclick=()=>{$("queueOverlay").classList.remove("open");$("marketRadial").classList.toggle("open")};
 document.querySelectorAll("[data-market]").forEach(b=>b.onclick=()=>{selectedCountry=b.dataset.market;document.querySelectorAll("[data-market]").forEach(x=>x.classList.toggle("selected",x===b));$("marketRadial").classList.remove("open")});
@@ -505,6 +508,8 @@ const personalInformation=window.GalaxyAccountInformation.createAccountInformati
   // The personal-information endpoint is optional/additive. Do not block the
   // account screen when the legacy profile lookup is temporarily unavailable.
   beforeLoad:async()=>{
+    // Account/profile enrichment is optional. Never let a profile read failure
+    // block the auction, bidding controls, or opening this screen.
     try{await loadAccountProfile({skipPersonalInformation:true});}
     catch(error){console.warn("Legacy account preload failed",error);}
   },
@@ -533,7 +538,7 @@ async function loadAccountProfile(options={}){
   }
   hint.textContent="Загрузка профиля…";
   try{
-    await registrationReady;
+    await registrationReady.catch(error=>{console.warn("Registration preload failed",error);return null;});
     const {data,error}=await db.from("auction_users").select("telegram_id,username,first_name,last_name,deposit_amount,deposit_method,bid_limit,account_status,deposit_updated_at,is_admin").eq("telegram_id",String(tgUser.id)).single();
     if(error) throw error;
     currentAccountProfile=data;
