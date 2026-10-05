@@ -436,7 +436,11 @@ async function updateFromClock(){
    const txt=galaxyFormatCountdown(remain*1000),label=auctionDateLabel(),n=liveTodayQueue.length;
    $("circleTime").textContent=txt;$("circleLabel").textContent='до начала аукциона';
    $("soundStatus").textContent=soundOn?'LIVE AUCTION · Звук включён':'LIVE AUCTION · Звук выключен';
-   $("bid").disabled=true; $("bid").style.opacity=".45";
+   const preAllowed=accountCanBidFront();
+   $("bid").disabled=!preAllowed||bidSubmitting;
+   $("bid").textContent=preAllowed?'СДЕЛАТЬ СТАВКУ':'УЧАСТИЕ ЗАПРЕЩЕНО';
+   $("bid").classList.toggle('depositReady',preAllowed);
+   $("bid").style.opacity=preAllowed?'1':'.45';
    if(soundOn){const a=$("auctionAudio");a.pause();a.currentTime=0}
    return;
  }
