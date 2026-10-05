@@ -212,6 +212,7 @@ async function submitBid(){
      if(out.code==="DEPOSIT_REQUIRED") alert("Для участия администратор должен активировать депозит и лимит ставок.");
      else if(out.code==="LIMIT_EXCEEDED") alert(`Лимит ставки превышен. Ваш лимит: ${money(Number(out.bidLimit||0))}`);
      else if(out.code==="BLOCKED") alert("Ваш аккаунт заблокирован для участия в торгах.");
+     else if(out.code==="ACCOUNT_LOOKUP_FAILED"){console.error("Bid account lookup failed",out.error);alert("Ставка временно недоступна. Повторите через несколько секунд.");}
      else alert(out.error||"Ставка не принята.");
      await fetchAuctionState(); return;
    }
