@@ -199,21 +199,7 @@ async function writeState(patch){
 }
 let bidSubmitting=false;
 async function submitBid(){
- ctx();
- const q=lots[i],lotId=Number(q?.no||0),lotManagedStatus=String(managedLotStatuses[String(lotId)]||'').toLowerCase();
- if(closed&&stateRow?.status==='waiting'&&lotManagedStatus==='upcoming'){
-   if(bidSubmitting)return;
-   if(!accountCanBidFront()){alert('Участие запрещено. Администратор должен установить статус ACTIVE.');return;}
-   if(!tgUser?.id||!tg?.initData){alert("Откройте Galaxy Auctions через Telegram для участия в торгах.");return;}
-   bidSubmitting=true;const btn=$("bid");btn.disabled=true;btn.textContent="Проверка…";
-   try{const maximum=Number(price||q?.price||0)+Number(inc||0),res=await fetch('/api/prebid',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:tg.initData,lotId,action:'place',maximum})}),out=await res.json().catch(()=>({}));
-     if(!res.ok){if(out.code==='BID_NOT_ACTIVE')alert('Участие запрещено. Администратор должен установить статус ACTIVE.');else if(out.code==='LIMIT_EXCEEDED')alert('Лимит ставки превышен. Ваш лимит: '+money(Number(out.bidLimit||0)));else alert(out.error||'Ставка не принята.');return;}
-     price=Number(out.currentBid||price);bidder=out.leader?.username||bidder;await fetchAuctionState();await syncRecentBidders();
-   }catch(e){console.error(e);alert('Не удалось отправить ставку. Проверьте соединение.');}
-   finally{bidSubmitting=false;update();}
-   return;
- }
- if(closed||bidSubmitting)return;
+ if(closed||bidSubmitting)return; ctx();
  if(!accountCanBidFront()){alert('Для участия администратор должен активировать аккаунт и лимит ставок.');return;}
  if(!tgUser?.id || !tg?.initData){alert("Откройте Galaxy Auctions через Telegram для участия в торгах.");return;}
  const lotId=Number(lots[i]?.no||0);
