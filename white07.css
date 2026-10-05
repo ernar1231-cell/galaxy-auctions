@@ -7,7 +7,8 @@ body.mk-white *{box-sizing:border-box}
 /* STRUCTURAL LIVE LOCK V1 — geometry follows explicit HTML zones, never content. */
 @media (max-width:600px){
  body.mk-white .liveStructureV1{display:block!important;overflow:hidden!important;padding:0 8px 4px!important}
- body.mk-white .liveStructureV1>.carcol{display:block!important;overflow:visible!important;width:100%!important}
+ body.mk-white .liveStructureV1>.carcol{display:block!important;overflow:hidden!important;width:100%!important}
+ body.mk-white .liveStructureV1 .livePhotoZone{display:block!important;width:100%!important;height:300px!important;min-height:300px!important;max-height:300px!important;overflow:hidden!important}
  body.mk-white .liveStructureV1 .photoFrame{
   position:relative!important;width:100%!important;height:300px!important;min-height:300px!important;max-height:300px!important;
   margin:0!important;overflow:hidden!important;border-radius:12px!important;background:#eef2f6!important;
@@ -68,4 +69,13 @@ body.mk-white *{box-sizing:border-box}
   width:100%!important;max-width:520px!important;height:112px!important;min-height:112px!important;max-height:112px!important;flex:0 0 112px!important;
   margin:0 auto!important;padding:6px 9px 8px!important;background:#fff!important;
  }
+}
+
+/* Hard structural containment: direct children cannot escape their zones. */
+@media (max-width:600px){
+ body.mk-white .liveStructureV1>.carcol>.livePhotoZone{display:block!important;height:300px!important;max-height:300px!important;overflow:hidden!important}
+ body.mk-white .liveStructureV1>.carcol>.auctionLower{display:grid!important;height:344px!important;max-height:344px!important;overflow:hidden!important}
+ body.mk-white .liveStructureV1>.carcol>.auctionLower>.specColumn{grid-column:1!important;height:344px!important;overflow:hidden!important}
+ body.mk-white .liveStructureV1>.carcol>.auctionLower>.bidcol{grid-column:2!important;height:344px!important;overflow:hidden!important}
+ body.mk-white .liveStructureV1 .photoLightbox[hidden]{display:none!important}
 }
