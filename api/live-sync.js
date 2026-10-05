@@ -9,8 +9,9 @@ function orderedQueue(rows,state){const current=Number(state?.lot_id||0);if(stat
 async function bidderCountries(bids){
  const ids=[...new Set((bids||[]).map(b=>String(b.user_id||'')).filter(Boolean))];
  if(!ids.length)return bids||[];
- const safe=ids.map(id=>'"'+id.replace(/"/g,'')+'"').join(',');
- const r=await sfetch(`auction_users?telegram_id=in.(${encodeURIComponent(safe)})&select=telegram_id,phone_country,country`);
+ const safe=ids.filter(id=>/^\d+$/.test(id)).join(',');
+ if(!safe)return bids||[];
+ const r=await sfetch(`auction_users?telegram_id=in.(${safe})&select=telegram_id,phone_country,country`);
  const users=r.ok?await r.json():[],map=new Map((users||[]).map(u=>[String(u.telegram_id),String(u.phone_country||u.country||'').slice(0,2).toUpperCase()]));
  return (bids||[]).map(b=>({...b,country:map.get(String(b.user_id))||((String(b.country||'').toUpperCase()==='PB')?'':String(b.country||'').slice(0,2).toUpperCase())}));
 }
