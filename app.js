@@ -47,6 +47,7 @@ async function refreshRegisteredCount(){
   }catch(e){console.warn("Registered users count failed",e);}
 }
 registrationReady.then(()=>refreshRegisteredCount());
+registrationReady.then(()=>loadAccountProfile({skipPersonalInformation:true})).catch(()=>{});
 setInterval(refreshRegisteredCount,10000);
 let selectedCountry="Dubai";
 let realtimeChannel=null;
@@ -498,7 +499,7 @@ function accountCanBidFront(){
  const d=currentAccountProfile||window.accountData||{},admin=!!(adminAccess?.admin||adminAccess?.owner||d.is_admin);
  if(String(d.account_status||'').toLowerCase()==='blocked')return false;
  if(admin)return true;
- return String(d.account_status||'').toLowerCase()==='active'&&Number(d.bid_limit||0)>0;
+ return String(d.account_status||'').toLowerCase()==='active';
 }
 function refreshFrontBidEligibility(){
  frontBidEligibility={loaded:!!(currentAccountProfile||window.accountData),allowed:accountCanBidFront(),reason:'deposit'};
