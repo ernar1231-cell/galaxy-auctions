@@ -404,7 +404,7 @@ async function renderModernMyBids(){
 }
 const PROFILE_LANGUAGES={ru:'Русский',en:'English',ar:'العربية'};
 const PROFILE_FLAGS={AE:'🇦🇪',KZ:'🇰🇿',RU:'🇷🇺',US:'🇺🇸',GB:'🇬🇧',GE:'🇬🇪'};
-function setProfileAvatar(el,d,name){if(!el)return;const url=tgUser?.photo_url||d.avatar_url||'';el.textContent=(name.trim().slice(0,2)||'MK').toUpperCase();el.style.backgroundImage=url?`url("${String(url).replace(/["\\]/g,"\\function setProfileAvatar(el,d,name){if(!el)return;const url=d.avatar_url||tgUser?.photo_url||'';el.textContent=(name.trim().slice(0,2)||'MK').toUpperCase();el.style.backgroundImage=url?`url("${String(url).replace(/["\\]/g,"\\$&")}")`:'';el.classList.toggle('hasPhoto',!!url)}")}")`:'';el.style.backgroundSize=url?'cover':'';el.style.backgroundPosition=url?'center':'';el.classList.toggle('hasPhoto',!!url)}
+function setProfileAvatar(el,d,name){if(!el)return;const url=d.avatar_url||tgUser?.photo_url||'';el.textContent=(name.trim().slice(0,2)||'MK').toUpperCase();el.style.backgroundImage=url?`url("${String(url).replace(/["\\]/g,"\\$&")}")`:'';el.classList.toggle('hasPhoto',!!url)}
 function profileLanguageKey(){return 'galaxyLanguage:'+(tgUser?.id||'guest')}
 function selectedProfileLanguage(){try{const code=localStorage.getItem(profileLanguageKey());return Object.hasOwn(PROFILE_LANGUAGES,code)?code:'ru'}catch{return 'ru'}}
 function syncProfileLanguage(){const code=selectedProfileLanguage();$('modernProfileLanguage').textContent=PROFILE_LANGUAGES[code];document.querySelectorAll('[data-profile-language]').forEach(b=>b.classList.toggle('active',b.dataset.profileLanguage===code))}
