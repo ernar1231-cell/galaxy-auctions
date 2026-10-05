@@ -1207,3 +1207,21 @@ body.mk-white .livegrid .bidbox>.historyLink{margin:6px auto 0!important;min-hei
  body.mk-white .livegrid .liveBidderPlaceholder{visibility:hidden!important}
  body.mk-white.liveViewportLocked .app>#tradeControls{position:static!important;flex:0 0 112px!important;height:112px!important;min-height:112px!important;max-height:112px!important;width:100%!important;max-width:520px!important;margin:0 auto!important;padding:6px 9px 8px!important;background:#fff!important}
 }
+
+
+/* Compact hero + fullscreen vehicle photo viewer */
+@media (max-width:600px){
+ body.mk-white .livegrid .photoFrame{height:245px!important;min-height:245px!important;max-height:245px!important;flex:0 0 245px!important;cursor:zoom-in}
+ body.mk-white .livegrid .photoFrame .hero{width:100%!important;height:100%!important;object-fit:cover!important;object-position:center!important}
+}
+.photoLightbox[hidden]{display:none!important}
+.photoLightbox{position:fixed;inset:0;z-index:10050;background:#050607;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.photoLightboxImage{display:block;width:100%;height:72vh;object-fit:contain;touch-action:pan-y;background:#050607}
+.photoLightboxClose{position:absolute;top:max(18px,env(safe-area-inset-top));left:18px;z-index:3;border:0;background:transparent;color:#fff;font-size:42px;line-height:1;padding:8px}
+.photoLightboxCount{position:absolute;top:max(28px,calc(env(safe-area-inset-top) + 10px));left:50%;transform:translateX(-50%);z-index:3;color:#fff;font-size:17px;font-weight:800}
+.photoLightboxArrow{position:absolute;top:50%;transform:translateY(-50%);z-index:3;width:48px;height:48px;border-radius:50%;border:1px solid rgba(255,255,255,.8);background:rgba(15,30,50,.72);color:#fff;font-size:36px;line-height:42px}
+.photoLightboxArrow.prev{left:16px}.photoLightboxArrow.next{right:16px}
+.photoLightboxThumbs{position:absolute;left:14px;right:14px;bottom:max(24px,calc(env(safe-area-inset-bottom) + 12px));height:74px;display:flex;gap:8px;overflow-x:auto;justify-content:flex-start;padding:4px}
+.photoLightboxThumbs img{width:78px;height:62px;flex:0 0 78px;object-fit:cover;border-radius:8px;border:2px solid transparent}
+.photoLightboxThumbs img.active{border-color:#168cff}
+body.photoLightboxOpen{overflow:hidden!important}
