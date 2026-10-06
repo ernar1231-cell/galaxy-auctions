@@ -113,6 +113,7 @@ function renderRecentBidders(rows){
 }
 let latestLeaderUserId=null;
 let bidAcceptedUntil=0;
+let locallyConfirmedBidId=null;
 let userHasBidThisLot=false;
 let myLatestBidAmount=null;
 let whitePhotoLot=null;
@@ -145,9 +146,10 @@ function subscribeLot(){
  const lotId=Number(lots[i].no);
  realtimeChannel=db.channel("auction_bids_"+lotId).on("postgres_changes",{event:"INSERT",schema:"public",table:"auction_bids",filter:`lot_id=eq.${lotId}`},payload=>{
   const b=payload.new;if(String(b.country||"").toUpperCase()==="PB"){fetchAuctionState();return;} bidder=b.username||b.user_id||"LIVE"; price=Number(b.amount||price); latestLeaderUserId=b.user_id?String(b.user_id):null;
-  // A confirmed LIVE bid is the shared effect trigger on every connected client.
-  // Sound-off clients still animate the same authoritative ring reset.
-  if(soundOn)playBidRev();else beginRingReset();
+  // The bidder may already have played this confirmed bid from the API response.
+  // Everyone else plays it from realtime; matching bid id prevents a double rev.
+  const sameLocal=locallyConfirmedBidId!=null&&String(b.id)===String(locallyConfirmedBidId);
+  if(sameLocal)locallyConfirmedBidId=null;else if(soundOn)playBidRev();else beginRingReset();
   syncRecentBidders();fetchAuctionState();
  }).subscribe();
 }
@@ -252,8 +254,10 @@ async function submitBid(){
      await fetchAuctionState(); return;
    }
    bidder=out.bid?.username||tgUser.username||"Bidder"; price=Number(out.state?.current_bid||out.bid?.amount||price);
-   // Do not animate locally here. The confirmed auction_bids realtime INSERT is
-   // the single shared trigger for rev + 1.5s ring return on every participant.
+   // Server has accepted the bid: the bidder gets the effect now, without the
+   // old optimistic reset. Other participants get the same effect via realtime.
+   locallyConfirmedBidId=out.bid?.id??null;
+   if(soundOn)playBidRev();else beginRingReset();
    if(out.state) applyAuctionState(out.state,true);
    bidAcceptedUntil=Date.now()+1500;
    await fetchAuctionState(); await syncRecentBidders();
