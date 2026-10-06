@@ -2,7 +2,7 @@ const SUPABASE_URL=String(process.env.SUPABASE_URL||'https://exfxcgiuotraszeqefh
 const key=()=>process.env.SUPABASE_SERVICE_ROLE_KEY;
 async function sfetch(path,opts={}){const k=key();if(!k)throw new Error('SUPABASE_SERVICE_ROLE_KEY is not configured');return fetch(SUPABASE_URL+'/rest/v1/'+path,{...opts,headers:{apikey:k,Authorization:`Bearer ${k}`,'Content-Type':'application/json',...(opts.headers||{})}})}
 const {nextAuctionTime}=require('../auction-schedule');
-const LOT_SECONDS=10,BONUS_SECONDS=10,SOLD_SECONDS=2;
+const LOT_SECONDS=15,BONUS_SECONDS=15,SOLD_SECONDS=2;
 function scheduledStart(state,now){return nextAuctionTime(state.status==='waiting'?(state.phase_started_at||state.updated_at||now):now)}
 async function activeLots(){const r=await sfetch('auction_lots?status=in.(upcoming,live)&select=id,lot_number,starting_bid,status,description,sort_order&order=sort_order.asc,lot_number.asc');if(!r.ok)return[];const rows=await r.json()||[];const now=Date.now();return rows.filter(x=>{const m=String(x.description||'').match(/\[\[retry_after:([^\]]+)\]\]/);return !m||Date.parse(m[1])<=now})}
 function orderedQueue(rows,state){const current=Number(state?.lot_id||0);if(state?.status!=='live'||!current)return rows.slice();const selected=rows.find(x=>Number(x.lot_number)===current);return selected?[selected,...rows.filter(x=>Number(x.lot_number)!==current)]:rows.slice();}

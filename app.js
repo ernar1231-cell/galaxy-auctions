@@ -74,9 +74,9 @@ const lots=[
 {no:"015",title:"Lamborghini Huracan EVO Coupe 2021",price:250000,meta:["14,563 km","Petrol","Automatic","Coupe"],photos:["images/lot15-1.webp"],details:[["Specs","GCC Specs"],["Engine","4000+ cc / V10"],["Power","600–699 HP"],["Interior","Black"],["Exterior","Red"],["Steering","Left Hand"],["Seats","2"]]},
 ]
 let managedLotStatuses={};let liveTodayQueue=[];let galaxyStartAt=null;
-let i=0,seconds=10,phase="red",price=lots[0].price,inc=1000,soundOn=false,audioCtx=null,timerId=null,bidder=318,closed=false;
-const LOT_SECONDS=10, BONUS_SECONDS=10, SOLD_SECONDS=2, WAIT_SECONDS=600;
-let lastPhaseAudioKey="";
+let i=0,seconds=15,phase="red",price=lots[0].price,inc=1000,soundOn=false,audioCtx=null,timerId=null,bidder=318,closed=false;
+const LOT_SECONDS=15, BONUS_SECONDS=15, SOLD_SECONDS=2, WAIT_SECONDS=600;
+let lastPhaseAudioKey="",lastBidAudioAt=0,clockAudioActive=false,soldAudioActive=false,ringResetStart=0,ringResetFrom=100;
 const $=x=>document.getElementById(x), money=n=>"$"+n.toLocaleString("en-US");
 function ctx(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==="suspended")audioCtx.resume()}
 function tone(freq,dur,type="sine",vol=.04,delay=0){if(!soundOn||!audioCtx)return;let o=audioCtx.createOscillator(),g=audioCtx.createGain(),t=audioCtx.currentTime+delay;o.type=type;o.frequency.value=freq;g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+dur);o.connect(g);g.connect(audioCtx.destination);o.start(t);o.stop(t+dur)}
@@ -144,7 +144,7 @@ function subscribeLot(){
  if(realtimeChannel) db.removeChannel(realtimeChannel);
  const lotId=Number(lots[i].no);
  realtimeChannel=db.channel("auction_bids_"+lotId).on("postgres_changes",{event:"INSERT",schema:"public",table:"auction_bids",filter:`lot_id=eq.${lotId}`},payload=>{
-  const b=payload.new;if(String(b.country||"").toUpperCase()==="PB"){fetchAuctionState();return;} bidder=b.username||b.user_id||"LIVE"; price=Number(b.amount||price); latestLeaderUserId=b.user_id?String(b.user_id):null; syncRecentBidders(); fetchAuctionState();
+  const b=payload.new;if(String(b.country||"").toUpperCase()==="PB"){fetchAuctionState();return;} bidder=b.username||b.user_id||"LIVE"; price=Number(b.amount||price); latestLeaderUserId=b.user_id?String(b.user_id):null; if(soundOn)playBidRev(); syncRecentBidders(); fetchAuctionState();
  }).subscribe();
 }
 async function fetchAuctionState(){
@@ -158,7 +158,7 @@ function normalizedPhotos(l){const seen=new Set();return [...(l.images||[]).sort
 function upsertServerLot(l){if(!l)return;const no=String(l.lot_number).padStart(3,'0'),photos=normalizedPhotos(l);const sourceDetails=[["Mileage",l.mileage==null?null:`${Number(l.mileage).toLocaleString()} km`],["Engine",l.engine],["Fuel",l.fuel],["Transmission",l.transmission],["Drive",l.drive],["Interior",l.interior_color],["Exterior",l.exterior_color],["VIN",l.vin],["Auction location",l.auction_location||l.auction_yard||l.location],["Estimated retail value",l.estimated_retail_value==null?null:money(Number(l.estimated_retail_value))],["Primary damage",l.primary_damage],["Specs",l.specs],["Seats",l.seats]];const q={id:l.id,no,title:[l.make,l.model,l.year].filter(Boolean).join(' '),price:Number(l.starting_bid||0),meta:[l.mileage==null?'—':`${Number(l.mileage).toLocaleString()} km`,l.fuel||'—',l.transmission||'—',l.drive||'—'],photos,details:sourceDetails.filter(d=>d[1]!==null&&d[1]!==undefined&&String(d[1]).trim()!=='')};const idx=lots.findIndex(x=>String(x.id||'')===String(l.id||'')||Number(x.no)===Number(l.lot_number));if(idx>=0){if(!q.photos.length)q.photos=lots[idx].photos;if(q.meta.every(v=>v==='—'||v==='0 km'))q.meta=lots[idx].meta;lots[idx]={...lots[idx],...q};}else lots.push(q);}
 function applyAuctionState(row,forceRender=false){
  if(!row)return;
- const incomingAudioKey=String(row.lot_id||1)+"|"+String(row.phase||"red")+"|"+String(row.phase_started_at||"");
+ const incomingAudioKey=String(row.lot_id||1);
  const shouldRestartAudio=incomingAudioKey!==lastPhaseAudioKey;
  stateRow=row;
  const requestedLot=Number(row.lot_id||1);
@@ -171,7 +171,7 @@ function applyAuctionState(row,forceRender=false){
  closed=row.status==="waiting";
  if(lotChanged||forceRender) render(false);
  syncRecentBidders();
- if(shouldRestartAudio && row.status!=="waiting"){ lastPhaseAudioKey=incomingAudioKey; restartPhaseAudio(); }
+ if(shouldRestartAudio && row.status!=="waiting"){ lastPhaseAudioKey=incomingAudioKey; stopAuctionEffects(); restartPhaseAudio(true); }
  updateFromClock();
 }
 function subscribeAuctionState(){
@@ -244,11 +244,11 @@ async function submitBid(){
      await fetchAuctionState(); return;
    }
    bidder=out.bid?.username||tgUser.username||"Bidder"; price=Number(out.state?.current_bid||out.bid?.amount||price);
-   // Apply the authoritative bid response immediately. This resets the 10-second ring
-   // on the same frame instead of waiting for the realtime/follow-up state fetch.
+   // Start the 1.5s tachometer-style return from the ring's current position,
+   // then apply the authoritative 15-second reset immediately.
+   if(soundOn)playBidRev();
    if(out.state) applyAuctionState(out.state,true);
-   bidAcceptedUntil=Date.now()+850;
-   if(soundOn){const bs=$("bidAudio");bs.currentTime=0;bs.play().catch(()=>{});}
+   bidAcceptedUntil=Date.now()+1500;
    await fetchAuctionState(); await syncRecentBidders();
  }catch(e){console.error(e);alert("Не удалось отправить ставку. Проверьте соединение.");await fetchAuctionState();}
  finally{bidSubmitting=false;btn.disabled=closed||!accountCanBidFront();update();}
@@ -427,7 +427,13 @@ function update(){
  const phaseDuration=bonus?BONUS_SECONDS:LOT_SECONDS;
  const remaining=Math.max(0,phaseDuration-elapsedSeconds());
  // Continuous fractional progress: the ring drains clockwise smoothly instead of jumping once per second.
- ring.style.setProperty('--progress',waiting?'0%':Math.max(0,Math.min(100,remaining/phaseDuration*100)).toFixed(3)+'%');
+ let ringProgress=waiting?0:Math.max(0,Math.min(100,remaining/phaseDuration*100));
+ if(ringResetStart){
+   const t=Math.min(1,(performance.now()-ringResetStart)/1500);
+   ringProgress=ringResetFrom+(100-ringResetFrom)*(1-Math.pow(1-t,3));
+   if(t>=1)ringResetStart=0;
+ }
+ ring.style.setProperty('--progress',ringProgress.toFixed(3)+'%');
  $("soundStatus").textContent=soundOn?'LIVE AUCTION · Звук включён':'LIVE AUCTION · Звук выключен';
  const bidAllowed=frontBidEligibility.allowed||accountCanBidFront();
  $("bid").textContent=closed?'ЛОТ ЗАКРЫТ':(!bidAllowed?'НУЖЕН ДЕПОЗИТ':(bidSubmitting?'Проверка…':'СДЕЛАТЬ СТАВКУ'));
@@ -435,15 +441,37 @@ function update(){
  const live=document.querySelector('header .live');live.textContent=waiting?'':'● LIVE';live.classList.toggle('paused',waiting);
  updateBidVisualState();
 }
-function restartPhaseAudio(){
- if(!soundOn||closed)return;
- const a=$("auctionAudio"); a.pause(); a.currentTime=0; a.play().catch(()=>{});
-}
-(function setupSevenSecondAudioLoop(){
+function pauseAudio(id,reset=false){const a=$(id);if(!a)return;a.pause();if(reset)a.currentTime=0}
+function stopAuctionEffects(){pauseAudio("bidAudio",true);pauseAudio("clockAudio",true);pauseAudio("soldAudio",true);clockAudioActive=false;soldAudioActive=false}
+function restartPhaseAudio(fromStart=false){
+ if(!soundOn||closed||clockAudioActive||soldAudioActive)return;
  const a=$("auctionAudio"); if(!a)return;
- a.addEventListener("timeupdate",()=>{if(soundOn&&!closed&&a.currentTime>=10){a.currentTime=0;a.play().catch(()=>{})}});
- a.addEventListener("ended",()=>{if(soundOn&&!closed){a.currentTime=0;a.play().catch(()=>{})}});
-})();
+ if(fromStart)a.currentTime=0;
+ a.loop=true;a.volume=1;a.play().catch(()=>{});
+}
+function beginRingReset(){
+ const ring=document.querySelector(".bidcircle");if(!ring)return;
+ const raw=parseFloat(getComputedStyle(ring).getPropertyValue("--progress"))||0;
+ ringResetFrom=Math.max(0,Math.min(100,raw));ringResetStart=performance.now();
+}
+function playBidRev(){
+ if(!soundOn||closed)return;
+ const now=Date.now();if(now-lastBidAudioAt<180)return;lastBidAudioAt=now;
+ beginRingReset();pauseAudio("auctionAudio");pauseAudio("clockAudio",true);clockAudioActive=false;
+ const a=$("bidAudio");if(!a)return;a.pause();a.currentTime=0;a.volume=1;
+ a.onended=()=>{if(soundOn&&!closed&&!clockAudioActive&&!soldAudioActive)restartPhaseAudio(false)};
+ a.play().catch(()=>{if(soundOn&&!closed)restartPhaseAudio(false)});
+}
+function playFinalClock(){
+ if(!soundOn||clockAudioActive||soldAudioActive)return;
+ clockAudioActive=true;pauseAudio("auctionAudio");pauseAudio("bidAudio",true);
+ const a=$("clockAudio");if(!a)return;a.currentTime=0;a.volume=1;a.play().catch(()=>{});
+}
+function playSoldVoice(){
+ if(!soundOn||soldAudioActive)return;
+ soldAudioActive=true;clockAudioActive=false;pauseAudio("auctionAudio");pauseAudio("clockAudio",true);pauseAudio("bidAudio",true);
+ const a=$("soldAudio");if(!a)return;a.currentTime=0;a.volume=1;a.play().catch(()=>{});
+}
 async function updateFromClock(){
  if(!stateRow)return;
  const started=new Date(stateRow.phase_started_at||stateRow.updated_at||Date.now()).getTime();
@@ -467,8 +495,9 @@ async function updateFromClock(){
    return;
  }
 
- // SOLD is deliberately visible briefly, then the next lot starts.
+ // SOLD voice plays for about two seconds, then the next lot starts automatically.
  if(currentPhase==="sold"){
+   playSoldVoice();
    closed=true; seconds=0; phase="sold"; update();
    $("timer").textContent="SOLD"; $("circleTime").textContent="SOLD"; $("circleLabel").textContent="лот продан";
    $("soundStatus").textContent="SOLD"; $("bid").disabled=true; $("bid").style.opacity=".45";
@@ -476,7 +505,7 @@ async function updateFromClock(){
    return;
  }
 
- // First stage: 10 seconds normal auction time.
+ // First stage: 15 seconds normal auction time.
  if(currentPhase!=="bonus" && currentPhase!=="green"){
    if(age>=LOT_SECONDS){ return; }
    closed=false; phase="red"; seconds=Math.max(1,LOT_SECONDS-Math.floor(age));
@@ -484,9 +513,11 @@ async function updateFromClock(){
    return;
  }
 
- // Second stage: 10 seconds BONUS TIME. A bid during bonus restarts these 10 seconds.
+ // Second stage: 15 seconds BONUS TIME. A bid during bonus restarts these 15 seconds.
  if(age>=BONUS_SECONDS){ return; }
  closed=false; phase="bonus"; seconds=Math.max(1,BONUS_SECONDS-Math.floor(age));
+ const bonusRemaining=Math.max(0,BONUS_SECONDS-age);
+ if(bonusRemaining<=3){playFinalClock()}else if(clockAudioActive){pauseAudio("clockAudio",true);clockAudioActive=false;restartPhaseAudio(false)}
  $("bid").disabled=bidSubmitting; $("bid").style.opacity=bidSubmitting?".72":"1"; update();
 }
 function start(){clearInterval(timerId);timerId=setInterval(updateFromClock,16)}
@@ -499,7 +530,7 @@ function sellerApprovalVoice(){
 }
 document.querySelectorAll("[data-inc]").forEach(b=>b.onclick=()=>{inc=+b.dataset.inc;update()});
 $("bid").onclick=submitBid;
-function toggleAuctionSound(){ctx();soundOn=!soundOn;let a=$("auctionAudio");whiteSyncSound();$("soundStatus").textContent=soundOn?"LIVE AUCTION · Звук включён":"LIVE AUCTION · Звук выключен";if(soundOn){restartPhaseAudio()}else{a.pause();a.currentTime=0;const bs=$("bidAudio");if(bs){bs.pause();bs.currentTime=0}}}
+function toggleAuctionSound(){ctx();soundOn=!soundOn;whiteSyncSound();$("soundStatus").textContent=soundOn?"LIVE AUCTION · Звук включён":"LIVE AUCTION · Звук выключен";if(soundOn){restartPhaseAudio(false)}else{pauseAudio("auctionAudio",true);stopAuctionEffects()}}
 
 const incs=[100,1000,10000];
 $("minus").onclick=()=>{let k=Math.max(0,incs.indexOf(inc)-1);inc=incs[k];update()};
