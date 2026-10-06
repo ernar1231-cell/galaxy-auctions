@@ -216,7 +216,11 @@ async function submitBid(){
      const res=await fetch('/api/prebid',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:tg.initData,lotId:frontLotId,action:'place',maximum})});
      const out=await res.json().catch(()=>({}));
      if(!res.ok){if(out.code==='BID_NOT_ACTIVE')alert('Участие запрещено. Администратор должен установить статус ACTIVE.');else if(out.code==='LIMIT_EXCEEDED')alert('Лимит ставки превышен. Ваш лимит: '+money(Number(out.bidLimit||0)));else alert(out.error||'Ставка не принята.');return;}
-     price=Number(out.currentBid||price);bidder=out.leader?.username||bidder;await fetchAuctionState();await syncRecentBidders();
+     price=Number(out.currentBid||price);bidder=out.leader?.username||bidder;
+     // Keep the upcoming card on the accepted pre-bid immediately; the 400 ms
+     // live-sync snapshot then reconciles every viewer to the same value.
+     if(stateRow?.status==='waiting'&&Number(stateRow.lot_id)===frontLotId)stateRow={...stateRow,current_bid:price};
+     update();await syncRecentBidders();
    }catch(e){console.error(e);alert('Не удалось отправить ставку. Проверьте соединение.');}
    finally{bidSubmitting=false;update();}
    return;
@@ -225,6 +229,16 @@ async function submitBid(){
  if(!accountCanBidFront()){alert('Для участия администратор должен активировать аккаунт и лимит ставок.');return;}
  if(!tgUser?.id || !tg?.initData){alert("Откройте Galaxy Auctions через Telegram для участия в торгах.");return;}
  const lotId=Number(lots[i]?.no||0);
+ // Optimistic local feedback: react on the same tap instead of waiting 1–3s
+ // for Telegram/account/Supabase validation. Server remains authoritative.
+ const optimisticPhase=phase,optimisticPrice=price,optimisticBidder=bidder,optimisticState=stateRow?{...stateRow}:null;
+ const optimisticNow=new Date(serverNowMs()).toISOString();
+ if(stateRow){
+   stateRow={...stateRow,phase:['bonus','green'].includes(String(stateRow.phase||'').toLowerCase())?'bonus':'red',phase_started_at:optimisticNow,updated_at:optimisticNow};
+ }
+ bidAcceptedUntil=Date.now()+1500;
+ if(soundOn)playBidRev(); else beginRingReset();
+ update();
  bidSubmitting=true;
  const btn=$("bid"); btn.disabled=true; btn.textContent="Проверка…";
  try{
@@ -241,16 +255,16 @@ async function submitBid(){
      else if(out.code==="ACCOUNT_LOOKUP_FAILED"){console.error("Bid account lookup failed",out.error);alert("Ставка временно недоступна. Повторите через несколько секунд.");}
      else if(out.code==="STALE_STATE"){await fetchAuctionState();return;}
      else alert(out.error||"Ставка не принята.");
+     // Rejected bids roll back to the authoritative server snapshot.
+     phase=optimisticPhase;price=optimisticPrice;bidder=optimisticBidder;if(optimisticState)stateRow=optimisticState;
      await fetchAuctionState(); return;
    }
    bidder=out.bid?.username||tgUser.username||"Bidder"; price=Number(out.state?.current_bid||out.bid?.amount||price);
-   // Start the 1.5s tachometer-style return from the ring's current position,
-   // then apply the authoritative 15-second reset immediately.
-   if(soundOn)playBidRev();
+   // Local rev/ring feedback already started on tap; now reconcile with server truth.
    if(out.state) applyAuctionState(out.state,true);
    bidAcceptedUntil=Date.now()+1500;
    await fetchAuctionState(); await syncRecentBidders();
- }catch(e){console.error(e);alert("Не удалось отправить ставку. Проверьте соединение.");await fetchAuctionState();}
+ }catch(e){console.error(e);phase=optimisticPhase;price=optimisticPrice;bidder=optimisticBidder;if(optimisticState)stateRow=optimisticState;alert("Не удалось отправить ставку. Проверьте соединение.");await fetchAuctionState();}
  finally{bidSubmitting=false;btn.disabled=closed||!accountCanBidFront();update();}
 }
 
@@ -499,7 +513,7 @@ async function updateFromClock(){
  if(currentPhase==="sold"){
    playSoldVoice();
    closed=true; seconds=0; phase="sold"; update();
-   $("timer").textContent="SOLD"; $("circleTime").textContent="SOLD"; $("circleLabel").textContent="лот продан";
+   $("timer").textContent="ПРОДАНО"; $("circleTime").textContent="ПРОДАНО"; $("circleLabel").textContent="";
    $("soundStatus").textContent="SOLD"; $("bid").disabled=true; $("bid").style.opacity=".45";
    if(age>=SOLD_SECONDS){ return; }
    return;
@@ -888,7 +902,8 @@ fetchAuctionState().then(()=>{
         if(snap.lotStatuses){managedLotStatuses=snap.lotStatuses;renderCatalog();renderWatchlist();} if(snap.startAt){galaxyStartAt=snap.startAt;const al=$("lot");if(al)al.textContent=auctionDateLabel();} if(Array.isArray(snap.todayQueue)){liveTodayQueue=snap.todayQueue.map(Number); const lb=$("lotsBtn");if(lb)lb.textContent=`Лоты (${liveTodayQueue.length}) ›`;renderCatalog();}
         if(snap.state){
           if(snap.lot)upsertServerLot(snap.lot);
-          // A fresh lot may intentionally have null current_bid; preserve configured starting price.
+          // live-sync includes the authoritative visible pre-bid price while waiting.
+          // Use it on the main upcoming card, and carry the same price into LIVE.
           if(snap.state.current_bid==null){const li=lots.findIndex(x=>Number(x.no)===Number(snap.state.lot_id||0));snap.state.current_bid=li>=0?lots[li].price:0;}
           applyAuctionState(snap.state,false);
         }
