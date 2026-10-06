@@ -244,11 +244,11 @@ async function submitBid(){
      await fetchAuctionState(); return;
    }
    bidder=out.bid?.username||tgUser.username||"Bidder"; price=Number(out.state?.current_bid||out.bid?.amount||price);
-   // Apply the authoritative bid response immediately. This resets the 10-second ring
-   // on the same frame instead of waiting for the realtime/follow-up state fetch.
-   if(out.state) applyAuctionState(out.state,true);
-   bidAcceptedUntil=Date.now()+850;
+   // Start the 1.5s tachometer-style return from the ring's current position,
+   // then apply the authoritative 15-second reset immediately.
    if(soundOn)playBidRev();
+   if(out.state) applyAuctionState(out.state,true);
+   bidAcceptedUntil=Date.now()+1500;
    await fetchAuctionState(); await syncRecentBidders();
  }catch(e){console.error(e);alert("Не удалось отправить ставку. Проверьте соединение.");await fetchAuctionState();}
  finally{bidSubmitting=false;btn.disabled=closed||!accountCanBidFront();update();}
