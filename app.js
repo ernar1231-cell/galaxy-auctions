@@ -216,7 +216,11 @@ async function submitBid(){
      const res=await fetch('/api/prebid',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:tg.initData,lotId:frontLotId,action:'place',maximum})});
      const out=await res.json().catch(()=>({}));
      if(!res.ok){if(out.code==='BID_NOT_ACTIVE')alert('Участие запрещено. Администратор должен установить статус ACTIVE.');else if(out.code==='LIMIT_EXCEEDED')alert('Лимит ставки превышен. Ваш лимит: '+money(Number(out.bidLimit||0)));else alert(out.error||'Ставка не принята.');return;}
-     price=Number(out.currentBid||price);bidder=out.leader?.username||bidder;await fetchAuctionState();await syncRecentBidders();
+     price=Number(out.currentBid||price);bidder=out.leader?.username||bidder;
+     // Keep the upcoming card on the accepted pre-bid immediately; the 400 ms
+     // live-sync snapshot then reconciles every viewer to the same value.
+     if(stateRow?.status==='waiting'&&Number(stateRow.lot_id)===frontLotId)stateRow={...stateRow,current_bid:price};
+     update();await syncRecentBidders();
    }catch(e){console.error(e);alert('Не удалось отправить ставку. Проверьте соединение.');}
    finally{bidSubmitting=false;update();}
    return;
@@ -898,7 +902,8 @@ fetchAuctionState().then(()=>{
         if(snap.lotStatuses){managedLotStatuses=snap.lotStatuses;renderCatalog();renderWatchlist();} if(snap.startAt){galaxyStartAt=snap.startAt;const al=$("lot");if(al)al.textContent=auctionDateLabel();} if(Array.isArray(snap.todayQueue)){liveTodayQueue=snap.todayQueue.map(Number); const lb=$("lotsBtn");if(lb)lb.textContent=`Лоты (${liveTodayQueue.length}) ›`;renderCatalog();}
         if(snap.state){
           if(snap.lot)upsertServerLot(snap.lot);
-          // A fresh lot may intentionally have null current_bid; preserve configured starting price.
+          // live-sync includes the authoritative visible pre-bid price while waiting.
+          // Use it on the main upcoming card, and carry the same price into LIVE.
           if(snap.state.current_bid==null){const li=lots.findIndex(x=>Number(x.no)===Number(snap.state.lot_id||0));snap.state.current_bid=li>=0?lots[li].price:0;}
           applyAuctionState(snap.state,false);
         }
