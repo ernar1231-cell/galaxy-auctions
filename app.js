@@ -1014,7 +1014,26 @@ setInterval(()=>{if(!stateRow||stateRow.status!=='waiting'||!galaxyStartAt)retur
 /* Telegram launch intents contain only an opaque lot id or the public route name. */
 function decodeLaunchValue(value){try{return decodeURIComponent(atob(String(value||'').replace(/-/g,'+').replace(/_/g,'/')))}catch(e){return ''}}
 function readLaunchIntent(){const raw=String(tg?.initDataUnsafe?.start_param||new URLSearchParams(location.search).get('tgWebAppStartParam')||'');if(raw==='live')return {live:true};if(raw.startsWith('lot_'))return {lotId:decodeLaunchValue(raw.slice(4))};return {}}
-function applyLaunchIntent(){const intent=readLaunchIntent();if(intent.live){closeModernScreens();document.body.classList.add('telegramLiveLaunch');setModernActive('');window.scrollTo(0,0);return;}registrationReady.finally(openSharedLot);}
+async function sharedLotRegistrationGate(){
+ const intent=readLaunchIntent();if(!intent.lotId)return true;
+ if(!tgUser?.id||!tg?.initData)return true;
+ try{
+  await registrationReady;
+  const r=await fetch('/api/account-information',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:tg.initData,action:'read'})});
+  const d=await r.json().catch(()=>({})),info=d.information||{};
+  if(r.ok&&info.full_name&&info.phone&&info.phone_country)return true;
+  const page=$('shareRegistrationPage');if(!page)return true;
+  page.hidden=false;page.setAttribute('aria-hidden','false');
+  $('shareRegName').value=info.full_name||[tgUser.first_name,tgUser.last_name].filter(Boolean).join(' ');
+  $('shareRegCountry').value=info.phone_country||'AE';$('shareRegEmail').value=info.email||'';
+  return false;
+ }catch(e){console.warn('Shared lot registration check failed',e);return true;}
+}
+async function applyLaunchIntent(){
+ const intent=readLaunchIntent();
+ if(intent.live){closeModernScreens();document.body.classList.add('telegramLiveLaunch');setModernActive('');window.scrollTo(0,0);return;}
+ const ready=await sharedLotRegistrationGate();if(ready)openSharedLot();
+}
 /* Share uses one path for the live vehicle and every row in the lot queue. */
 function sharedLotUrl(q){const u=new URL('/api/share',window.location.origin);if(q.id)u.searchParams.set('id',q.id);else u.searchParams.set('lot',Number(q.no));return u.toString();}
 async function shareLot(idx){
@@ -1027,6 +1046,17 @@ async function shareLot(idx){
       window.prompt('Скопируйте ссылку на автомобиль',url);
     }catch(e){if(e?.name!=='AbortError')console.error('Share failed',e);}
   }
+  const shareRegForm=$('shareRegistrationForm');
+  if(shareRegForm)shareRegForm.addEventListener('submit',async e=>{
+    e.preventDefault();const btn=$('shareRegSubmit'),err=$('shareRegError');err.textContent='';btn.disabled=true;btn.textContent='Сохранение…';
+    try{
+      const r=await fetch('/api/account-information',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:tg?.initData||'',action:'complete_registration',full_name:$('shareRegName').value,phone:{country:$('shareRegCountry').value,number:$('shareRegPhone').value},email:$('shareRegEmail').value})});
+      const d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.error||'Не удалось сохранить регистрацию.');
+      window.accountData={...window.accountData,...d.information};currentAccountProfile={...currentAccountProfile,...d.information};
+      const page=$('shareRegistrationPage');page.hidden=true;page.setAttribute('aria-hidden','true');openSharedLot();
+    }catch(problem){err.textContent=problem.message||'Не удалось сохранить регистрацию.';}
+    finally{btn.disabled=false;btn.textContent='Продолжить';}
+  });
   let sharedOpened=false;
   function openSharedLot(){
     if(sharedOpened)return;
