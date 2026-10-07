@@ -1060,22 +1060,6 @@ async function shareLot(idx){
     finally{btn.disabled=false;btn.textContent='ПРОДОЛЖИТЬ К АУКЦИОНУ';}
   });
   function openTodayLots(){try{closeModernScreens();renderCatalog();$('catalogOverlay').classList.add('open');}catch(e){console.error('Could not open today lots',e);}}
-  let sharedOpened=false;
-  function openSharedLot(){
-    if(sharedOpened)return;
-    const params=new URLSearchParams(location.search),intent=readLaunchIntent(),id=params.get('lotId')||intent.lotId,no=Number(params.get('lot')||intent.lot||0);
-    if(!id&&(!Number.isFinite(no)||!no))return;
-    const idx=lots.findIndex(q=>id?String(q.id||'')===id:Number(q.no)===no);
-    if(idx<0){if(id)fetch('/api/public-lot?id='+encodeURIComponent(id),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(out=>{if(out?.lot){upsertServerLot(out.lot);openSharedLot();}});return;}
-    sharedOpened=true;
-    try{
-      if(typeof closeModernScreens==='function')closeModernScreens();
-      openLotDetail(idx);
-    }catch(e){console.error('Could not open shared lot',e);}
-  }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(openSharedLot,350));
-  else setTimeout(openSharedLot,350);
-  window.addEventListener('galaxy-public-lots-updated',openSharedLot);
 
 // FINAL-84: Home sales are driven by confirmed SOLD lots, not demo data.
 let homeSalesSnapshot={count:0,volume:0,sold:[]};
