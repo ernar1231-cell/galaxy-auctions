@@ -461,7 +461,7 @@ function restartPhaseAudio(fromStart=false){
  if(!soundOn||closed||clockAudioActive||soldAudioActive)return;
  const a=$("auctionAudio"); if(!a)return;
  if(fromStart)a.currentTime=0;
- a.loop=true;a.volume=1;a.play().catch(()=>{});
+ a.loop=true;a.volume=.7;a.play().catch(()=>{});
 }
 function beginRingReset(){
  const ring=document.querySelector(".bidcircle");if(!ring)return;
