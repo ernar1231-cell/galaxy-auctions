@@ -37,7 +37,7 @@ module.exports=async (req,res)=>{
  const vr=verifyTelegram(req.body?.initData,process.env.TELEGRAM_BOT_TOKEN); if(!vr.ok)return res.status(401).json({error:vr.error}); const user=vr.user;
  try{
   const me=await sfetch(`auction_users?telegram_id=eq.${encodeURIComponent(String(user.id))}&is_admin=eq.true&select=telegram_id,is_admin`); const a=await me.json(); if(!me.ok||!a?.length)return res.status(403).json({error:'Admin access required'});
-  const r=await sfetch('auction_users?select=telegram_id,username,first_name,last_name,country,deposit_amount,deposit_method,bid_limit,account_status,deposit_updated_at,created_at,is_admin&order=created_at.desc'); const rows=await r.json(); if(!r.ok)throw new Error(rows?.message||'Could not load users');
+  const r=await sfetch('auction_users?select=telegram_id,username,first_name,last_name,country,email,phone,phone_country,full_name,residence_address,deposit_amount,deposit_method,bid_limit,account_status,deposit_updated_at,created_at,is_admin&order=created_at.desc'); const rows=await r.json(); if(!r.ok)throw new Error(rows?.message||'Could not load users');
   res.status(200).json({users:rows});
  }catch(e){res.status(500).json({error:e.message});}
 };
