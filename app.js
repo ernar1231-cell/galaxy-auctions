@@ -1031,10 +1031,14 @@ async function sharedLotRegistrationGate(){
   return false;
  }
 }
+let registrationDestination='home';
+function openMainHome(){try{closeModernScreens();setModernActive('home');$('homeScreen').classList.add('open');window.scrollTo(0,0)}catch(e){console.error('Could not open home',e)}}
 async function applyLaunchIntent(){
  const intent=readLaunchIntent();
  if(intent.live){closeModernScreens();document.body.classList.add('telegramLiveLaunch');setModernActive('');window.scrollTo(0,0);return;}
- const ready=await sharedLotRegistrationGate();if(ready)openTodayLots();
+ registrationDestination=intent.lotId?'lots':'home';
+ const ready=await sharedLotRegistrationGate();
+ if(ready){if(registrationDestination==='lots')openTodayLots();else openMainHome();}
 }
 /* Share uses one path for the live vehicle and every row in the lot queue. */
 function sharedLotUrl(q){const u=new URL('/api/share',window.location.origin);if(q.id)u.searchParams.set('id',q.id);else u.searchParams.set('lot',Number(q.no));return u.toString();}
@@ -1055,7 +1059,7 @@ async function shareLot(idx){
       const r=await fetch('/api/account-information',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:tg?.initData||'',action:'complete_registration',full_name:$('shareRegName').value,phone:{country:$('shareRegCountry').value,number:$('shareRegPhone').value},email:$('shareRegEmail').value,residence_address:$('shareRegAddress').value})});
       const d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.error||'Не удалось сохранить регистрацию.');
       window.accountData={...window.accountData,...d.information};currentAccountProfile={...currentAccountProfile,...d.information};
-      const page=$('shareRegistrationPage');page.hidden=true;page.setAttribute('aria-hidden','true');openTodayLots();
+      const page=$('shareRegistrationPage');page.hidden=true;page.setAttribute('aria-hidden','true');if(registrationDestination==='lots')openTodayLots();else openMainHome();
     }catch(problem){err.textContent=problem.message||'Не удалось сохранить регистрацию.';}
     finally{btn.disabled=false;btn.textContent='ПРОДОЛЖИТЬ К АУКЦИОНУ';}
   });
