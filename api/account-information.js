@@ -229,12 +229,19 @@ module.exports = async (req, res) => {
   }
   try {
     const action = req.body?.action;
-    if (action !== 'read' && action !== 'update') {
-      throw new RequestError(400, 'Use read or update for account information');
+    if (!['read','update','complete_registration'].includes(action)) {
+      throw new RequestError(400, 'Use read, update or complete_registration for account information');
     }
-    const patch = action === 'update'
-      ? editablePatch(req.body.field, req.body.value)
-      : null;
+    let patch=null;
+    if(action==='update') patch=editablePatch(req.body.field, req.body.value);
+    if(action==='complete_registration'){
+      const full=editablePatch('full_name',req.body.full_name).full_name;
+      const phone=editablePatch('phone',req.body.phone);
+      const email=editablePatch('email',req.body.email||'').email;
+      if(!full)throw new RequestError(400,'Введите имя');
+      if(!phone.phone||!phone.phone_country)throw new RequestError(400,'Введите номер телефона');
+      patch={full_name:full,...phone,email};
+    }
     const information = await accountRequest(verified.user.id, patch);
     return res.status(200).json({ information });
   } catch (error) {
