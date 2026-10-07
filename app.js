@@ -1031,10 +1031,14 @@ async function sharedLotRegistrationGate(){
   return false;
  }
 }
+let registrationDestination='home';
+function openMainHome(){try{closeModernScreens();setModernActive('home');$('homeScreen').classList.add('open');window.scrollTo(0,0)}catch(e){console.error('Could not open home',e)}}
 async function applyLaunchIntent(){
  const intent=readLaunchIntent();
  if(intent.live){closeModernScreens();document.body.classList.add('telegramLiveLaunch');setModernActive('');window.scrollTo(0,0);return;}
- const ready=await sharedLotRegistrationGate();if(ready)openTodayLots();
+ registrationDestination=intent.lotId?'lots':'home';
+ const ready=await sharedLotRegistrationGate();
+ if(ready){if(registrationDestination==='lots')openTodayLots();else openMainHome();}
 }
 /* Share uses one path for the live vehicle and every row in the lot queue. */
 function sharedLotUrl(q){const u=new URL('/api/share',window.location.origin);if(q.id)u.searchParams.set('id',q.id);else u.searchParams.set('lot',Number(q.no));return u.toString();}
@@ -1055,27 +1059,11 @@ async function shareLot(idx){
       const r=await fetch('/api/account-information',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:tg?.initData||'',action:'complete_registration',full_name:$('shareRegName').value,phone:{country:$('shareRegCountry').value,number:$('shareRegPhone').value},email:$('shareRegEmail').value,residence_address:$('shareRegAddress').value})});
       const d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.error||'Не удалось сохранить регистрацию.');
       window.accountData={...window.accountData,...d.information};currentAccountProfile={...currentAccountProfile,...d.information};
-      const page=$('shareRegistrationPage');page.hidden=true;page.setAttribute('aria-hidden','true');openTodayLots();
+      const page=$('shareRegistrationPage');page.hidden=true;page.setAttribute('aria-hidden','true');if(registrationDestination==='lots')openTodayLots();else openMainHome();
     }catch(problem){err.textContent=problem.message||'Не удалось сохранить регистрацию.';}
     finally{btn.disabled=false;btn.textContent='ПРОДОЛЖИТЬ К АУКЦИОНУ';}
   });
   function openTodayLots(){try{closeModernScreens();renderCatalog();$('catalogOverlay').classList.add('open');}catch(e){console.error('Could not open today lots',e);}}
-  let sharedOpened=false;
-  function openSharedLot(){
-    if(sharedOpened)return;
-    const params=new URLSearchParams(location.search),intent=readLaunchIntent(),id=params.get('lotId')||intent.lotId,no=Number(params.get('lot')||intent.lot||0);
-    if(!id&&(!Number.isFinite(no)||!no))return;
-    const idx=lots.findIndex(q=>id?String(q.id||'')===id:Number(q.no)===no);
-    if(idx<0){if(id)fetch('/api/public-lot?id='+encodeURIComponent(id),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(out=>{if(out?.lot){upsertServerLot(out.lot);openSharedLot();}});return;}
-    sharedOpened=true;
-    try{
-      if(typeof closeModernScreens==='function')closeModernScreens();
-      openLotDetail(idx);
-    }catch(e){console.error('Could not open shared lot',e);}
-  }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(openSharedLot,350));
-  else setTimeout(openSharedLot,350);
-  window.addEventListener('galaxy-public-lots-updated',openSharedLot);
 
 // FINAL-84: Home sales are driven by confirmed SOLD lots, not demo data.
 let homeSalesSnapshot={count:0,volume:0,sold:[]};
