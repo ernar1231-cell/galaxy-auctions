@@ -415,7 +415,7 @@ function selectedProfileLanguage(){try{const code=localStorage.getItem(profileLa
 function syncProfileLanguage(){const code=selectedProfileLanguage();$('modernProfileLanguage').textContent=PROFILE_LANGUAGES[code];document.querySelectorAll('[data-profile-language]').forEach(b=>b.classList.toggle('active',b.dataset.profileLanguage===code))}
 function syncModernProfile(){
  if(!window.accountData)return;const d=window.accountData;const name=[d.first_name,d.last_name].filter(Boolean).join(' ')||d.username||'Telegram user';
- $("modernProfileName").textContent=name;$("modernProfileUser").textContent=d.username?'@'+d.username:String(d.telegram_id||'');$("modernProfileAvatar").textContent=(name.slice(0,2)||'MK').toUpperCase();$("modernProfileDeposit").textContent=money(Number(d.deposit_amount||0));$("modernProfileLimit").textContent=money(Number(d.bid_limit||0));$("openAdminFromProfile").style.display=d.is_admin?'block':'none';
+ $("modernProfileName").textContent=name;$("modernProfileUser").textContent=d.username?'@'+d.username:String(d.telegram_id||'');$("modernProfileAvatar").textContent=(name.slice(0,2)||'MK').toUpperCase();$("modernProfileDeposit").textContent=money(Number(d.deposit_amount||0));$("modernProfileLimit").textContent=money(Number(d.bid_limit||0));
  setProfileAvatar($("modernProfileAvatar"),d,name);
  const active=String(d.account_status||'').toLowerCase()==='active';$("modernProfileStatus").textContent=active?'● Активный аккаунт':'● '+String(d.account_status||'ОЖИДАЕТ АКТИВАЦИИ').toUpperCase();$("modernProfileStatus").classList.toggle('inactive',!active);
  const phone=String(d.phone||'').trim(),flag=PROFILE_FLAGS[String(d.phone_country||'').toUpperCase()]||'';$("modernProfilePhone").textContent=phone?`${flag?flag+' ':''}${phone}`:'📞 Телефон не указан';$("modernProfileEmail").textContent=d.email?'✉️ '+d.email:'✉️ Email не указан';
@@ -655,7 +655,7 @@ function openAccount(){
 $("settingsBtn").onclick=openAccount;
 renderModernMarkets();
 document.querySelectorAll("[data-close-modern]").forEach(b=>b.onclick=()=>{closeModernScreens();setModernActive("home");$("homeScreen").classList.add("open")});
-document.querySelectorAll("#modernBottomNav [data-modern]").forEach(b=>b.onclick=()=>{const k=b.dataset.modern;closeModernScreens();setModernActive(k);if(k==="home")$("homeScreen").classList.add("open");else if(k==="markets")$("marketsScreen").classList.add("open");else if(k==="bids"){renderModernMyBids();$("myBidsScreen").classList.add("open")}else if(k==="profile"){syncModernProfile();loadAccountProfile();$("profileScreen").classList.add("open")}});
+document.querySelectorAll("#modernBottomNav [data-modern]").forEach(b=>b.onclick=()=>{const k=b.dataset.modern;closeModernScreens();setModernActive(k);if(k==="home")$("homeScreen").classList.add("open");else if(k==="markets")$("marketsScreen").classList.add("open");else if(k==="bids"){renderModernMyBids();$("myBidsScreen").classList.add("open")}else if(k==="profile"){syncModernProfile();$("profileScreen").classList.add("open");loadAccountProfile();refreshAdminAccess()}});
 document.querySelectorAll("[data-home-auction]").forEach(b=>b.onclick=()=>{closeModernScreens();setModernActive("markets");$("marketsScreen").classList.add("open");});
 $("openAccountFromProfile").onclick=()=>{closeModernScreens();openAccount()};
 $("openAdminFromProfile").onclick=()=>{closeModernScreens();openAdminPanel()};
