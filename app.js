@@ -447,8 +447,11 @@ function update(){
  ring.style.setProperty('--progress',ringProgress.toFixed(3)+'%');
  $("soundStatus").textContent=soundOn?'LIVE AUCTION · Звук включён':'LIVE AUCTION · Звук выключен';
  const bidAllowed=frontBidEligibility.allowed||accountCanBidFront();
- $("bid").textContent=closed?'ЛОТ ЗАКРЫТ':(!bidAllowed?'НУЖЕН ДЕПОЗИТ':(bidSubmitting?'Проверка…':'СДЕЛАТЬ СТАВКУ'));
- $("bid").disabled=closed||bidSubmitting||!bidAllowed;$("bid").classList.toggle('depositReady',bidAllowed&&!closed);syncDetailBid();
+ const frontLotStatus=String(managedLotStatuses[String(Number(lots[i]?.no||0))]||'').toLowerCase();
+ const upcomingPrebid=waiting&&frontLotStatus==='upcoming';
+ const bidClosed=closed&&!upcomingPrebid;
+ $("bid").textContent=bidClosed?'ЛОТ ЗАКРЫТ':(!bidAllowed?'НУЖЕН ДЕПОЗИТ':(bidSubmitting?'Проверка…':'СДЕЛАТЬ СТАВКУ'));
+ $("bid").disabled=bidClosed||bidSubmitting||!bidAllowed;$("bid").classList.toggle('depositReady',bidAllowed&&!bidClosed);syncDetailBid();
  const live=document.querySelector('header .live');live.textContent=waiting?'':'● LIVE';live.classList.toggle('paused',waiting);
  updateBidVisualState();
 }
