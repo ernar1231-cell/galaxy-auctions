@@ -1009,19 +1009,27 @@ setInterval(()=>{if(!stateRow||stateRow.status!=='waiting'||!galaxyStartAt)retur
 function decodeLaunchValue(value){try{return decodeURIComponent(atob(String(value||'').replace(/-/g,'+').replace(/_/g,'/')))}catch(e){return ''}}
 function readLaunchIntent(){const raw=String(tg?.initDataUnsafe?.start_param||new URLSearchParams(location.search).get('tgWebAppStartParam')||'');if(raw==='live')return {live:true};if(raw.startsWith('lot_'))return {lotId:decodeLaunchValue(raw.slice(4))};return {}}
 async function sharedLotRegistrationGate(){
- const intent=readLaunchIntent();if(!intent.lotId)return true;
+ // Registration is account-based, not link-based: a new Telegram user must
+ // complete the four required fields even if a bot/menu launch loses lot_xxx.
  if(!tgUser?.id||!tg?.initData)return true;
+ const page=$('shareRegistrationPage');if(!page)return false;
  try{
   await registrationReady;
   const r=await fetch('/api/account-information',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:tg.initData,action:'read'})});
   const d=await r.json().catch(()=>({})),info=d.information||{};
   if(r.ok&&info.full_name&&info.phone&&info.phone_country&&info.email&&info.residence_address)return true;
-  const page=$('shareRegistrationPage');if(!page)return true;
   page.hidden=false;page.setAttribute('aria-hidden','false');
   $('shareRegName').value=info.full_name||[tgUser.first_name,tgUser.last_name].filter(Boolean).join(' ');
   $('shareRegCountry').value=info.phone_country||'AE';$('shareRegEmail').value=info.email||'';
+  $('shareRegError').textContent=r.ok?'':(d.error||'Не удалось проверить регистрацию. Попробуйте ещё раз.');
   return false;
- }catch(e){console.warn('Shared lot registration check failed',e);return true;}
+ }catch(e){
+  console.warn('Registration check failed',e);
+  page.hidden=false;page.setAttribute('aria-hidden','false');
+  $('shareRegName').value=[tgUser.first_name,tgUser.last_name].filter(Boolean).join(' ');
+  $('shareRegError').textContent='Не удалось проверить регистрацию. Попробуйте ещё раз.';
+  return false;
+ }
 }
 async function applyLaunchIntent(){
  const intent=readLaunchIntent();
