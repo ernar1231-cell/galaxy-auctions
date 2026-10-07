@@ -30,21 +30,15 @@ async function registerTelegramUser(){
 const registrationReady=registerTelegramUser();
 let registeredTotal=0, registeredTodayCount=0;
 async function refreshRegisteredCount(){
-  try{
-    const start=new Date(); start.setHours(0,0,0,0);
-    const [allRes,todayRes]=await Promise.all([
-      db.from("auction_users").select("telegram_id",{count:"exact",head:true}),
-      db.from("auction_users").select("telegram_id",{count:"exact",head:true}).gte("created_at",start.toISOString())
-    ]);
-    if(allRes.error) throw allRes.error;
-    registeredTotal=Number(allRes.count||0);
-    registeredTodayCount=todayRes.error?0:Number(todayRes.count||0);
-    const c=$("registeredCount"); if(c)c.textContent=registeredTotal.toLocaleString("en-US");
-    const la=$("liveAudience"); if(la)la.textContent=`👥 ${registeredTotal} ${registeredTotal===1?'участник':(registeredTotal>=2&&registeredTotal<=4?'участника':'участников')}`;
-    const t=$("registeredToday"); if(t)t.textContent=`сегодня +${registeredTodayCount}`;
-    const pt=$("registeredTotalProfile"); if(pt)pt.textContent=registeredTotal.toLocaleString("en-US");
-    const ptd=$("registeredTodayProfile"); if(ptd)ptd.textContent=`Сегодня: +${registeredTodayCount}`;
-  }catch(e){console.warn("Registered users count failed",e);}
+ try{
+  const r=await fetch('/api/public-stats?t='+Date.now(),{cache:'no-store'});if(!r.ok)throw Error('Stats unavailable');
+  const d=await r.json();registeredTotal=Number(d.registeredUsers||0);registeredTodayCount=Number(d.registeredToday||0);
+  const c=$("registeredCount");if(c)c.textContent=registeredTotal.toLocaleString("en-US");
+  const la=$("liveAudience");if(la)la.textContent=`👥 ${registeredTotal} ${registeredTotal===1?'участник':(registeredTotal>=2&&registeredTotal<=4?'участника':'участников')}`;
+  const t=$("registeredToday");if(t)t.textContent=`сегодня +${registeredTodayCount}`;
+  const pt=$("registeredTotalProfile");if(pt)pt.textContent=registeredTotal.toLocaleString("en-US");
+  const ptd=$("registeredTodayProfile");if(ptd)ptd.textContent=`Сегодня: +${registeredTodayCount}`;
+ }catch(e){console.warn("Registered users count failed",e);}
 }
 registrationReady.then(()=>refreshRegisteredCount());
 registrationReady.then(()=>loadAccountProfile({skipPersonalInformation:true})).catch(()=>{});
