@@ -238,9 +238,12 @@ module.exports = async (req, res) => {
       const full=editablePatch('full_name',req.body.full_name).full_name;
       const phone=editablePatch('phone',req.body.phone);
       const email=editablePatch('email',req.body.email||'').email;
+      const residence=editableText(req.body.residence_address||'','Адрес проживания',300);
       if(!full)throw new RequestError(400,'Введите имя');
       if(!phone.phone||!phone.phone_country)throw new RequestError(400,'Введите номер телефона');
-      patch={full_name:full,...phone,email};
+      if(!email)throw new RequestError(400,'Введите Email');
+      if(!residence)throw new RequestError(400,'Введите адрес проживания');
+      patch={full_name:full,...phone,email,residence_address:{country:'',region:'',city:'',street:residence}};
     }
     const information = await accountRequest(verified.user.id, patch);
     return res.status(200).json({ information });
