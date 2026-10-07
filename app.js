@@ -1021,7 +1021,7 @@ async function sharedLotRegistrationGate(){
   await registrationReady;
   const r=await fetch('/api/account-information',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:tg.initData,action:'read'})});
   const d=await r.json().catch(()=>({})),info=d.information||{};
-  if(r.ok&&info.full_name&&info.phone&&info.phone_country)return true;
+  if(r.ok&&info.full_name&&info.phone&&info.phone_country&&info.email&&info.residence_address)return true;
   const page=$('shareRegistrationPage');if(!page)return true;
   page.hidden=false;page.setAttribute('aria-hidden','false');
   $('shareRegName').value=info.full_name||[tgUser.first_name,tgUser.last_name].filter(Boolean).join(' ');
@@ -1032,7 +1032,7 @@ async function sharedLotRegistrationGate(){
 async function applyLaunchIntent(){
  const intent=readLaunchIntent();
  if(intent.live){closeModernScreens();document.body.classList.add('telegramLiveLaunch');setModernActive('');window.scrollTo(0,0);return;}
- const ready=await sharedLotRegistrationGate();if(ready)openSharedLot();
+ const ready=await sharedLotRegistrationGate();if(ready)openTodayLots();
 }
 /* Share uses one path for the live vehicle and every row in the lot queue. */
 function sharedLotUrl(q){const u=new URL('/api/share',window.location.origin);if(q.id)u.searchParams.set('id',q.id);else u.searchParams.set('lot',Number(q.no));return u.toString();}
@@ -1050,13 +1050,14 @@ async function shareLot(idx){
   if(shareRegForm)shareRegForm.addEventListener('submit',async e=>{
     e.preventDefault();const btn=$('shareRegSubmit'),err=$('shareRegError');err.textContent='';btn.disabled=true;btn.textContent='Сохранение…';
     try{
-      const r=await fetch('/api/account-information',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:tg?.initData||'',action:'complete_registration',full_name:$('shareRegName').value,phone:{country:$('shareRegCountry').value,number:$('shareRegPhone').value},email:$('shareRegEmail').value})});
+      const r=await fetch('/api/account-information',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:tg?.initData||'',action:'complete_registration',full_name:$('shareRegName').value,phone:{country:$('shareRegCountry').value,number:$('shareRegPhone').value},email:$('shareRegEmail').value,residence_address:$('shareRegAddress').value})});
       const d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.error||'Не удалось сохранить регистрацию.');
       window.accountData={...window.accountData,...d.information};currentAccountProfile={...currentAccountProfile,...d.information};
-      const page=$('shareRegistrationPage');page.hidden=true;page.setAttribute('aria-hidden','true');openSharedLot();
+      const page=$('shareRegistrationPage');page.hidden=true;page.setAttribute('aria-hidden','true');openTodayLots();
     }catch(problem){err.textContent=problem.message||'Не удалось сохранить регистрацию.';}
-    finally{btn.disabled=false;btn.textContent='Продолжить';}
+    finally{btn.disabled=false;btn.textContent='ПРОДОЛЖИТЬ К АУКЦИОНУ';}
   });
+  function openTodayLots(){try{closeModernScreens();renderCatalog();$('catalogOverlay').classList.add('open');}catch(e){console.error('Could not open today lots',e);}}
   let sharedOpened=false;
   function openSharedLot(){
     if(sharedOpened)return;
