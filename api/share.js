@@ -16,7 +16,7 @@ module.exports=async(req,res)=>{
   const host=req.headers['x-forwarded-host']||req.headers.host;
   const origin=`${proto}://${host}`;
   const fallback=`${origin}/?lotId=${encodeURIComponent(row.id)}`;
-  const bot=String(process.env.TELEGRAM_BOT_USERNAME||'').replace(/^@/,'').trim();
+  const bot=String(process.env.TELEGRAM_BOT_USERNAME||'GalaxyAuctionbot').replace(/^@/,'').trim();
   const target=bot?`https://t.me/${encodeURIComponent(bot)}?start=lot_${launchToken(row.id)}`:fallback;
   const rawImage=orderedImages(row.auction_lot_images)[0]?.image_url;
   const image=rawImage?new URL(rawImage,origin).toString():null;
