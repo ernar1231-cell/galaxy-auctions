@@ -990,6 +990,25 @@ fetchAuctionState().then(()=>{
   });
 })();
 
+// Navigation: edge swipe and safe exit from vehicle editor.
+(function(){
+ const editor=$('adminLotManageOverlay');
+ let initial=null;
+ function snapshot(){return ['manageMake','manageModel','manageYear','manageMileage','manageVin','manageStarting','manageDescription'].map(id=>$(id)?.value||'').join('\\u001f')}
+ function exitEditor(){if(!editor?.classList.contains('open'))return false;if(initial!==null&&snapshot()!==initial&&!confirm('Выйти без сохранения изменений?'))return false;editor.classList.remove('open');return true}
+ const oldOpen=openAdminLotManage;
+ openAdminLotManage=function(l){oldOpen(l);initial=snapshot()};
+ ['adminLotManageBack','adminLotManageClose'].forEach(id=>{const b=$(id);if(b)b.onclick=exitEditor});
+ editor?.addEventListener('click',e=>{if(e.target===editor)exitEditor()});
+ const save=saveManagedLot;
+ saveManagedLot=async function(){await save();if(editor?.classList.contains('open'))initial=snapshot()};
+ let touch=null;
+ document.addEventListener('touchstart',e=>{const t=e.touches[0];touch=t&&t.clientX<=32?{x:t.clientX,y:t.clientY}:null},{passive:true});
+ document.addEventListener('touchend',e=>{if(!touch)return;const t=e.changedTouches[0],dx=t.clientX-touch.x,dy=Math.abs(t.clientY-touch.y);touch=null;if(dx<90||dy>65||dx<dy*1.5)return;
+ const overlays=['adminLotManageOverlay','adminEditOverlay','adminClientProfileOverlay','adminLotOverlay','adminOverlay','detailOverlay','catalogOverlay','queueOverlay','accountOverlay','profileLanguageOverlay','myBidsScreen','profileScreen','marketsScreen'];
+ for(const id of overlays){const el=$(id);if(!el?.classList.contains('open'))continue;if(id==='adminLotManageOverlay')exitEditor();else if(id==='detailOverlay'){$('detailOverlay').classList.remove('open');$('catalogOverlay').classList.add('open')}else el.classList.remove('open');break}
+ },{passive:true});
+})();
 // FINAL-67: verified admin client profile routing + iOS zoom lock.
 (function(){
  const overlay=$("adminClientProfileOverlay"); if(overlay){
