@@ -11,7 +11,7 @@ module.exports=async(req,res)=>{
   const r=await sf(`auction_lots?${filter}&select=id,lot_number,make,model,year,mileage,fuel,transmission,drive,starting_bid,auction_lot_images(image_url,sort_order)&limit=1`);
   const row=(await r.json())?.[0];if(!r.ok||!row)return res.status(404).send('Lot not found');
   const title=[row.make,row.model,row.year].filter(Boolean).join(' '),price=Number(row.starting_bid||0);
-  const meta=[row.mileage==null?null:`${Number(row.mileage).toLocaleString('en-US')} km`,row.fuel,row.transmission,row.drive].filter(Boolean).join(' · ');
+  const meta=[row.mileage==null?null:`${Number(row.mileage).toLocaleString('en-US')} миль`,row.fuel,row.transmission,row.drive].filter(Boolean).join(' · ');
   const proto=(req.headers['x-forwarded-proto']||'https').split(',')[0];
   const host=req.headers['x-forwarded-host']||req.headers.host;
   const origin=`${proto}://${host}`;
