@@ -1086,3 +1086,7 @@ body.mk-white .livegrid .bidbox>.historyLink{margin:6px auto 0!important;min-hei
   .catalogSheet,.detailSheet,.queuePanel,.accountSheet,.adminSheet,.adminLotManageSheet,.adminEditSheet,.adminClientProfileSheet { max-width:520px!important; margin-left:auto!important; margin-right:auto!important; }
   .adminLotManageSheet,.adminEditSheet,.adminClientProfileSheet { left:50%!important; right:auto!important; width:min(100%,520px)!important; transform:translateX(-50%)!important; box-sizing:border-box!important; }
 }
+
+/* Wait for a real server-selected LIVE vehicle, never show a demo car first. */
+body.mk-white.liveLotLoading .app{visibility:hidden!important}
+body.mk-white.liveLotLoading::after{content:"Загрузка актуального лота…";position:fixed;top:42%;left:50%;transform:translateX(-50%);z-index:99;background:white;border-radius:14px;padding:18px 24px;color:#173251;font-weight:700;box-shadow:0 4px 24px #0b234422;white-space:nowrap}
