@@ -1092,3 +1092,9 @@ body.mk-white.liveLotLoading .livegrid{visibility:hidden!important}
 body.mk-white.liveLotLoading #photoFrame{visibility:visible!important}
 body.mk-white.liveLotLoading #photoFrame>*{visibility:hidden!important}
 body.mk-white.liveLotLoading #photoFrame::after{content:"Загрузка актуального лота…";visibility:visible;position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#f5f8fc;color:#173251;font-weight:700;font-size:14px}
+
+/* Small support shortcut at left edge, away from bottom BID controls. */
+#whatsappSupport{position:fixed;left:max(7px,env(safe-area-inset-left));top:42%;width:43px;height:43px;border-radius:50%;background:#25d366;color:white;display:flex;align-items:center;justify-content:center;z-index:90;box-shadow:0 4px 15px #0004;text-decoration:none;border:2px solid white;box-sizing:border-box}
+#whatsappSupport:focus-visible{outline:3px solid #0d213e;outline-offset:2px}
+body:has(#shareRegistrationPage:not([hidden])) #whatsappSupport{display:none}
+@media (min-width:768px) and (pointer:fine){#whatsappSupport{left:max(7px,calc(50% - 253px))}}
