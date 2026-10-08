@@ -1043,7 +1043,16 @@ setInterval(()=>{if(!stateRow||stateRow.status!=='waiting'||!galaxyStartAt)retur
 
 /* Telegram launch intents contain only an opaque lot id or the public route name. */
 function decodeLaunchValue(value){try{return decodeURIComponent(atob(String(value||'').replace(/-/g,'+').replace(/_/g,'/')))}catch(e){return ''}}
-function readLaunchIntent(){const raw=String(tg?.initDataUnsafe?.start_param||new URLSearchParams(location.search).get('tgWebAppStartParam')||'');if(raw==='live')return {live:true};if(raw.startsWith('lot_'))return {lotId:decodeLaunchValue(raw.slice(4))};return {}}
+function readLaunchIntent(){
+ const params=new URLSearchParams(location.search);
+ // Explicit lot links from the bot's Web App button take priority over stale Telegram launch parameters.
+ const directLot=params.get('lotId');
+ if(directLot)return {lotId:directLot};
+ const raw=String(params.get('tgWebAppStartParam')||tg?.initDataUnsafe?.start_param||'');
+ if(raw==='live')return {live:true};
+ if(raw.startsWith('lot_')){const lotId=decodeLaunchValue(raw.slice(4));if(lotId)return {lotId};}
+ return {};
+}
 async function sharedLotRegistrationGate(){
  // Registration is account-based, not link-based: a new Telegram user must
  // complete the four required fields even if a bot/menu launch loses lot_xxx.
