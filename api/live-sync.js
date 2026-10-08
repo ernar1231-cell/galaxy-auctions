@@ -3,9 +3,9 @@ const key=()=>process.env.SUPABASE_SERVICE_ROLE_KEY;
 async function sfetch(path,opts={}){const k=key();if(!k)throw new Error('SUPABASE_SERVICE_ROLE_KEY is not configured');return fetch(SUPABASE_URL+'/rest/v1/'+path,{...opts,headers:{apikey:k,Authorization:`Bearer ${k}`,'Content-Type':'application/json',...(opts.headers||{})}})}
 const {nextAuctionTime}=require('../auction-schedule');
 const LOT_SECONDS=15,BONUS_SECONDS=15,SOLD_SECONDS=2;
-// 18:00 Dubai = 14:00 UTC. First scheduled session: 8 October 2026.
+// 18:00 Dubai = 14:00 UTC. First scheduled session: 9 October 2026.
 // After a completed session enters waiting, the next session is the following day at 18:00 Dubai.
-const FIRST_AUCTION_MS=Date.parse('2026-10-08T14:00:00.000Z');
+const FIRST_AUCTION_MS=Date.parse('2026-10-09T14:00:00.000Z');
 const DAY_MS=86400000;
 function scheduledStart(state,now){
  if(state.status!=='waiting')return nextAuctionTime(now);
