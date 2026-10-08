@@ -368,7 +368,7 @@ function updateBidVisualState(){
  const my=$("myBidAmount");if(my)my.textContent=myLatestBidAmount==null?'—':money(myLatestBidAmount);
  if(!closed){const target=money(price+inc);btn.innerHTML=whiteGavel+(userIsLeader()?' ПОВЫСИТЬ ДО ':' СДЕЛАТЬ СТАВКУ ')+target;}
 }
-function closeModernScreens(){document.querySelectorAll(".modernScreen").forEach(x=>x.classList.remove("open"));document.querySelectorAll("#modernBottomNav button").forEach(x=>x.classList.remove("active"));}
+function closeModernScreens(){document.body.classList.remove("telegramLiveLaunch");document.querySelectorAll(".modernScreen").forEach(x=>x.classList.remove("open"));document.querySelectorAll("#modernBottomNav button").forEach(x=>x.classList.remove("active"));}
 function setModernActive(key){document.querySelectorAll("#modernBottomNav button").forEach(x=>x.classList.toggle("active",x.dataset.modern===key));}
 function applyReferenceLayout(){
  const main=document.querySelector('.main'),details=$("details"),bid=document.querySelector('.bidcol');
@@ -666,7 +666,14 @@ function openAccount(){
 $("settingsBtn").onclick=openAccount;
 renderModernMarkets();
 document.querySelectorAll("[data-close-modern]").forEach(b=>b.onclick=()=>{closeModernScreens();setModernActive("home");$("homeScreen").classList.add("open")});
-document.querySelectorAll("#modernBottomNav [data-modern]").forEach(b=>b.onclick=()=>{const k=b.dataset.modern;closeModernScreens();setModernActive(k);if(k==="home")$("homeScreen").classList.add("open");else if(k==="markets")enterAuctionMarkets();else if(k==="bids"){renderModernMyBids();$("myBidsScreen").classList.add("open")}else if(k==="profile"){syncModernProfile();loadAccountProfile();$("profileScreen").classList.add("open")}});
+document.querySelectorAll("#modernBottomNav [data-modern]").forEach(b=>b.onclick=()=>{
+ const k=b.dataset.modern;
+ if(k==="markets"){enterAuctionMarkets();return;}
+ closeModernScreens();setModernActive(k);
+ if(k==="home")$("homeScreen").classList.add("open");
+ else if(k==="bids"){renderModernMyBids();$("myBidsScreen").classList.add("open")}
+ else if(k==="profile"){syncModernProfile();loadAccountProfile();$("profileScreen").classList.add("open")}
+});
 document.querySelectorAll("[data-home-auction]").forEach(b=>b.onclick=enterAuctionMarkets);
 $("openAccountFromProfile").onclick=()=>{closeModernScreens();openAccount()};
 $("openAdminFromProfile").onclick=()=>{closeModernScreens();openAdminPanel()};
@@ -1081,10 +1088,16 @@ async function sharedLotRegistrationGate(){
 let registrationDestination='home';
 function openMainHome(){try{closeModernScreens();setModernActive('home');$('homeScreen').classList.add('open');window.scrollTo(0,0)}catch(e){console.error('Could not open home',e)}}
 function openAuctionMarkets(){closeModernScreens();setModernActive('markets');$('marketsScreen').classList.add('open')}
+let auctionEntryBusy=false;
 async function enterAuctionMarkets(){
- registrationDestination='markets';
- const ready=await sharedLotRegistrationGate();
- if(ready)openAuctionMarkets();
+ if(auctionEntryBusy)return;
+ auctionEntryBusy=true;
+ registrationDestination='live';
+ try{
+  const ready=await sharedLotRegistrationGate();
+  if(ready)openRegistrationDestination();
+ }catch(e){console.warn('Auction entry failed',e)}
+ finally{auctionEntryBusy=false}
 }
 function openRegistrationDestination(){
  if(registrationDestination==='live'){closeModernScreens();document.body.classList.add('telegramLiveLaunch');setModernActive('');window.scrollTo(0,0);}
