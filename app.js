@@ -1082,10 +1082,9 @@ let registrationDestination='home';
 function openMainHome(){try{closeModernScreens();setModernActive('home');$('homeScreen').classList.add('open');window.scrollTo(0,0)}catch(e){console.error('Could not open home',e)}}
 function openAuctionMarkets(){closeModernScreens();setModernActive('markets');$('marketsScreen').classList.add('open')}
 async function enterAuctionMarkets(){
- // A single AUCTION tap goes straight to LIVE after the registration gate.
- registrationDestination='live';
+ registrationDestination='markets';
  const ready=await sharedLotRegistrationGate();
- if(ready)openRegistrationDestination();
+ if(ready)openAuctionMarkets();
 }
 function openRegistrationDestination(){
  if(registrationDestination==='live'){closeModernScreens();document.body.classList.add('telegramLiveLaunch');setModernActive('');window.scrollTo(0,0);}
