@@ -368,7 +368,7 @@ function updateBidVisualState(){
  const my=$("myBidAmount");if(my)my.textContent=myLatestBidAmount==null?'—':money(myLatestBidAmount);
  if(!closed){const target=money(price+inc);btn.innerHTML=whiteGavel+(userIsLeader()?' ПОВЫСИТЬ ДО ':' СДЕЛАТЬ СТАВКУ ')+target;}
 }
-function closeModernScreens(){document.body.classList.remove("telegramLiveLaunch");document.querySelectorAll(".modernScreen").forEach(x=>x.classList.remove("open"));document.querySelectorAll("#modernBottomNav button").forEach(x=>x.classList.remove("active"));}
+function closeModernScreens(){document.querySelectorAll(".modernScreen").forEach(x=>x.classList.remove("open"));document.querySelectorAll("#modernBottomNav button").forEach(x=>x.classList.remove("active"));}
 function setModernActive(key){document.querySelectorAll("#modernBottomNav button").forEach(x=>x.classList.toggle("active",x.dataset.modern===key));}
 function applyReferenceLayout(){
  const main=document.querySelector('.main'),details=$("details"),bid=document.querySelector('.bidcol');
@@ -666,28 +666,7 @@ function openAccount(){
 $("settingsBtn").onclick=openAccount;
 renderModernMarkets();
 document.querySelectorAll("[data-close-modern]").forEach(b=>b.onclick=()=>{closeModernScreens();setModernActive("home");$("homeScreen").classList.add("open")});
-let auctionTabNext='markets',auctionTabBusy=false;
-document.querySelectorAll("#modernBottomNav [data-modern]").forEach(b=>b.onclick=()=>{
- const k=b.dataset.modern;
- // First AUCTION tap shows the markets map; a second tap on that same tab opens LIVE.
- // Check before closing screens, otherwise the second tap can never be detected.
- if(k==="markets"){
-  if(auctionTabBusy)return;
-  auctionTabBusy=true;
-  const target=auctionTabNext==='markets'?'markets':'live';
-  registrationDestination=target;
-  sharedLotRegistrationGate().then(ready=>{
-   if(!ready)return;
-   openRegistrationDestination();
-   auctionTabNext=target==='markets'?'live':'markets';
-  }).catch(e=>console.warn('Auction navigation',e)).finally(()=>{auctionTabBusy=false});
-  return;
- }
- closeModernScreens();setModernActive(k);
- if(k==="home")$("homeScreen").classList.add("open");
- else if(k==="bids"){renderModernMyBids();$("myBidsScreen").classList.add("open")}
- else if(k==="profile"){syncModernProfile();loadAccountProfile();$("profileScreen").classList.add("open")}
-});
+document.querySelectorAll("#modernBottomNav [data-modern]").forEach(b=>b.onclick=()=>{const k=b.dataset.modern;closeModernScreens();setModernActive(k);if(k==="home")$("homeScreen").classList.add("open");else if(k==="markets")enterAuctionMarkets();else if(k==="bids"){renderModernMyBids();$("myBidsScreen").classList.add("open")}else if(k==="profile"){syncModernProfile();loadAccountProfile();$("profileScreen").classList.add("open")}});
 document.querySelectorAll("[data-home-auction]").forEach(b=>b.onclick=enterAuctionMarkets);
 $("openAccountFromProfile").onclick=()=>{closeModernScreens();openAccount()};
 $("openAdminFromProfile").onclick=()=>{closeModernScreens();openAdminPanel()};
