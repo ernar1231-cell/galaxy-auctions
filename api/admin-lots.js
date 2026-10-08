@@ -30,7 +30,7 @@ module.exports=async(req,res)=>{
   const vr=verifyTelegram(req.body?.initData,process.env.TELEGRAM_BOT_TOKEN); if(!vr.ok)return res.status(401).json({error:vr.error});
   try{
     if(!await requireAdmin(vr.user)) return res.status(403).json({error:'Admin access required'});
-    await ensureLegacyLots();
+    // Do not recreate deleted legacy/demo vehicles when loading inventory.
     const r=await sfetch('auction_lots?select=*,auction_lot_images(id,image_url,is_primary,sort_order)&order=lot_number.asc');
     const rows=await r.json(); if(!r.ok) throw new Error(rows?.message||'Could not load lots');
     const bidsResp=await sfetch('auction_bids?select=lot_id,user_id,username,amount,id&order=id.desc');const allBids=bidsResp.ok?(await bidsResp.json()||[]):[];const byLot={};for(const b of allBids){const k=String(b.lot_id);if(!byLot[k])byLot[k]=[];byLot[k].push(b)};const lots=(rows||[]).map(l=>{const images=(l.auction_lot_images||[]).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0));const primary=images.find(x=>x.is_primary)||images[0];delete l.auction_lot_images;const rawDesc=String(l.description||'');const dm=rawDesc.match(/\[\[auction_day:(mon|tue|wed|thu|fri|sat|sun)\]\]/i);const cleanDesc=rawDesc.replace(/\n?\[\[auction_day:(?:mon|tue|wed|thu|fri|sat|sun)\]\]/gi,'').trim()||null;const lb=byLot[String(l.lot_number)]||[],win=lb[0];return {...l,description:cleanDesc,auction_day:dm?dm[1].toLowerCase():null,bid_count:lb.length,winner_user_id:win?.user_id||null,winner_username:win?.username||null,winning_bid:win?.amount||null,images,primary_image:primary?.image_url||(Number(l.lot_number)<=15?`images/lot${Number(l.lot_number)}-1.${[5,7,10,11].includes(Number(l.lot_number))?'jpeg':'webp'}`:null)};});
