@@ -666,7 +666,22 @@ function openAccount(){
 $("settingsBtn").onclick=openAccount;
 renderModernMarkets();
 document.querySelectorAll("[data-close-modern]").forEach(b=>b.onclick=()=>{closeModernScreens();setModernActive("home");$("homeScreen").classList.add("open")});
-document.querySelectorAll("#modernBottomNav [data-modern]").forEach(b=>b.onclick=()=>{const k=b.dataset.modern;closeModernScreens();setModernActive(k);if(k==="home")$("homeScreen").classList.add("open");else if(k==="markets")enterAuctionMarkets();else if(k==="bids"){renderModernMyBids();$("myBidsScreen").classList.add("open")}else if(k==="profile"){syncModernProfile();loadAccountProfile();$("profileScreen").classList.add("open")}});
+document.querySelectorAll("#modernBottomNav [data-modern]").forEach(b=>b.onclick=()=>{
+ const k=b.dataset.modern;
+ // First AUCTION tap shows the markets map; a second tap on that same tab opens LIVE.
+ // Check before closing screens, otherwise the second tap can never be detected.
+ if(k==="markets"){
+  if($("marketsScreen").classList.contains("open")){
+   registrationDestination='live';
+   sharedLotRegistrationGate().then(ready=>{if(ready)openRegistrationDestination()});
+  }else enterAuctionMarkets();
+  return;
+ }
+ closeModernScreens();setModernActive(k);
+ if(k==="home")$("homeScreen").classList.add("open");
+ else if(k==="bids"){renderModernMyBids();$("myBidsScreen").classList.add("open")}
+ else if(k==="profile"){syncModernProfile();loadAccountProfile();$("profileScreen").classList.add("open")}
+});
 document.querySelectorAll("[data-home-auction]").forEach(b=>b.onclick=enterAuctionMarkets);
 $("openAccountFromProfile").onclick=()=>{closeModernScreens();openAccount()};
 $("openAdminFromProfile").onclick=()=>{closeModernScreens();openAdminPanel()};
