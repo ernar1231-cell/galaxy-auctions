@@ -400,20 +400,35 @@ setInterval(loadRegisteredUsersCount,15000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)loadRegisteredUsersCount()});
 function renderModernMarkets(){
  const markets=[
-  {id:'uae',name:'Дубай (ОАЭ)',key:'Dubai',x:55,y:67,live:true},
-  {id:'usa',name:'США (USA)',key:'USA',x:22,y:48},{id:'canada',name:'Канада (Canada)',key:'Canada',x:17,y:31},
-  {id:'europe',name:'Европа (Europe)',key:'Europe',x:49,y:28},{id:'china',name:'Китай (China)',key:'China',x:74,y:38},
-  {id:'japan',name:'Япония (Japan)',key:'Japan',x:88,y:48},{id:'georgia',name:'Грузия (Georgia)',key:'Georgia',x:66,y:53},
-  {id:'korea',name:'Корея (Korea)',key:'Korea',x:83,y:67}
+  {id:'uae',name:'Дубай, UAE',x:55,y:67,live:true},
+  {id:'usa',name:'США',x:22,y:48},{id:'canada',name:'Канада',x:17,y:31},
+  {id:'europe',name:'Европа',x:49,y:28},{id:'china',name:'Китай',x:74,y:38},
+  {id:'japan',name:'Япония',x:88,y:48},{id:'georgia',name:'Грузия',x:66,y:53},
+  {id:'korea',name:'Корея',x:83,y:67}
  ];
  let selectedMarket='uae';
+ const count=()=>liveTodayQueue.length;
  function renderMarketMap(){
-   const box=$("modernMarkets");
-   box.querySelectorAll('.mapPin').forEach(n=>n.remove());
-   markets.forEach(m=>{const b=document.createElement('button');b.className='mapPin '+(m.id===selectedMarket?'active ':'')+(m.live?'livePin':'');b.style.left=m.x+'%';b.style.top=m.y+'%';b.innerHTML=`<i></i><span>${m.name.replace(/ \(.+?\)/,'')}<small>${m.live?'LIVE':'Coming Soon'}</small></span>`;b.onclick=()=>{selectedMarket=m.id;renderMarketMap();renderMarketSelected()};box.appendChild(b)});
+  const box=$('modernMarkets');if(!box)return;
+  box.querySelectorAll('.mapPin').forEach(n=>n.remove());
+  markets.forEach(m=>{
+   const button=document.createElement('button');
+   button.type='button';button.className='mapPin '+(m.id===selectedMarket?'active ':'')+(m.live?'livePin':'');
+   button.style.left=m.x+'%';button.style.top=m.y+'%';
+   button.innerHTML=`<i></i><span>${m.name}<small>${m.live?count()+' лотов':'COMING SOON'}</small></span>`;
+   button.onclick=()=>{selectedMarket=m.id;renderMarketMap();renderMarketSelected()};
+   box.appendChild(button);
+  });
  }
- function renderMarketSelected(){const m=markets.find(x=>x.id===selectedMarket);$("marketSelected").innerHTML=`<div class="marketSelectedCard ${m.live?'live':''}"><div class="marketMain"><img src="assets/markets/${m.id}.webp" alt="${m.name}"><div class="marketCopy"><b>${m.name}</b><p>${m.live?'Единственный доступный рынок сейчас':'Рынок готовится к запуску'}</p><em>${m.live?'● LIVE':'Coming Soon'}</em></div><span class="go">${m.live?'›':''}</span></div>${m.live?`<div class="marketBenefits"><div><strong>⚒</strong><b>Реальные лоты</b><small>Со всего мира</small></div><div><strong>♢</strong><b>Проверенные продавцы</b><small>Безопасные сделки</small></div><div><strong>▣</strong><b>Международная доставка</b><small>В любую страну</small></div></div>`:''}</div>`;const c=$("marketSelected").firstElementChild;if(m.live)c.onclick=()=>{selectedCountry=m.key;closeModernScreens();setModernActive('home')};}
+ function renderMarketSelected(){
+  const m=markets.find(x=>x.id===selectedMarket),root=$('marketSelected');if(!m||!root)return;
+  root.innerHTML=`<div class="marketSelectedCard ${m.live?'live':''}"><div class="marketMain"><img src="assets/markets/${m.id}.webp" alt="${m.name}"><div class="marketCopy"><b>${m.name}</b><p>${m.live?count()+' лотов':'COMING SOON'}</p><em>${m.live?'● LIVE':'COMING SOON'}</em></div><span class="go">${m.live?'›':''}</span></div></div>`;
+  const card=root.firstElementChild;
+  if(m.live){card.style.cursor='pointer';card.onclick=()=>{selectedCountry='Dubai';closeModernScreens();setModernActive('home')}}
+ }
  renderMarketMap();renderMarketSelected();
+ window.addEventListener('galaxy-public-lots-updated',()=>{renderMarketMap();renderMarketSelected()});
+ window.addEventListener('galaxy-queue-updated',()=>{renderMarketMap();renderMarketSelected()});
 }
 async function renderModernMyBids(){
  whiteRenderBidRows();
@@ -910,7 +925,7 @@ fetchAuctionState().then(()=>{
     try{
       const r=await fetch('/api/live-sync?t='+requestStarted,{cache:'no-store'});
       if(r.ok){const snap=await r.json();syncServerClock(snap.serverNow,requestStarted);
-        if(snap.lotStatuses){managedLotStatuses=snap.lotStatuses;renderCatalog();renderWatchlist();} if(snap.startAt){galaxyStartAt=snap.startAt;const al=$("lot");if(al)al.textContent=auctionDateLabel();} if(Array.isArray(snap.todayQueue)){liveTodayQueue=snap.todayQueue.map(Number); const lb=$("lotsBtn");if(lb)lb.textContent=`Лоты (${liveTodayQueue.length}) ›`;renderCatalog();}
+        if(snap.lotStatuses){managedLotStatuses=snap.lotStatuses;renderCatalog();renderWatchlist();} if(snap.startAt){galaxyStartAt=snap.startAt;const al=$("lot");if(al)al.textContent=auctionDateLabel();} if(Array.isArray(snap.todayQueue)){liveTodayQueue=snap.todayQueue.map(Number);window.dispatchEvent(new Event('galaxy-queue-updated')); const lb=$("lotsBtn");if(lb)lb.textContent=`Лоты (${liveTodayQueue.length}) ›`;renderCatalog();}
         if(snap.state){
           if(snap.lot){upsertServerLot(snap.lot);document.body.classList.remove('liveLotLoading');}
           // live-sync includes the authoritative visible pre-bid price while waiting.
