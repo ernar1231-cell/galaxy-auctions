@@ -666,8 +666,8 @@ function openAccount(){
 $("settingsBtn").onclick=openAccount;
 renderModernMarkets();
 document.querySelectorAll("[data-close-modern]").forEach(b=>b.onclick=()=>{closeModernScreens();setModernActive("home");$("homeScreen").classList.add("open")});
-document.querySelectorAll("#modernBottomNav [data-modern]").forEach(b=>b.onclick=()=>{const k=b.dataset.modern;closeModernScreens();setModernActive(k);if(k==="home")$("homeScreen").classList.add("open");else if(k==="markets")$("marketsScreen").classList.add("open");else if(k==="bids"){renderModernMyBids();$("myBidsScreen").classList.add("open")}else if(k==="profile"){syncModernProfile();loadAccountProfile();$("profileScreen").classList.add("open")}});
-document.querySelectorAll("[data-home-auction]").forEach(b=>b.onclick=()=>{closeModernScreens();setModernActive("markets");$("marketsScreen").classList.add("open");});
+document.querySelectorAll("#modernBottomNav [data-modern]").forEach(b=>b.onclick=()=>{const k=b.dataset.modern;closeModernScreens();setModernActive(k);if(k==="home")$("homeScreen").classList.add("open");else if(k==="markets")enterAuctionMarkets();else if(k==="bids"){renderModernMyBids();$("myBidsScreen").classList.add("open")}else if(k==="profile"){syncModernProfile();loadAccountProfile();$("profileScreen").classList.add("open")}});
+document.querySelectorAll("[data-home-auction]").forEach(b=>b.onclick=enterAuctionMarkets);
 $("openAccountFromProfile").onclick=()=>{closeModernScreens();openAccount()};
 $("openAdminFromProfile").onclick=()=>{closeModernScreens();openAdminPanel()};
 $("accountClose").onclick=()=>$("accountOverlay").classList.remove("open");
@@ -1080,9 +1080,16 @@ async function sharedLotRegistrationGate(){
 }
 let registrationDestination='home';
 function openMainHome(){try{closeModernScreens();setModernActive('home');$('homeScreen').classList.add('open');window.scrollTo(0,0)}catch(e){console.error('Could not open home',e)}}
+function openAuctionMarkets(){closeModernScreens();setModernActive('markets');$('marketsScreen').classList.add('open')}
+async function enterAuctionMarkets(){
+ registrationDestination='markets';
+ const ready=await sharedLotRegistrationGate();
+ if(ready)openAuctionMarkets();
+}
 function openRegistrationDestination(){
  if(registrationDestination==='live'){closeModernScreens();document.body.classList.add('telegramLiveLaunch');setModernActive('');window.scrollTo(0,0);}
  else if(registrationDestination==='lots')openTodayLots();
+ else if(registrationDestination==='markets')openAuctionMarkets();
  else openMainHome();
 }
 async function applyLaunchIntent(){
