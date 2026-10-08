@@ -666,15 +666,21 @@ function openAccount(){
 $("settingsBtn").onclick=openAccount;
 renderModernMarkets();
 document.querySelectorAll("[data-close-modern]").forEach(b=>b.onclick=()=>{closeModernScreens();setModernActive("home");$("homeScreen").classList.add("open")});
+let auctionTabNext='markets',auctionTabBusy=false;
 document.querySelectorAll("#modernBottomNav [data-modern]").forEach(b=>b.onclick=()=>{
  const k=b.dataset.modern;
  // First AUCTION tap shows the markets map; a second tap on that same tab opens LIVE.
  // Check before closing screens, otherwise the second tap can never be detected.
  if(k==="markets"){
-  if($("marketsScreen").classList.contains("open")){
-   registrationDestination='live';
-   sharedLotRegistrationGate().then(ready=>{if(ready)openRegistrationDestination()});
-  }else enterAuctionMarkets();
+  if(auctionTabBusy)return;
+  auctionTabBusy=true;
+  const target=auctionTabNext==='markets'?'markets':'live';
+  registrationDestination=target;
+  sharedLotRegistrationGate().then(ready=>{
+   if(!ready)return;
+   openRegistrationDestination();
+   auctionTabNext=target==='markets'?'live':'markets';
+  }).catch(e=>console.warn('Auction navigation',e)).finally(()=>{auctionTabBusy=false});
   return;
  }
  closeModernScreens();setModernActive(k);
