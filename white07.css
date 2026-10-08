@@ -1076,3 +1076,13 @@ body.mk-white .livegrid .bidbox>.historyLink{margin:6px auto 0!important;min-hei
 /* Front bid eligibility: authorized deposit clients get a clear active control. */
 #bid.depositReady:not(:disabled){background:#16a765!important;color:#fff!important;border-color:#16a765!important;opacity:1!important}
 #bid:disabled:not(.depositReady){background:#e7ebf1!important;color:#8a9ab0!important;opacity:1!important}
+
+/* Desktop: retain the familiar phone-width Galaxy Auctions interface. */
+@media (min-width: 768px) and (pointer: fine) {
+  body.mk-white { background:#e9eef6!important; }
+  body.mk-white .app { width: min(100%, 520px)!important; max-width:520px!important; margin-left:auto!important; margin-right:auto!important; box-shadow:0 0 35px rgba(12,32,65,.12)!important; }
+  body.mk-white .modernScreen { left:50%!important; right:auto!important; width:min(100%,520px)!important; max-width:520px!important; transform:translateX(-50%)!important; box-sizing:border-box!important; }
+  body.mk-white #modernBottomNav { left:50%!important; right:auto!important; width:min(100%,520px)!important; max-width:520px!important; transform:translateX(-50%)!important; }
+  .catalogSheet,.detailSheet,.queuePanel,.accountSheet,.adminSheet,.adminLotManageSheet,.adminEditSheet,.adminClientProfileSheet { max-width:520px!important; margin-left:auto!important; margin-right:auto!important; }
+  .adminLotManageSheet,.adminEditSheet,.adminClientProfileSheet { left:50%!important; right:auto!important; width:min(100%,520px)!important; transform:translateX(-50%)!important; box-sizing:border-box!important; }
+}
