@@ -368,7 +368,7 @@ function updateBidVisualState(){
  const my=$("myBidAmount");if(my)my.textContent=myLatestBidAmount==null?'—':money(myLatestBidAmount);
  if(!closed){const target=money(price+inc);btn.innerHTML=whiteGavel+(userIsLeader()?' ПОВЫСИТЬ ДО ':' СДЕЛАТЬ СТАВКУ ')+target;}
 }
-function closeModernScreens(){document.querySelectorAll(".modernScreen").forEach(x=>x.classList.remove("open"));document.querySelectorAll("#modernBottomNav button").forEach(x=>x.classList.remove("active"));}
+function closeModernScreens(){document.body.classList.remove("telegramLiveLaunch");document.querySelectorAll(".modernScreen").forEach(x=>x.classList.remove("open"));document.querySelectorAll("#modernBottomNav button").forEach(x=>x.classList.remove("active"));}
 function setModernActive(key){document.querySelectorAll("#modernBottomNav button").forEach(x=>x.classList.toggle("active",x.dataset.modern===key));}
 function applyReferenceLayout(){
  const main=document.querySelector('.main'),details=$("details"),bid=document.querySelector('.bidcol');
