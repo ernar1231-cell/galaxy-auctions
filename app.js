@@ -156,8 +156,15 @@ async function fetchAuctionState(){
 }
 function normalizedPhotos(l){const seen=new Set();return [...(l.images||[]).sort((a,b)=>(Number(a.sort_order)||0)-(Number(b.sort_order)||0)).map(x=>x?.image_url),l.primary_image].filter(u=>{u=String(u||'').trim();if(!u||seen.has(u))return false;seen.add(u);return true;});}
 function upsertServerLot(l){if(!l)return;const no=String(l.lot_number).padStart(3,'0'),photos=normalizedPhotos(l);const sourceDetails=[["Mileage",l.mileage==null?null:`${Number(l.mileage).toLocaleString()} km`],["Engine",l.engine],["Fuel",l.fuel],["Transmission",l.transmission],["Drive",l.drive],["Interior",l.interior_color],["Exterior",l.exterior_color],["VIN",l.vin],["Auction location",l.auction_location||l.auction_yard||l.location],["Estimated retail value",l.estimated_retail_value==null?null:money(Number(l.estimated_retail_value))],["Primary damage",l.primary_damage],["Specs",l.specs],["Seats",l.seats]];const q={id:l.id,no,title:[l.make,l.model,l.year].filter(Boolean).join(' '),price:Number(l.starting_bid||0),meta:[l.mileage==null?'—':`${Number(l.mileage).toLocaleString()} km`,l.fuel||'—',l.transmission||'—',l.drive||'—'],photos,details:sourceDetails.filter(d=>d[1]!==null&&d[1]!==undefined&&String(d[1]).trim()!=='')};const idx=lots.findIndex(x=>String(x.id||'')===String(l.id||'')||Number(x.no)===Number(l.lot_number));if(idx>=0){if(!q.photos.length)q.photos=lots[idx].photos;if(q.meta.every(v=>v==='—'||v==='0 km'))q.meta=lots[idx].meta;lots[idx]={...lots[idx],...q};}else lots.push(q);}
+function auctionStateVersion(row){const u=Date.parse(row?.updated_at||'');const p=Date.parse(row?.phase_started_at||'');return Math.max(Number.isFinite(u)?u:0,Number.isFinite(p)?p:0)}
 function applyAuctionState(row,forceRender=false){
  if(!row)return;
+ // Ignore out-of-order snapshots for the same LIVE lot. A delayed 400 ms
+ // live-sync response must never roll a confirmed bid/timer back.
+ if(stateRow&&String(row.status)==='live'&&String(stateRow.status)==='live'&&Number(row.lot_id)===Number(stateRow.lot_id)){
+   const incomingV=auctionStateVersion(row),currentV=auctionStateVersion(stateRow);
+   if(incomingV&&currentV&&incomingV<currentV)return;
+ }
  const incomingAudioKey=String(row.lot_id||1);
  const shouldRestartAudio=incomingAudioKey!==lastPhaseAudioKey;
  stateRow=row;
