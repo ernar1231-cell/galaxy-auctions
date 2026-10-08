@@ -14,7 +14,7 @@ async function completedUsers(key){
 module.exports=async(req,res)=>{
  if(req.method!=='GET')return res.status(405).json({error:'Method not allowed'});
  const key=process.env.SUPABASE_SERVICE_ROLE_KEY;if(!key)return res.status(500).json({error:'Server database key missing'});
- try{const dayStart=dubaiDayStartUtc();const users=await completedUsers(key);const complete=users.filter(isCompleteRegistration);const registeredUsers=complete.length;const registeredToday=complete.filter(u=>u.created_at&&u.created_at>=dayStart).length;const visitorsTotal=users.length;const incompleteVisitors=visitorsTotal-registeredUsers;res.setHeader('Cache-Control','no-store');return res.status(200).json({registeredUsers,registeredToday,visitorsTotal,incompleteVisitors,dayStart,timeZone:'Asia/Dubai'})}
+ try{const dayStart=dubaiDayStartUtc();const users=await completedUsers(key);const complete=users.filter(isCompleteRegistration);const registeredUsers=complete.length;const registeredToday=complete.filter(u=>u.created_at&&u.created_at>=dayStart).length;const visitorsTotal=users.length;const visitorsToday=users.filter(u=>u.created_at&&u.created_at>=dayStart).length;const incompleteVisitors=visitorsTotal-registeredUsers;res.setHeader('Cache-Control','no-store');return res.status(200).json({registeredUsers,registeredToday,visitorsTotal,visitorsToday,incompleteVisitors,dayStart,timeZone:'Asia/Dubai'})}
  catch(e){return res.status(500).json({error:String(e.message||e)})}
 };
 module.exports.dubaiDayStartUtc=dubaiDayStartUtc;
