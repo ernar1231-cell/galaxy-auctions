@@ -35,9 +35,9 @@ async function refreshRegisteredCount(){
   const d=await r.json();registeredTotal=Number(d.registeredUsers||0);registeredTodayCount=Number(d.registeredToday||0);
   const c=$("registeredCount");if(c)c.textContent=registeredTotal.toLocaleString("en-US");
   const la=$("liveAudience");if(la)la.textContent=`👥 ${registeredTotal} ${registeredTotal===1?'участник':(registeredTotal>=2&&registeredTotal<=4?'участника':'участников')}`;
-  const t=$("registeredToday");if(t)t.textContent=`сегодня +${registeredTodayCount}`;
+  const t=$("registeredToday");if(t)t.textContent=`из них сегодня +${registeredTodayCount}`;
   const pt=$("registeredTotalProfile");if(pt)pt.textContent=registeredTotal.toLocaleString("en-US");
-  const ptd=$("registeredTodayProfile");if(ptd)ptd.textContent=`Сегодня: +${registeredTodayCount}`;
+  const ptd=$("registeredTodayProfile");if(ptd)ptd.textContent=`Из них сегодня: +${registeredTodayCount}`;
  }catch(e){console.warn("Registered users count failed",e);}
 }
 registrationReady.then(()=>refreshRegisteredCount());
@@ -896,8 +896,9 @@ function whiteInit(){
 }
 
 whiteInit();
-// Always render the full 15-lot app immediately, even before Supabase responds.
-render();
+// Do not flash the legacy demo car before the authoritative server lot arrives.
+document.body.classList.add('liveLotLoading');
+
 subscribeAuctionState();
 fetchAuctionState().then(()=>{
   start();
@@ -911,7 +912,7 @@ fetchAuctionState().then(()=>{
       if(r.ok){const snap=await r.json();syncServerClock(snap.serverNow,requestStarted);
         if(snap.lotStatuses){managedLotStatuses=snap.lotStatuses;renderCatalog();renderWatchlist();} if(snap.startAt){galaxyStartAt=snap.startAt;const al=$("lot");if(al)al.textContent=auctionDateLabel();} if(Array.isArray(snap.todayQueue)){liveTodayQueue=snap.todayQueue.map(Number); const lb=$("lotsBtn");if(lb)lb.textContent=`Лоты (${liveTodayQueue.length}) ›`;renderCatalog();}
         if(snap.state){
-          if(snap.lot)upsertServerLot(snap.lot);
+          if(snap.lot){upsertServerLot(snap.lot);document.body.classList.remove('liveLotLoading');}
           // live-sync includes the authoritative visible pre-bid price while waiting.
           // Use it on the main upcoming card, and carry the same price into LIVE.
           if(snap.state.current_bid==null){const li=lots.findIndex(x=>Number(x.no)===Number(snap.state.lot_id||0));snap.state.current_bid=li>=0?lots[li].price:0;}
