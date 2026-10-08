@@ -1101,3 +1101,8 @@ body:has(#shareRegistrationPage:not([hidden])) #whatsappSupport{display:none}
 
 /* Paused until automated WhatsApp support is ready. */
 #whatsappSupport{display:none!important}
+
+.homeVisitorStats{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:12px 14px;padding:14px 16px;border-radius:16px;background:#fff;border:1px solid #e0e9f3;box-shadow:0 3px 14px #142d4708}
+.homeVisitorStats span{font-size:13px;font-weight:700;color:#34465c;flex:1 1 auto}
+.homeVisitorStats strong{font-size:25px;font-weight:850;color:#132c48;font-variant-numeric:tabular-nums}
+.homeVisitorStats b{font-size:13px;color:#129752;background:#e9f9ef;border-radius:999px;padding:5px 9px;font-variant-numeric:tabular-nums}
