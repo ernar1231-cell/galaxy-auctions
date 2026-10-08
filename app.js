@@ -1047,13 +1047,15 @@ function readLaunchIntent(){const raw=String(tg?.initDataUnsafe?.start_param||ne
 async function sharedLotRegistrationGate(){
  // Registration is account-based, not link-based: a new Telegram user must
  // complete the four required fields even if a bot/menu launch loses lot_xxx.
- if(!tgUser?.id||!tg?.initData)return true;
+ if(!tgUser?.id||!tg?.initData){console.warn('Telegram registration verification unavailable');return false;}
  const page=$('shareRegistrationPage');if(!page)return false;
  try{
   await registrationReady;
   const r=await fetch('/api/account-information',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:tg.initData,action:'read'})});
   const d=await r.json().catch(()=>({})),info=d.information||{};
-  if(r.ok&&info.full_name&&info.phone&&info.phone_country&&info.email&&info.residence_address)return true;
+  const address=info.residence_address;
+  const validAddress=typeof address==='string'?!!address.trim():address&&typeof address==='object'&&Object.values(address).some(v=>typeof v==='string'&&v.trim());
+  if(r.ok&&String(info.full_name||'').trim()&&String(info.phone||'').trim()&&String(info.phone_country||'').trim()&&String(info.email||'').trim()&&validAddress)return true;
   page.hidden=false;page.setAttribute('aria-hidden','false');
   $('shareRegName').value=info.full_name||[tgUser.first_name,tgUser.last_name].filter(Boolean).join(' ');
   $('shareRegCountry').value=info.phone_country||'AE';$('shareRegEmail').value=info.email||'';
@@ -1069,12 +1071,16 @@ async function sharedLotRegistrationGate(){
 }
 let registrationDestination='home';
 function openMainHome(){try{closeModernScreens();setModernActive('home');$('homeScreen').classList.add('open');window.scrollTo(0,0)}catch(e){console.error('Could not open home',e)}}
+function openRegistrationDestination(){
+ if(registrationDestination==='live'){closeModernScreens();document.body.classList.add('telegramLiveLaunch');setModernActive('');window.scrollTo(0,0);}
+ else if(registrationDestination==='lots')openTodayLots();
+ else openMainHome();
+}
 async function applyLaunchIntent(){
  const intent=readLaunchIntent();
- if(intent.live){closeModernScreens();document.body.classList.add('telegramLiveLaunch');setModernActive('');window.scrollTo(0,0);return;}
- registrationDestination=intent.lotId?'lots':'home';
+ registrationDestination=intent.live?'live':(intent.lotId?'lots':'home');
  const ready=await sharedLotRegistrationGate();
- if(ready){if(registrationDestination==='lots')openTodayLots();else openMainHome();}
+ if(ready)openRegistrationDestination();
 }
 /* Share uses one path for the live vehicle and every row in the lot queue. */
 function sharedLotUrl(q){const u=new URL('/api/share',window.location.origin);if(q.id)u.searchParams.set('id',q.id);else u.searchParams.set('lot',Number(q.no));return u.toString();}
@@ -1095,7 +1101,7 @@ async function shareLot(idx){
       const r=await fetch('/api/account-information',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:tg?.initData||'',action:'complete_registration',full_name:$('shareRegName').value,phone:{country:$('shareRegCountry').value,number:$('shareRegPhone').value},email:$('shareRegEmail').value,residence_address:$('shareRegAddress').value})});
       const d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.error||'Не удалось сохранить регистрацию.');
       window.accountData={...window.accountData,...d.information};currentAccountProfile={...currentAccountProfile,...d.information};
-      const page=$('shareRegistrationPage');page.hidden=true;page.setAttribute('aria-hidden','true');if(registrationDestination==='lots')openTodayLots();else openMainHome();
+      const page=$('shareRegistrationPage');page.hidden=true;page.setAttribute('aria-hidden','true');openRegistrationDestination();
     }catch(problem){err.textContent=problem.message||'Не удалось сохранить регистрацию.';}
     finally{btn.disabled=false;btn.textContent='ПРОДОЛЖИТЬ К АУКЦИОНУ';}
   });
