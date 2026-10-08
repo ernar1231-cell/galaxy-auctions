@@ -1104,3 +1104,33 @@ body.mk-white #marketsScreen .mapPin.livePin small{color:#f3cb72!important}
 body.mk-white #marketsScreen .marketSelectedCard{background:#0e2240!important;border:1px solid #2b4d70!important;color:white!important}
 body.mk-white #marketsScreen .marketSelectedCard b{color:white!important}
 body.mk-white #marketsScreen .marketSelectedCard p{color:#d7e5f6!important;font-size:14px!important;font-weight:700}
+
+/* 3D globe presentation, replacing the flat rectangular map. */
+body.mk-white #marketsScreen .marketMapWrap{
+ height:min(94vw,450px)!important;
+ min-height:340px!important;
+ background:radial-gradient(ellipse at 50% 43%,#12335a 0%,#07142c 66%,#030814 100%)!important;
+ border:1px solid #1b365c!important;
+ border-radius:24px!important;
+ isolation:isolate;
+}
+body.mk-white #marketsScreen .marketMapWrap::before{
+ content:"";display:block!important;position:absolute;inset:8% 8% 10%!important;
+ border-radius:50%!important;opacity:1!important;
+ background:
+ radial-gradient(circle at 29% 23%,rgba(125,207,255,.32),transparent 28%),
+ radial-gradient(circle at 68% 76%,rgba(0,0,0,.8),transparent 56%),
+ radial-gradient(circle at 30% 35%,transparent 28%,rgba(5,18,41,.3) 62%,rgba(1,7,18,.96) 96%),
+ url('assets/world-map-approved.jpg') 52% 48%/cover no-repeat!important;
+ box-shadow:inset -26px -20px 45px #000c,inset 12px 10px 27px #76c8ff55,0 0 0 2px #7bcaff88,0 0 32px #147bdf99!important;
+ z-index:0;
+}
+body.mk-white #marketsScreen .marketMapWrap::after{
+ content:"";position:absolute;inset:0;pointer-events:none;
+ background:radial-gradient(ellipse at 50% 48%,transparent 42%,#06132977 75%,#040a19 100%);
+ z-index:1;
+}
+body.mk-white #marketsScreen .marketMapWrap>.approvedMapImage{display:none!important}
+body.mk-white #marketsScreen .marketMapWrap>.mapPin{z-index:3!important}
+body.mk-white #marketsScreen .mapPin span{font-size:9px!important;padding:4px 6px!important}
+body.mk-white #marketsScreen .mapPin small{font-size:8px!important}
