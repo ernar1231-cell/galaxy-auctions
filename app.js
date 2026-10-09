@@ -1113,7 +1113,7 @@ async function applyLaunchIntent(){
  if(ready)openRegistrationDestination();
 }
 /* Share uses one path for the live vehicle and every row in the lot queue. */
-function sharedLotUrl(q){const u=new URL('/api/share',window.location.origin);if(q.id)u.searchParams.set('id',q.id);else u.searchParams.set('lot',Number(q.no));return u.toString();}
+function sharedLotUrl(q){if(q.id)return new URL('/car/'+encodeURIComponent(String(q.id)),window.location.origin).toString();const u=new URL('/api/share',window.location.origin);u.searchParams.set('lot',Number(q.no));return u.toString();}
 async function shareLot(idx){
     const q=lots[idx]; if(!q)return;
     const url=sharedLotUrl(q);
