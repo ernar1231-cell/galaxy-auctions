@@ -33,9 +33,10 @@ async function refreshRegisteredCount(){
  try{
   const r=await fetch('/api/public-stats?t='+Date.now(),{cache:'no-store'});if(!r.ok)throw Error('Stats unavailable');
   const d=await r.json();registeredTotal=Number(d.registeredUsers||0);registeredTodayCount=Number(d.registeredToday||0);const visitorsTotal=Number(d.visitorsTotal||0),incompleteVisitors=Number(d.incompleteVisitors||0);
-  const c=$("registeredCount");if(c)c.textContent=visitorsTotal.toLocaleString("en-US");const hv=$("homeVisitorTotal");if(hv)hv.textContent=visitorsTotal.toLocaleString("en-US");const ht=$("homeVisitorToday");if(ht)ht.textContent=`+${Number(d.visitorsToday||0).toLocaleString("en-US")} сегодня`;
-  const la=$("liveAudience");if(la)la.textContent=`👥 Открывали: ${visitorsTotal}`;
-  const t=$("registeredToday");if(t)t.textContent=`Зарегистрированы: ${registeredTotal} · Не завершили: ${incompleteVisitors}`;
+  const c=$("registeredCount");if(c)c.textContent=visitorsTotal.toLocaleString("en-US");
+  const today=Number(d.visitorsToday||0);
+  const la=$("liveAudience");if(la)la.textContent=`👥 Всего участников: ${visitorsTotal.toLocaleString("en-US")} · +${today.toLocaleString("en-US")} сегодня`;
+  const t=$("registeredToday");if(t)t.textContent=`+${today.toLocaleString("en-US")} сегодня`;
   const pt=$("registeredTotalProfile");if(pt)pt.textContent=registeredTotal.toLocaleString("en-US");
   const ptd=$("registeredTodayProfile");if(ptd)ptd.textContent=`Сегодня +${registeredTodayCount} · Открывали: ${visitorsTotal} · Не завершили: ${incompleteVisitors}`;
  }catch(e){console.warn("Registered users count failed",e);}
