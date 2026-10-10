@@ -1106,3 +1106,25 @@ body:has(#shareRegistrationPage:not([hidden])) #whatsappSupport{display:none}
 .homeVisitorStats span{font-size:13px;font-weight:700;color:#34465c;flex:1 1 auto}
 .homeVisitorStats strong{font-size:25px;font-weight:850;color:#132c48;font-variant-numeric:tabular-nums}
 .homeVisitorStats b{font-size:13px;color:#129752;background:#e9f9ef;border-radius:999px;padding:5px 9px;font-variant-numeric:tabular-nums}
+
+/* Keep admin edit/confirmation/photo sheets below the Telegram top controls. */
+body.mk-white .adminLotManageSheet,
+body.mk-white .adminEditSheet,
+body.mk-white .adminLotSheet,
+body.mk-white .adminClientProfileSheet{
+ max-height:calc(100dvh - env(safe-area-inset-top,0px) - 72px)!important;
+ overflow-y:auto!important;
+ overscroll-behavior:contain;
+ -webkit-overflow-scrolling:touch;
+}
+body.mk-white .adminLotManageSheet,
+body.mk-white .adminEditSheet,
+body.mk-white .adminLotSheet{
+ top:auto!important;
+ bottom:0!important;
+}
+body.mk-white .adminLotManageOverlay,
+body.mk-white .adminLotOverlay{
+ padding-top:calc(env(safe-area-inset-top,0px) + 72px)!important;
+ box-sizing:border-box;
+}
