@@ -669,13 +669,14 @@ renderModernMarkets();
 document.querySelectorAll("[data-close-modern]").forEach(b=>b.onclick=()=>{closeModernScreens();setModernActive("home");$("homeScreen").classList.add("open")});
 document.querySelectorAll("#modernBottomNav [data-modern]").forEach(b=>b.onclick=()=>{
  const k=b.dataset.modern;
- if(k==="markets"){enterAuctionMarkets();return;}
+ if(k==="markets"){openAuctionDirectionScreen();return;}
  closeModernScreens();setModernActive(k);
  if(k==="home")$("homeScreen").classList.add("open");
  else if(k==="bids"){renderModernMyBids();$("myBidsScreen").classList.add("open")}
  else if(k==="profile"){syncModernProfile();loadAccountProfile();$("profileScreen").classList.add("open")}
 });
-document.querySelectorAll("[data-home-auction]").forEach(b=>b.onclick=enterAuctionMarkets);
+document.querySelectorAll("[data-home-auction]").forEach(b=>b.onclick=openAuctionDirectionScreen);
+$("auctionDirectionUSA").onclick=enterAuctionMarkets;
 $("openAccountFromProfile").onclick=()=>{closeModernScreens();openAccount()};
 $("openAdminFromProfile").onclick=()=>{closeModernScreens();openAdminPanel()};
 $("accountClose").onclick=()=>$("accountOverlay").classList.remove("open");
@@ -1090,6 +1091,8 @@ async function sharedLotRegistrationGate(){
 let registrationDestination='home';
 function openMainHome(){try{closeModernScreens();setModernActive('home');$('homeScreen').classList.add('open');window.scrollTo(0,0)}catch(e){console.error('Could not open home',e)}}
 function openAuctionMarkets(){closeModernScreens();setModernActive('markets');$('marketsScreen').classList.add('open')}
+function openAuctionDirectionScreen(){closeModernScreens();setModernActive('markets');$('auctionDirectionScreen').classList.add('open');const c=$('auctionDirectionUSACount');if(c)c.textContent=String(lots?.length||0);}
+
 let auctionEntryBusy=false;
 async function enterAuctionMarkets(){
  if(auctionEntryBusy)return;
