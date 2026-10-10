@@ -38,7 +38,7 @@ async function refreshRegisteredCount(){
   const la=$("liveAudience");if(la)la.textContent=`👥 Всего участников: ${visitorsTotal.toLocaleString("en-US")} · +${today.toLocaleString("en-US")} сегодня`;
   const t=$("registeredToday");if(t)t.textContent=`+${today.toLocaleString("en-US")} сегодня`;
   const pt=$("registeredTotalProfile");if(pt)pt.textContent=registeredTotal.toLocaleString("en-US");
-  const ptd=$("registeredTodayProfile");if(ptd)ptd.textContent=`Сегодня +${registeredTodayCount} · Открывали: ${visitorsTotal} · Не завершили: ${incompleteVisitors}`;
+  const ptd=$("registeredTodayProfile");if(ptd)ptd.textContent=`Сегодня зарегистрировались: +${registeredTodayCount.toLocaleString('ru-RU')}`;
  }catch(e){console.warn("Registered users count failed",e);}
 }
 registrationReady.then(()=>refreshRegisteredCount());
