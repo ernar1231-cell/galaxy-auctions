@@ -1463,3 +1463,43 @@ body.mk-white #auctionDirectionScreen .auctionDirectionEnabled .auctionDirection
 body.mk-white #auctionDirectionScreen .auctionDirectionSoon{right:10px!important;bottom:10px!important;max-width:none!important;white-space:nowrap!important;overflow-wrap:normal!important;padding:7px 10px!important;font-size:11px!important;background:#63778cbb!important;color:#fff!important}
 @media(max-width:380px){body.mk-white #auctionDirectionScreen .auctionDirectionWrap{padding-left:10px!important;padding-right:10px!important}body.mk-white #auctionDirectionScreen .auctionDirectionCard{height:clamp(138px,19.5vh,162px)!important;min-height:138px!important;padding-left:48%!important}body.mk-white #auctionDirectionScreen .auctionDirectionCopy b{font-size:14px!important}}
 @media(max-height:680px){body.mk-white #auctionDirectionScreen .auctionDirectionHeader{height:45px!important;min-height:45px!important;margin-bottom:6px!important}body.mk-white #auctionDirectionScreen .auctionDirectionIntro{margin-bottom:9px!important}body.mk-white #auctionDirectionScreen .auctionDirectionCard{height:135px!important;min-height:135px!important;margin-bottom:8px!important}}
+
+
+/* Direction 163: fit uploaded left-side artwork without crop; distribute whitespace. */
+body.mk-white #auctionDirectionScreen.modernScreen.open{overflow-y:auto!important}
+body.mk-white #auctionDirectionScreen .auctionDirectionWrap{
+ display:flex!important;flex-direction:column!important;justify-content:flex-start!important;
+ min-height:100%!important;max-width:520px!important;
+ padding:calc(env(safe-area-inset-top,0px) + 6px) 13px 12px!important;
+}
+body.mk-white #auctionDirectionScreen .auctionDirectionHeader{flex:0 0 54px!important}
+body.mk-white #auctionDirectionScreen .auctionDirectionIntro{flex:0 0 auto!important}
+body.mk-white #auctionDirectionScreen .auctionDirectionCard{
+ flex:0 0 auto!important;height:clamp(152px,22vh,196px)!important;min-height:152px!important;max-height:196px!important;
+ margin-bottom:10px!important;padding:12px 12px 12px 50%!important;
+ background:#0d4e8a!important;
+}
+body.mk-white #auctionDirectionScreen #auctionDirectionUSA{margin-top:auto!important}
+body.mk-white #auctionDirectionScreen #auctionDirectionUSA + .auctionDirectionCard + .auctionDirectionCard{margin-bottom:auto!important}
+body.mk-white #auctionDirectionScreen .auctionDirectionCard::before{
+ background-size:auto 100%!important;background-position:left center!important;background-repeat:no-repeat!important;
+}
+body.mk-white #auctionDirectionScreen #auctionDirectionUSA::after{
+ background:linear-gradient(90deg,transparent 0%,#063e7000 34%,#084d8ccf 52%,#084a89 73%,#073c77 100%)!important;
+}
+body.mk-white #auctionDirectionScreen #auctionDirectionUSA + .auctionDirectionCard{background:#514a65!important}
+body.mk-white #auctionDirectionScreen #auctionDirectionUSA + .auctionDirectionCard::after{
+ background:linear-gradient(90deg,transparent 0%,#573f5500 34%,#65516bc9 52%,#4c4c68 74%,#404e70 100%)!important;
+}
+body.mk-white #auctionDirectionScreen #auctionDirectionUSA + .auctionDirectionCard + .auctionDirectionCard{background:#07558f!important}
+body.mk-white #auctionDirectionScreen #auctionDirectionUSA + .auctionDirectionCard + .auctionDirectionCard::after{
+ background:linear-gradient(90deg,transparent 0%,#07558f00 34%,#0a548fca 52%,#0b4d89 75%,#06437d 100%)!important;
+}
+body.mk-white #auctionDirectionScreen .auctionDirectionCopy b,
+body.mk-white #auctionDirectionScreen .auctionDirectionDisabled .auctionDirectionCopy b{color:#fff!important;text-shadow:0 1px 3px #001b3b99!important}
+body.mk-white #auctionDirectionScreen .auctionDirectionCopy small,
+body.mk-white #auctionDirectionScreen .auctionDirectionDisabled .auctionDirectionCopy small{color:#fff!important;text-shadow:0 1px 3px #001b3b99!important}
+body.mk-white #auctionDirectionScreen .auctionDirectionCopy em{color:#fff!important;text-shadow:0 1px 3px #001b3b99!important}
+body.mk-white #auctionDirectionScreen .auctionDirectionDisabled .auctionDirectionCopy em{color:#e5edf8!important;opacity:1!important}
+@media(max-width:380px){body.mk-white #auctionDirectionScreen .auctionDirectionCard{height:clamp(144px,21vh,180px)!important;min-height:144px!important;padding-left:49%!important}}
+@media(max-height:690px){body.mk-white #auctionDirectionScreen .auctionDirectionCard{height:140px!important;min-height:140px!important}body.mk-white #auctionDirectionScreen #auctionDirectionUSA{margin-top:8px!important}}
