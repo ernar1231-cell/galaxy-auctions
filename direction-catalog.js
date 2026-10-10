@@ -21,9 +21,11 @@ async function open(direction){
   }).join(''):'<div class="directionCatalogEmpty">Пока нет опубликованных автомобилей в этом направлении.</div>';
  }catch(e){root.textContent='Не удалось загрузить каталог. Попробуйте ещё раз.'}
 }
-document.addEventListener('DOMContentLoaded',()=>{
+window.galaxyOpenDirectionCatalog=open;
+function bindDirectionButtons(){
  $('auctionDirectionDubai')?.addEventListener('click',()=>open('dubai'));
  $('auctionDirectionTransfer')?.addEventListener('click',()=>open('transfer'));
  $('directionCatalogBack')?.addEventListener('click',back);
-});
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bindDirectionButtons,{once:true});else bindDirectionButtons();
 })();
