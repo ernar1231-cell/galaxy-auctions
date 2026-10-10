@@ -33,7 +33,7 @@ async function placeBid(options = {}) {
   const sandbox = {
     require: (name) => {
       if (name === 'crypto') return crypto;
-      if (name === './_auction-direction') return {directionOf: (lot) => {const m = String(lot.description || '').match(/\\[GALAXY_DIRECTION:(\\{[^\\n]*\\})\\]/);return m ? JSON.parse(m[1]).direction : 'usa';}};
+      if (name === './_auction-direction') return {directionOf: (lot) => String(lot.description || '').includes('"direction":"dubai"') ? 'dubai' : String(lot.description || '').includes('"direction":"transfer"') ? 'transfer' : 'usa'};
       throw new Error('Unexpected module: ' + name);
     },
     module: {exports: {}}, Buffer, URLSearchParams,
