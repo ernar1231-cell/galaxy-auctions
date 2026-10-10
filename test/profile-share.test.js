@@ -72,10 +72,13 @@ test('profile uses the pre-redesign Telegram account data path',()=>{
 
 test('admin entry uses verified role access and opens the existing panel',()=>{
   const app=source('app.js');
+  const controller=source('admin-access.js');
   const access=source('api/admin-access.js');
   const html=source('index.html');
-  assert.match(app,/fetch\("\/api\/admin-access"/);
-  assert.match(app,/const show=!!adminAccess\.admin/);
+  assert.match(controller,/fetchImpl\("\/api\/admin-access"/);
+  assert.match(controller,/admin:data\?\.admin===true/);
+  assert.match(app,/setButtonAccess\(\$\("openAdminFromProfile"\),access\.admin\)/);
+  assert.match(app,/async function openAdminPanel\(\)\{\s*await refreshAdminAccess\(\); if\(!adminAccess\.admin\)/);
   assert.match(app,/\$\("openAdminFromProfile"\)\.onclick=\(\)=>\{closeModernScreens\(\);openAdminPanel\(\)\}/);
   assert.match(access,/verifyTelegram\(req\.body\?\.initData/);
   assert.match(access,/is_admin=eq\.true/);
