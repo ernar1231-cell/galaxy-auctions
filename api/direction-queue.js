@@ -16,14 +16,14 @@ module.exports=async(req,res)=>{
   const [sessions,assignments,lots]=await Promise.all([
    get('galaxy_auction_sessions?direction=eq.'+direction+'&select=direction,enabled,timezone,local_start,phase,current_lot_number,current_bid'),
    get('galaxy_auction_lot_assignments?direction=eq.'+direction+'&select=lot_number,queue_position&order=queue_position.asc,lot_number.asc'),
-   get('auction_lots?status=in.(upcoming,live)&select=lot_number,make,model,year,status,description,starting_bid,auction_lot_images(image_url,is_primary,sort_order)')
+   get('auction_lots?status=in.(upcoming,live)&select=lot_number,make,model,year,status,description,starting_bid,mileage,engine,fuel,transmission,drive,interior_color,exterior_color,vin,auction_lot_images(image_url,is_primary,sort_order)')
   ]);
   const allowed=new Map(assignments.map(x=>[Number(x.lot_number),Number(x.queue_position)]));
   const queue=lots.filter(l=>allowed.has(Number(l.lot_number))&&directionOf(l)===direction)
    .sort((a,b)=>allowed.get(Number(a.lot_number))-allowed.get(Number(b.lot_number))||Number(a.lot_number)-Number(b.lot_number))
    .map(l=>{
     const images=(l.auction_lot_images||[]).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0));
-    return {lot_number:l.lot_number,make:l.make,model:l.model,year:l.year,status:l.status,starting_bid:l.starting_bid,
+    return {lot_number:l.lot_number,make:l.make,model:l.model,year:l.year,status:l.status,starting_bid:l.starting_bid,mileage:l.mileage,engine:l.engine,fuel:l.fuel,transmission:l.transmission,drive:l.drive,interior_color:l.interior_color,exterior_color:l.exterior_color,vin:l.vin,
      images:images.map(x=>({image_url:x.image_url})),primary_image:(images.find(x=>x.is_primary)||images[0])?.image_url||null};
    });
   const session=sessions[0]||null;
