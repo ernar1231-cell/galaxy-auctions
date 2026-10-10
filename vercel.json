@@ -1,0 +1,21 @@
+{
+  "rewrites": [
+    {
+      "source": "/car/:id",
+      "destination": "/api/share?id=:id"
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "host",
+          "value": "(www\\.)?galaxyauction\\.live"
+        }
+      ],
+      "destination": "https://t.me/GalaxyAuctionbot",
+      "permanent": false
+    }
+  ]
+}

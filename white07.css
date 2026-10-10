@@ -1076,3 +1076,235 @@ body.mk-white .livegrid .bidbox>.historyLink{margin:6px auto 0!important;min-hei
 /* Front bid eligibility: authorized deposit clients get a clear active control. */
 #bid.depositReady:not(:disabled){background:#16a765!important;color:#fff!important;border-color:#16a765!important;opacity:1!important}
 #bid:disabled:not(.depositReady){background:#e7ebf1!important;color:#8a9ab0!important;opacity:1!important}
+
+/* Desktop: retain the familiar phone-width Galaxy Auctions interface. */
+@media (min-width: 768px) and (pointer: fine) {
+  body.mk-white { background:#e9eef6!important; }
+  body.mk-white .app { width: min(100%, 520px)!important; max-width:520px!important; margin-left:auto!important; margin-right:auto!important; box-shadow:0 0 35px rgba(12,32,65,.12)!important; }
+  body.mk-white .modernScreen { left:50%!important; right:auto!important; width:min(100%,520px)!important; max-width:520px!important; transform:translateX(-50%)!important; box-sizing:border-box!important; }
+  body.mk-white #modernBottomNav { left:50%!important; right:auto!important; width:min(100%,520px)!important; max-width:520px!important; transform:translateX(-50%)!important; }
+  .catalogSheet,.detailSheet,.queuePanel,.accountSheet,.adminSheet,.adminLotManageSheet,.adminEditSheet,.adminClientProfileSheet { max-width:520px!important; margin-left:auto!important; margin-right:auto!important; }
+  .adminLotManageSheet,.adminEditSheet,.adminClientProfileSheet { left:50%!important; right:auto!important; width:min(100%,520px)!important; transform:translateX(-50%)!important; box-sizing:border-box!important; }
+}
+
+/* Wait for a real server-selected LIVE vehicle, never show a demo car first. */
+body.mk-white.liveLotLoading .livegrid{visibility:hidden!important}
+body.mk-white.liveLotLoading #photoFrame{visibility:visible!important}
+body.mk-white.liveLotLoading #photoFrame>*{visibility:hidden!important}
+body.mk-white.liveLotLoading #photoFrame::after{content:"Загрузка актуального лота…";visibility:visible;position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#f5f8fc;color:#173251;font-weight:700;font-size:14px}
+
+/* Small support shortcut at left edge, away from bottom BID controls. */
+#whatsappSupport{position:fixed;left:max(7px,env(safe-area-inset-left));top:auto;bottom:calc(var(--bottom,56px) + env(safe-area-inset-bottom) + 116px);width:43px;height:43px;border-radius:50%;background:#25d366;color:white;display:flex;align-items:center;justify-content:center;z-index:90;box-shadow:0 4px 15px #0004;text-decoration:none;border:2px solid white;box-sizing:border-box}
+#whatsappSupport:focus-visible{outline:3px solid #0d213e;outline-offset:2px}
+body:has(#shareRegistrationPage:not([hidden])) #whatsappSupport{display:none}
+@media (min-width:768px) and (pointer:fine){#whatsappSupport{left:max(7px,calc(50% - 253px))}}
+
+/* Paused until automated WhatsApp support is ready. */
+#whatsappSupport{display:none!important}
+
+.homeVisitorStats{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:12px 14px;padding:14px 16px;border-radius:16px;background:#fff;border:1px solid #e0e9f3;box-shadow:0 3px 14px #142d4708}
+.homeVisitorStats span{font-size:13px;font-weight:700;color:#34465c;flex:1 1 auto}
+.homeVisitorStats strong{font-size:25px;font-weight:850;color:#132c48;font-variant-numeric:tabular-nums}
+.homeVisitorStats b{font-size:13px;color:#129752;background:#e9f9ef;border-radius:999px;padding:5px 9px;font-variant-numeric:tabular-nums}
+
+/* Keep admin edit/confirmation/photo sheets below the Telegram top controls. */
+body.mk-white .adminLotManageSheet,
+body.mk-white .adminEditSheet,
+body.mk-white .adminLotSheet,
+body.mk-white .adminClientProfileSheet{
+ max-height:calc(100dvh - env(safe-area-inset-top,0px) - 72px)!important;
+ overflow-y:auto!important;
+ overscroll-behavior:contain;
+ -webkit-overflow-scrolling:touch;
+}
+body.mk-white .adminLotManageSheet,
+body.mk-white .adminEditSheet,
+body.mk-white .adminLotSheet{
+ top:auto!important;
+ bottom:0!important;
+}
+body.mk-white .adminLotManageOverlay,
+body.mk-white .adminLotOverlay{
+ padding-top:calc(env(safe-area-inset-top,0px) + 72px)!important;
+ box-sizing:border-box;
+}
+
+/* Approved direction screen: white design 3, USA only enabled until other lines are ready. */
+body.mk-white #auctionDirectionScreen{background:#f7f9fc!important;padding-bottom:calc(80px + env(safe-area-inset-bottom));overflow-y:auto}
+.auctionDirectionWrap{max-width:540px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 18px) 18px 28px;box-sizing:border-box}
+.auctionDirectionHeader{display:flex;align-items:center;justify-content:space-between;padding:4px 0 22px}
+.auctionDirectionHeader img{width:156px;max-height:54px;object-fit:contain;object-position:left center}
+.auctionDirectionBell{border:0;background:#fff;border-radius:50%;width:42px;height:42px;font-size:25px;color:#1d3656;box-shadow:0 3px 15px #112b4514}
+.auctionDirectionIntro{margin:0 0 24px}.auctionDirectionIntro h2{font-size:26px;line-height:1.2;margin:0 0 7px;color:#142c4a;font-weight:850}.auctionDirectionIntro p{margin:0;color:#7b8999;font-size:14px}
+.auctionDirectionCard{position:relative;display:flex;align-items:center;width:100%;min-height:128px;text-align:left;gap:13px;border:1px solid #e3eaf2;border-radius:20px;padding:12px;background:#fff;box-shadow:0 6px 22px #16365a0d;margin:0 0 14px;box-sizing:border-box;color:#142c4a}
+.auctionDirectionCard>img{width:112px;height:101px;border-radius:13px;object-fit:cover;flex-shrink:0}
+.auctionDirectionCopy{display:flex;flex-direction:column;gap:8px;min-width:0;flex:1}.auctionDirectionCopy b{font-size:16px;font-weight:850;line-height:1.2}.auctionDirectionCopy small{font-size:12px;color:#6f8196}.auctionDirectionCopy em{font-size:12px;font-style:normal;font-weight:750;color:#087bfa}
+.auctionDirectionArrow{background:#087bfa;color:#fff;width:31px;height:31px;border-radius:50%;display:grid;place-items:center;font-size:22px;flex-shrink:0}
+.auctionDirectionEnabled{cursor:pointer}.auctionDirectionEnabled:active{transform:scale(.99)}
+.auctionDirectionDisabled{opacity:.62;cursor:default}.auctionDirectionDisabled .auctionDirectionCopy em{color:#7b8999}
+.auctionDirectionSoon{font-size:10px;font-weight:800;color:#8a96a6;background:#eef2f7;border-radius:10px;padding:6px}
+.auctionDirectionShip{width:112px;height:101px;border-radius:13px;display:grid;place-items:center;font-size:48px;background:linear-gradient(140deg,#d9e9f6,#f2f7fa);flex-shrink:0}
+@media(max-width:370px){.auctionDirectionCard>img,.auctionDirectionShip{width:92px;height:92px}.auctionDirectionCopy b{font-size:14px}.auctionDirectionWrap{padding-left:12px;padding-right:12px}}
+
+/* Reference-matched white auction direction layout: visual-only overrides. */
+body.mk-white #auctionDirectionScreen.modernScreen.open{display:block!important;position:fixed!important;inset:0!important;z-index:38!important;background:#fff!important;overflow-y:auto!important;overflow-x:hidden!important;padding:0 0 calc(82px + env(safe-area-inset-bottom))!important;box-sizing:border-box!important}
+body.mk-white #auctionDirectionScreen .auctionDirectionWrap{max-width:520px!important;margin:0 auto!important;padding:calc(18px + env(safe-area-inset-top)) 18px 30px!important}
+body.mk-white #auctionDirectionScreen .auctionDirectionHeader{padding:4px 0 28px!important}
+body.mk-white #auctionDirectionScreen .auctionDirectionHeader img{width:178px!important;height:49px!important;object-fit:contain!important}
+body.mk-white #auctionDirectionScreen .auctionDirectionIntro{margin-bottom:22px!important}
+body.mk-white #auctionDirectionScreen .auctionDirectionIntro h2{font-size:27px!important;font-weight:850!important;letter-spacing:-.7px!important;color:#142b49!important}
+body.mk-white #auctionDirectionScreen .auctionDirectionIntro p{font-size:14px!important;color:#8995a6!important}
+body.mk-white #auctionDirectionScreen .auctionDirectionCard{min-height:145px!important;border-radius:19px!important;border:1px solid #e8edf4!important;padding:12px!important;gap:14px!important;margin-bottom:16px!important;background:#fff!important;box-shadow:0 5px 22px rgba(23,54,88,.09)!important}
+body.mk-white #auctionDirectionScreen .auctionDirectionCard>img,
+body.mk-white #auctionDirectionScreen .auctionDirectionShip{width:125px!important;height:119px!important;border-radius:13px!important;object-fit:cover!important}
+body.mk-white #auctionDirectionScreen .auctionDirectionCopy b{font-size:17px!important;font-weight:800!important;line-height:1.25!important}
+body.mk-white #auctionDirectionScreen .auctionDirectionCopy small{font-size:12px!important;line-height:1.4!important}
+body.mk-white #auctionDirectionScreen .auctionDirectionCopy em{font-size:12px!important}
+body.mk-white #auctionDirectionScreen .auctionDirectionDisabled{opacity:1!important;background:#fafbfc!important}
+body.mk-white #auctionDirectionScreen .auctionDirectionDisabled>img,
+body.mk-white #auctionDirectionScreen .auctionDirectionDisabled .auctionDirectionShip{opacity:.55!important;filter:saturate(.55)!important}
+body.mk-white #auctionDirectionScreen .auctionDirectionDisabled .auctionDirectionCopy{opacity:.65!important}
+body.mk-white #auctionDirectionScreen .auctionDirectionSoon{background:#eef1f5!important;color:#778597!important;white-space:nowrap!important}
+body.mk-white #auctionDirectionScreen .auctionDirectionShip{background:linear-gradient(145deg,#d6e9f7,#e9f1f7)!important}
+@media(max-width:390px){body.mk-white #auctionDirectionScreen .auctionDirectionWrap{padding-left:12px!important;padding-right:12px!important}body.mk-white #auctionDirectionScreen .auctionDirectionCard>img,body.mk-white #auctionDirectionScreen .auctionDirectionShip{width:102px!important;height:111px!important}body.mk-white #auctionDirectionScreen .auctionDirectionCopy b{font-size:15px!important}body.mk-white #auctionDirectionScreen .auctionDirectionCard{gap:10px!important}}
+
+/* Direction selector layout repair: honor app viewport and bottom navigation. */
+body.mk-white #auctionDirectionScreen.modernScreen.open{
+ display:block!important;
+ position:fixed!important;
+ top:0!important;
+ bottom:calc(var(--bottom,56px) + env(safe-area-inset-bottom))!important;
+ left:50%!important;
+ right:auto!important;
+ transform:translateX(-50%)!important;
+ width:100%!important;
+ max-width:520px!important;
+ height:auto!important;
+ min-height:0!important;
+ z-index:85!important;
+ background:#fff!important;
+ overflow-y:auto!important;
+ overflow-x:hidden!important;
+ padding:0!important;
+ box-sizing:border-box!important;
+}
+body.mk-white #auctionDirectionScreen .auctionDirectionWrap{
+ width:100%!important;
+ max-width:480px!important;
+ margin:0 auto!important;
+ padding:16px 16px 24px!important;
+ box-sizing:border-box!important;
+}
+body.mk-white #auctionDirectionScreen .auctionDirectionHeader{padding:0 0 18px!important;min-height:52px!important}
+body.mk-white #auctionDirectionScreen .auctionDirectionHeader img{width:150px!important;height:45px!important}
+body.mk-white #auctionDirectionScreen .auctionDirectionIntro{margin-bottom:18px!important}
+body.mk-white #auctionDirectionScreen .auctionDirectionIntro h2{font-size:23px!important;margin:0 0 5px!important}
+body.mk-white #auctionDirectionScreen .auctionDirectionCard{
+ width:100%!important;
+ min-height:116px!important;
+ height:auto!important;
+ margin:0 0 12px!important;
+ padding:10px!important;
+ border-radius:17px!important;
+ gap:12px!important;
+ box-sizing:border-box!important;
+ display:flex!important;
+ align-items:center!important;
+}
+body.mk-white #auctionDirectionScreen .auctionDirectionCard>img,
+body.mk-white #auctionDirectionScreen .auctionDirectionShip{
+ width:100px!important;
+ height:96px!important;
+ flex:0 0 100px!important;
+ object-fit:cover!important;
+}
+body.mk-white #auctionDirectionScreen .auctionDirectionCopy{gap:5px!important;flex:1 1 0!important;min-width:0!important}
+body.mk-white #auctionDirectionScreen .auctionDirectionCopy b{font-size:15px!important;overflow-wrap:anywhere!important}
+body.mk-white #auctionDirectionScreen .auctionDirectionSoon{flex:0 0 auto!important;font-size:9px!important;padding:5px!important}
+body.mk-white #auctionDirectionScreen .auctionDirectionArrow{flex:0 0 30px!important}
+@media(max-width:375px){
+ body.mk-white #auctionDirectionScreen .auctionDirectionWrap{padding:12px 10px 20px!important}
+ body.mk-white #auctionDirectionScreen .auctionDirectionCard>img,
+ body.mk-white #auctionDirectionScreen .auctionDirectionShip{width:84px!important;height:91px!important;flex-basis:84px!important}
+ body.mk-white #auctionDirectionScreen .auctionDirectionCard{gap:8px!important}
+ body.mk-white #auctionDirectionScreen .auctionDirectionCopy b{font-size:14px!important}
+}
+
+/* Direction selector v3: fit within existing app shell instead of covering the bottom nav. */
+body.mk-white #auctionDirectionScreen.modernScreen.open{
+ position:fixed!important;
+ top:0!important;
+ bottom:calc(var(--bottom,56px) + env(safe-area-inset-bottom))!important;
+ left:50%!important;right:auto!important;
+ transform:translateX(-50%)!important;
+ width:100%!important;max-width:520px!important;
+ height:auto!important;min-height:0!important;
+ z-index:85!important;
+ display:block!important;
+ overflow-y:auto!important;
+ padding:0!important;
+ background:#fff!important;
+ box-sizing:border-box!important;
+}
+body.mk-white #auctionDirectionScreen .auctionDirectionWrap{
+ width:100%!important;max-width:520px!important;
+ padding:calc(12px + env(safe-area-inset-top)) 16px 28px!important;
+ box-sizing:border-box!important;
+}
+body.mk-white #auctionDirectionScreen .auctionDirectionHeader{padding:6px 0 20px!important}
+body.mk-white #auctionDirectionScreen .auctionDirectionIntro{margin-bottom:18px!important}
+body.mk-white #auctionDirectionScreen .auctionDirectionCard{
+ display:flex!important;flex-direction:row!important;align-items:center!important;
+ width:100%!important;max-width:none!important;
+ min-height:126px!important;height:auto!important;
+ margin:0 0 13px!important;padding:10px!important;
+ gap:12px!important;border-radius:18px!important;
+}
+body.mk-white #auctionDirectionScreen .auctionDirectionCard>img,
+body.mk-white #auctionDirectionScreen .auctionDirectionShip{
+ display:block!important;width:104px!important;min-width:104px!important;
+ height:104px!important;object-fit:cover!important;flex:0 0 104px!important;
+}
+body.mk-white #auctionDirectionScreen .auctionDirectionShip{display:grid!important}
+body.mk-white #auctionDirectionScreen .auctionDirectionCopy{
+ display:flex!important;flex-direction:column!important;
+ align-items:flex-start!important;justify-content:center!important;
+ flex:1 1 0!important;min-width:0!important;gap:7px!important;
+}
+body.mk-white #auctionDirectionScreen .auctionDirectionCopy b{font-size:16px!important;white-space:normal!important}
+body.mk-white #auctionDirectionScreen .auctionDirectionArrow,
+body.mk-white #auctionDirectionScreen .auctionDirectionSoon{flex-shrink:0!important}
+@media(max-width:370px){
+ body.mk-white #auctionDirectionScreen .auctionDirectionWrap{padding-left:10px!important;padding-right:10px!important}
+ body.mk-white #auctionDirectionScreen .auctionDirectionCard>img,
+ body.mk-white #auctionDirectionScreen .auctionDirectionShip{width:82px!important;min-width:82px!important;height:95px!important;flex-basis:82px!important}
+ body.mk-white #auctionDirectionScreen .auctionDirectionCopy b{font-size:14px!important}
+}
+
+/* Final approved white direction layout. Overrides previous iterations in one place. */
+body.mk-white #auctionDirectionScreen.modernScreen.open{position:fixed!important;inset:0 auto calc(var(--bottom,56px) + env(safe-area-inset-bottom)) 50%!important;transform:translateX(-50%)!important;width:100%!important;max-width:520px!important;height:auto!important;display:block!important;overflow-y:auto!important;overflow-x:hidden!important;background:#fff!important;padding:0!important;z-index:85!important}
+body.mk-white #auctionDirectionScreen .auctionDirectionWrap{width:100%!important;max-width:520px!important;box-sizing:border-box!important;margin:0 auto!important;padding:calc(14px + env(safe-area-inset-top)) 17px 28px!important}
+body.mk-white #auctionDirectionScreen .auctionDirectionHeader{display:flex!important;align-items:center!important;justify-content:space-between!important;height:66px!important;padding:0 0 16px!important;margin:0 0 18px!important;border-bottom:1px solid #eef2f7!important}
+body.mk-white #auctionDirectionScreen .auctionDirectionBrand img{display:block!important;width:170px!important;height:52px!important;object-fit:contain!important;object-position:left center!important}
+body.mk-white #auctionDirectionScreen .auctionDirectionBell{display:grid!important;place-items:center!important;width:39px!important;height:39px!important;border-radius:50%!important;background:#f5f8fc!important;color:#183452!important;font-size:26px!important}
+body.mk-white #auctionDirectionScreen .auctionDirectionIntro{margin:0 0 23px!important}
+body.mk-white #auctionDirectionScreen .auctionDirectionIntro h2{font-size:25px!important;line-height:1.18!important;letter-spacing:-.45px!important;font-weight:850!important;margin:0 0 9px!important;color:#122b49!important}
+body.mk-white #auctionDirectionScreen .auctionDirectionIntro p{font-size:13px!important;color:#8996a7!important;margin:0!important}
+body.mk-white #auctionDirectionScreen .auctionDirectionCard{position:relative!important;display:flex!important;flex-direction:row!important;align-items:center!important;gap:12px!important;width:100%!important;min-height:142px!important;height:142px!important;padding:10px!important;margin:0 0 17px!important;box-sizing:border-box!important;border:1px solid #e8edf3!important;border-radius:20px!important;background:#fff!important;box-shadow:0 5px 17px #15355412!important;text-align:left!important;color:#142e4b!important}
+body.mk-white #auctionDirectionScreen .auctionDirectionCard>img,body.mk-white #auctionDirectionScreen .auctionDirectionShip{display:grid!important;place-items:center!important;width:122px!important;min-width:122px!important;height:120px!important;flex:0 0 122px!important;border-radius:13px!important;object-fit:cover!important;overflow:hidden!important}
+body.mk-white #auctionDirectionScreen .auctionDirectionShip{font-size:51px!important;background:linear-gradient(140deg,#d5e7f4,#f2f6fa)!important}
+body.mk-white #auctionDirectionScreen .auctionDirectionCopy{display:flex!important;flex:1 1 0!important;min-width:0!important;flex-direction:column!important;align-items:flex-start!important;justify-content:center!important;gap:9px!important}
+body.mk-white #auctionDirectionScreen .auctionDirectionCopy b{font-size:16px!important;line-height:1.2!important;font-weight:850!important;white-space:normal!important}
+body.mk-white #auctionDirectionScreen .auctionDirectionCopy small{font-size:12px!important;color:#78899c!important;line-height:1.25!important}
+body.mk-white #auctionDirectionScreen .auctionDirectionCopy em{font-size:12px!important;font-style:normal!important;font-weight:750!important;color:#147cdd!important}
+body.mk-white #auctionDirectionScreen .auctionDirectionArrow{display:grid!important;place-items:center!important;flex:0 0 30px!important;width:30px!important;height:30px!important;border-radius:50%!important;background:#087bfa!important;color:white!important;font-size:21px!important}
+body.mk-white #auctionDirectionScreen .auctionDirectionDisabled{opacity:1!important;background:#fcfdff!important}
+body.mk-white #auctionDirectionScreen .auctionDirectionDisabled>img,body.mk-white #auctionDirectionScreen .auctionDirectionDisabled .auctionDirectionShip{opacity:.56!important;filter:saturate(.55)!important}
+body.mk-white #auctionDirectionScreen .auctionDirectionDisabled .auctionDirectionCopy{opacity:.7!important}
+body.mk-white #auctionDirectionScreen .auctionDirectionDisabled .auctionDirectionCopy em{color:#8995a3!important}
+body.mk-white #auctionDirectionScreen .auctionDirectionSoon{font-size:10px!important;flex:0 0 auto!important;white-space:nowrap!important;padding:6px!important;border-radius:8px!important;background:#eff2f6!important;color:#8391a1!important}
+@media(max-width:390px){body.mk-white #auctionDirectionScreen .auctionDirectionWrap{padding-left:12px!important;padding-right:12px!important}body.mk-white #auctionDirectionScreen .auctionDirectionCard{height:130px!important;min-height:130px!important;gap:9px!important}body.mk-white #auctionDirectionScreen .auctionDirectionCard>img,body.mk-white #auctionDirectionScreen .auctionDirectionShip{width:98px!important;min-width:98px!important;flex-basis:98px!important;height:108px!important}body.mk-white #auctionDirectionScreen .auctionDirectionCopy b{font-size:14px!important}body.mk-white #auctionDirectionScreen .auctionDirectionSoon{font-size:9px!important;padding:5px!important}}
+
+
+/* Keep the Admin Panel entry hidden until verified access explicitly reveals it. */
+body.mk-white .profileMenu>button[hidden]{display:none!important}

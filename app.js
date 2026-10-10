@@ -32,12 +32,13 @@ let registeredTotal=0, registeredTodayCount=0;
 async function refreshRegisteredCount(){
  try{
   const r=await fetch('/api/public-stats?t='+Date.now(),{cache:'no-store'});if(!r.ok)throw Error('Stats unavailable');
-  const d=await r.json();registeredTotal=Number(d.registeredUsers||0);registeredTodayCount=Number(d.registeredToday||0);
-  const c=$("registeredCount");if(c)c.textContent=registeredTotal.toLocaleString("en-US");
-  const la=$("liveAudience");if(la)la.textContent=`👥 ${registeredTotal} ${registeredTotal===1?'участник':(registeredTotal>=2&&registeredTotal<=4?'участника':'участников')}`;
-  const t=$("registeredToday");if(t)t.textContent=`сегодня +${registeredTodayCount}`;
+  const d=await r.json();registeredTotal=Number(d.registeredUsers||0);registeredTodayCount=Number(d.registeredToday||0);const visitorsTotal=Number(d.visitorsTotal||0),incompleteVisitors=Number(d.incompleteVisitors||0);
+  const c=$("registeredCount");if(c)c.textContent=visitorsTotal.toLocaleString("en-US");
+  const today=Number(d.visitorsToday||0);
+  const la=$("liveAudience");if(la)la.textContent=`👥 Всего участников: ${visitorsTotal.toLocaleString("en-US")} · +${today.toLocaleString("en-US")} сегодня`;
+  const t=$("registeredToday");if(t)t.textContent=`+${today.toLocaleString("en-US")} сегодня`;
   const pt=$("registeredTotalProfile");if(pt)pt.textContent=registeredTotal.toLocaleString("en-US");
-  const ptd=$("registeredTodayProfile");if(ptd)ptd.textContent=`Сегодня: +${registeredTodayCount}`;
+  const ptd=$("registeredTodayProfile");if(ptd)ptd.textContent=`Сегодня +${registeredTodayCount} · Открывали: ${visitorsTotal} · Не завершили: ${incompleteVisitors}`;
  }catch(e){console.warn("Registered users count failed",e);}
 }
 registrationReady.then(()=>refreshRegisteredCount());
@@ -51,21 +52,21 @@ let serverClockOffsetMs=0;
 let lastSnapshotAt=0;
 let stateBusy=false;
 const lots=[
-{no:"001",title:"Mercedes-Benz G63 AMG 2025",price:75000,meta:["10,500 km","Petrol","Automatic","4WD"],photos:["images/lot1-1.webp","images/lot1-2.webp","images/lot1-3.webp","images/lot1-4.webp"],details:[["Specs","Japanese Specs"],["Engine","4.0L V8"],["Interior","Red"],["Exterior","Black"],["Steering","Left Hand"],["Seats","5"],["Warranty","Yes"]]},
-{no:"002",title:"BMW X7 xDrive40i 2020",price:15000,meta:["101,000 km","Petrol","Automatic","AWD"],photos:["images/lot2-1.webp","images/lot2-2.webp","images/lot2-3.webp","images/lot2-4.webp"],details:[["Specs","GCC Specs"],["Engine","3.0L / 6 cyl."],["Interior","Brown"],["Exterior","Black"],["Steering","Left Hand"],["Seats","7"],["Body","SUV"]]},
-{no:"003",title:"Hyundai Palisade Calligraphy 2026",price:17000,meta:["0 km","Petrol","Automatic","SUV"],photos:["images/lot3-1.webp","images/lot3-2.webp","images/lot3-3.webp","images/lot3-4.webp"],details:[["Specs","GCC Specs"],["Engine","3.5–3.9L / V6"],["Interior","Tan"],["Exterior","Black"],["Steering","Left Hand"],["Seats","7"],["Trim","Calligraphy"]]},
-{no:"004",title:"Toyota Camry Limited 2026 Hybrid",price:10000,meta:["0 km","Hybrid","Automatic","Sedan"],photos:["images/lot4-1.webp","images/lot4-2.webp","images/lot4-3.webp","images/lot4-4.webp"],details:[["Specs","GCC Specs"],["Engine","4 cyl. Hybrid"],["Interior","Tan"],["Exterior","Grey"],["Steering","Left Hand"],["Seats","5"],["Trim","Limited"]]},
-{no:"005",title:"Mercedes-Benz G63 AMG 2021",price:20000,meta:["203,634 km","Gasoline","Automatic","AWD"],photos:["images/lot5-1.jpeg","images/lot5-2.jpeg","images/lot5-3.jpeg","images/lot5-4.jpeg"],details:[["Engine","4.0L V8"],["Exterior","Black"],["Start code","Run and Drive"],["Key","Present"],["Primary damage","Mechanical"],["Secondary damage","Front end"],["Sale document","Certificate of title (FL)"]]},
-{no:"006",title:"Toyota Camry LE 2022",price:2500,meta:["450,000 km","Hybrid","Automatic","Sedan"],photos:["images/lot6-1.webp","images/lot6-2.webp"],details:[["Specs","GCC Specs"],["Trim","LE"],["Engine","4 cyl. Hybrid"],["Interior","Black"],["Exterior","White"],["Steering","Left Hand"],["Seats","5"]]},
-{no:"007",title:"BMW X5 xDrive40i M Sport 2023",price:7000,meta:["45,607 km","Petrol","Automatic","SUV"],photos:["images/lot7-1.jpeg","images/lot7-2.jpeg","images/lot7-3.jpeg","images/lot7-4.jpeg"],details:[["Specs","GCC Specs"],["Engine","3.0–3.5L / 6 cyl."],["Interior","Black"],["Exterior","White"],["Steering","Left Hand"],["Seats","5"],["Warranty","Yes"]]},
-{no:"008",title:"Toyota Land Cruiser VXR Grand Touring 2018",price:13000,meta:["107,250 km","Petrol","Automatic","SUV"],photos:["images/lot8-1.webp","images/lot8-2.webp","images/lot8-3.webp","images/lot8-4.webp"],details:[["Specs","GCC Specs"],["Engine","4000+ cc / V8"],["Interior","Maroon"],["Exterior","White"],["Steering","Left Hand"],["Seats","7"],["Trim","VXR Grand Touring"]]},
-{no:"009",title:"Toyota Land Cruiser GXR 2018",price:5000,meta:["135,000 km","Petrol","Automatic","SUV"],photos:["images/lot9-1.webp"],details:[["Specs","GCC Specs"],["Engine","6 cyl."],["Interior","Beige"],["Exterior","Silver"],["Steering","Left Hand"],["Seats","7"],["Warranty","No"]]},
-{no:"010",title:"BMW X5 xDrive50i M Sport 2022",price:3000,meta:["97,595 km","Petrol","Automatic","SUV"],photos:["images/lot10-1.jpeg"],details:[["Specs","GCC Specs"],["Engine","4000+ cc / V8"],["Power","500–599 HP"],["Interior","Brown"],["Exterior","Black"],["Steering","Left Hand"],["Seats","5"],["Warranty","Yes"]]},
-{no:"011",title:"Toyota Land Cruiser Adventure 2025",price:15,meta:["28,687 km","Petrol","Automatic","SUV"],photos:["images/lot11-1.jpeg"],details:[["Specs","GCC Specs"],["Engine","4 cyl."],["Power","200–299 HP"],["Interior","Brown"],["Exterior","White"],["Steering","Left Hand"],["Warranty","Yes"]]},
-{no:"012",title:"Toyota Land Cruiser GXR 2018",price:10,meta:["55,000 km","Diesel","Automatic","SUV"],photos:["images/lot12-1.webp","images/lot12-2.webp"],details:[["Specs","GCC Specs"],["Engine","4000+ cc / V8"],["Power","300–399 HP"],["Interior","Beige"],["Exterior","Black"],["Steering","Left Hand"],["Seats","7"]]},
-{no:"013",title:"Lamborghini Urus Mansory Edition 2020",price:120000,meta:["52,000 km","Petrol","Automatic","SUV"],photos:["images/lot13-1.webp","images/lot13-2.webp","images/lot13-3.webp"],details:[["Specs","GCC Specs"],["Engine","4000+ cc / V8"],["Power","600–699 HP"],["Steering","Left Hand"],["Seats","4"],["Trim","Mansory Edition"]]},
-{no:"014",title:"Lamborghini Huracan EVO Spyder 2023",price:145000,meta:["4,005 km","Petrol","Automatic","Convertible"],photos:["images/lot14-1.webp","images/lot14-2.webp"],details:[["Specs","GCC Specs"],["Engine","4000+ cc / V10"],["Power","600–699 HP"],["Interior","Black"],["Exterior","Yellow"],["Steering","Left Hand"],["Seats","2"]]},
-{no:"015",title:"Lamborghini Huracan EVO Coupe 2021",price:250000,meta:["14,563 km","Petrol","Automatic","Coupe"],photos:["images/lot15-1.webp"],details:[["Specs","GCC Specs"],["Engine","4000+ cc / V10"],["Power","600–699 HP"],["Interior","Black"],["Exterior","Red"],["Steering","Left Hand"],["Seats","2"]]},
+{no:"001",title:"Mercedes-Benz G63 AMG 2025",price:75000,meta:["10,500 миль","Petrol","Automatic","4WD"],photos:["images/lot1-1.webp","images/lot1-2.webp","images/lot1-3.webp","images/lot1-4.webp"],details:[["Specs","Japanese Specs"],["Engine","4.0L V8"],["Interior","Red"],["Exterior","Black"],["Steering","Left Hand"],["Seats","5"],["Warranty","Yes"]]},
+{no:"002",title:"BMW X7 xDrive40i 2020",price:15000,meta:["101,000 миль","Petrol","Automatic","AWD"],photos:["images/lot2-1.webp","images/lot2-2.webp","images/lot2-3.webp","images/lot2-4.webp"],details:[["Specs","GCC Specs"],["Engine","3.0L / 6 cyl."],["Interior","Brown"],["Exterior","Black"],["Steering","Left Hand"],["Seats","7"],["Body","SUV"]]},
+{no:"003",title:"Hyundai Palisade Calligraphy 2026",price:17000,meta:["0 миль","Petrol","Automatic","SUV"],photos:["images/lot3-1.webp","images/lot3-2.webp","images/lot3-3.webp","images/lot3-4.webp"],details:[["Specs","GCC Specs"],["Engine","3.5–3.9L / V6"],["Interior","Tan"],["Exterior","Black"],["Steering","Left Hand"],["Seats","7"],["Trim","Calligraphy"]]},
+{no:"004",title:"Toyota Camry Limited 2026 Hybrid",price:10000,meta:["0 миль","Hybrid","Automatic","Sedan"],photos:["images/lot4-1.webp","images/lot4-2.webp","images/lot4-3.webp","images/lot4-4.webp"],details:[["Specs","GCC Specs"],["Engine","4 cyl. Hybrid"],["Interior","Tan"],["Exterior","Grey"],["Steering","Left Hand"],["Seats","5"],["Trim","Limited"]]},
+{no:"005",title:"Mercedes-Benz G63 AMG 2021",price:20000,meta:["203,634 миль","Gasoline","Automatic","AWD"],photos:["images/lot5-1.jpeg","images/lot5-2.jpeg","images/lot5-3.jpeg","images/lot5-4.jpeg"],details:[["Engine","4.0L V8"],["Exterior","Black"],["Start code","Run and Drive"],["Key","Present"],["Primary damage","Mechanical"],["Secondary damage","Front end"],["Sale document","Certificate of title (FL)"]]},
+{no:"006",title:"Toyota Camry LE 2022",price:2500,meta:["450,000 миль","Hybrid","Automatic","Sedan"],photos:["images/lot6-1.webp","images/lot6-2.webp"],details:[["Specs","GCC Specs"],["Trim","LE"],["Engine","4 cyl. Hybrid"],["Interior","Black"],["Exterior","White"],["Steering","Left Hand"],["Seats","5"]]},
+{no:"007",title:"BMW X5 xDrive40i M Sport 2023",price:7000,meta:["45,607 миль","Petrol","Automatic","SUV"],photos:["images/lot7-1.jpeg","images/lot7-2.jpeg","images/lot7-3.jpeg","images/lot7-4.jpeg"],details:[["Specs","GCC Specs"],["Engine","3.0–3.5L / 6 cyl."],["Interior","Black"],["Exterior","White"],["Steering","Left Hand"],["Seats","5"],["Warranty","Yes"]]},
+{no:"008",title:"Toyota Land Cruiser VXR Grand Touring 2018",price:13000,meta:["107,250 миль","Petrol","Automatic","SUV"],photos:["images/lot8-1.webp","images/lot8-2.webp","images/lot8-3.webp","images/lot8-4.webp"],details:[["Specs","GCC Specs"],["Engine","4000+ cc / V8"],["Interior","Maroon"],["Exterior","White"],["Steering","Left Hand"],["Seats","7"],["Trim","VXR Grand Touring"]]},
+{no:"009",title:"Toyota Land Cruiser GXR 2018",price:5000,meta:["135,000 миль","Petrol","Automatic","SUV"],photos:["images/lot9-1.webp"],details:[["Specs","GCC Specs"],["Engine","6 cyl."],["Interior","Beige"],["Exterior","Silver"],["Steering","Left Hand"],["Seats","7"],["Warranty","No"]]},
+{no:"010",title:"BMW X5 xDrive50i M Sport 2022",price:3000,meta:["97,595 миль","Petrol","Automatic","SUV"],photos:["images/lot10-1.jpeg"],details:[["Specs","GCC Specs"],["Engine","4000+ cc / V8"],["Power","500–599 HP"],["Interior","Brown"],["Exterior","Black"],["Steering","Left Hand"],["Seats","5"],["Warranty","Yes"]]},
+{no:"011",title:"Toyota Land Cruiser Adventure 2025",price:15,meta:["28,687 миль","Petrol","Automatic","SUV"],photos:["images/lot11-1.jpeg"],details:[["Specs","GCC Specs"],["Engine","4 cyl."],["Power","200–299 HP"],["Interior","Brown"],["Exterior","White"],["Steering","Left Hand"],["Warranty","Yes"]]},
+{no:"012",title:"Toyota Land Cruiser GXR 2018",price:10,meta:["55,000 миль","Diesel","Automatic","SUV"],photos:["images/lot12-1.webp","images/lot12-2.webp"],details:[["Specs","GCC Specs"],["Engine","4000+ cc / V8"],["Power","300–399 HP"],["Interior","Beige"],["Exterior","Black"],["Steering","Left Hand"],["Seats","7"]]},
+{no:"013",title:"Lamborghini Urus Mansory Edition 2020",price:120000,meta:["52,000 миль","Petrol","Automatic","SUV"],photos:["images/lot13-1.webp","images/lot13-2.webp","images/lot13-3.webp"],details:[["Specs","GCC Specs"],["Engine","4000+ cc / V8"],["Power","600–699 HP"],["Steering","Left Hand"],["Seats","4"],["Trim","Mansory Edition"]]},
+{no:"014",title:"Lamborghini Huracan EVO Spyder 2023",price:145000,meta:["4,005 миль","Petrol","Automatic","Convertible"],photos:["images/lot14-1.webp","images/lot14-2.webp"],details:[["Specs","GCC Specs"],["Engine","4000+ cc / V10"],["Power","600–699 HP"],["Interior","Black"],["Exterior","Yellow"],["Steering","Left Hand"],["Seats","2"]]},
+{no:"015",title:"Lamborghini Huracan EVO Coupe 2021",price:250000,meta:["14,563 миль","Petrol","Automatic","Coupe"],photos:["images/lot15-1.webp"],details:[["Specs","GCC Specs"],["Engine","4000+ cc / V10"],["Power","600–699 HP"],["Interior","Black"],["Exterior","Red"],["Steering","Left Hand"],["Seats","2"]]},
 ]
 let managedLotStatuses={};let liveTodayQueue=[];let galaxyStartAt=null;
 let i=0,seconds=15,phase="red",price=lots[0].price,inc=1000,soundOn=false,audioCtx=null,timerId=null,bidder=318,closed=false;
@@ -155,7 +156,7 @@ async function fetchAuctionState(){
  }catch(e){console.warn("Auction state read",e.message)}
 }
 function normalizedPhotos(l){const seen=new Set();return [...(l.images||[]).sort((a,b)=>(Number(a.sort_order)||0)-(Number(b.sort_order)||0)).map(x=>x?.image_url),l.primary_image].filter(u=>{u=String(u||'').trim();if(!u||seen.has(u))return false;seen.add(u);return true;});}
-function upsertServerLot(l){if(!l)return;const no=String(l.lot_number).padStart(3,'0'),photos=normalizedPhotos(l);const sourceDetails=[["Mileage",l.mileage==null?null:`${Number(l.mileage).toLocaleString()} km`],["Engine",l.engine],["Fuel",l.fuel],["Transmission",l.transmission],["Drive",l.drive],["Interior",l.interior_color],["Exterior",l.exterior_color],["VIN",l.vin],["Auction location",l.auction_location||l.auction_yard||l.location],["Estimated retail value",l.estimated_retail_value==null?null:money(Number(l.estimated_retail_value))],["Primary damage",l.primary_damage],["Specs",l.specs],["Seats",l.seats]];const q={id:l.id,no,title:[l.make,l.model,l.year].filter(Boolean).join(' '),price:Number(l.starting_bid||0),meta:[l.mileage==null?'—':`${Number(l.mileage).toLocaleString()} km`,l.fuel||'—',l.transmission||'—',l.drive||'—'],photos,details:sourceDetails.filter(d=>d[1]!==null&&d[1]!==undefined&&String(d[1]).trim()!=='')};const idx=lots.findIndex(x=>String(x.id||'')===String(l.id||'')||Number(x.no)===Number(l.lot_number));if(idx>=0){if(!q.photos.length)q.photos=lots[idx].photos;if(q.meta.every(v=>v==='—'||v==='0 km'))q.meta=lots[idx].meta;lots[idx]={...lots[idx],...q};}else lots.push(q);}
+function upsertServerLot(l){if(!l)return;const no=String(l.lot_number).padStart(3,'0'),photos=normalizedPhotos(l);const sourceDetails=[["Mileage",l.mileage==null?null:`${Number(l.mileage).toLocaleString()} миль`],["Engine",l.engine],["Fuel",l.fuel],["Transmission",l.transmission],["Drive",l.drive],["Interior",l.interior_color],["Exterior",l.exterior_color],["VIN",l.vin],["Auction location",l.auction_location||l.auction_yard||l.location],["Estimated retail value",l.estimated_retail_value==null?null:money(Number(l.estimated_retail_value))],["Primary damage",l.primary_damage],["Specs",l.specs],["Seats",l.seats]];const q={id:l.id,no,title:[l.make,l.model,l.year].filter(Boolean).join(' '),price:Number(l.starting_bid||0),meta:[l.mileage==null?'—':`${Number(l.mileage).toLocaleString()} миль`,l.fuel||'—',l.transmission||'—',l.drive||'—'],photos,description:String(l.description||'').replace(/\n?\[\[[^\]]+\]\]/g,'').trim(),details:sourceDetails.filter(d=>d[1]!==null&&d[1]!==undefined&&String(d[1]).trim()!=='')};const idx=lots.findIndex(x=>String(x.id||'')===String(l.id||'')||Number(x.no)===Number(l.lot_number));if(idx>=0){if(!q.photos.length)q.photos=lots[idx].photos;if(q.meta.every(v=>v==='—'||v==='0 миль'))q.meta=lots[idx].meta;lots[idx]={...lots[idx],...q};}else lots.push(q);}
 function applyAuctionState(row,forceRender=false){
  if(!row)return;
  const incomingAudioKey=String(row.lot_id||1);
@@ -321,7 +322,18 @@ let detailBidDirty=false;
 function detailCountdown(){if(stateRow?.status==='waiting'&&galaxyStartAt)return galaxyFormatCountdown(new Date(galaxyStartAt).getTime()-serverNowMs());return closed?'Завершено':whiteTime(seconds)}
 async function loadDetailPrebid(){const q=lots[detailIndex];if(!q||!tg?.initData)return;try{const res=await fetch('/api/prebid',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:tg.initData,lotId:Number(q.no),action:'snapshot'})}),out=await res.json();if(res.ok)detailPrebid={lotId:Number(q.no),currentBid:Number(out.currentBid||q.price||0),myMaximum:out.myMaximum==null?null:Number(out.myMaximum),leader:out.leader||null,canBid:!!out.canBid};else detailPrebid={lotId:Number(q.no),currentBid:Number(q.price||0),myMaximum:null,leader:null,canBid:false};syncDetailBid()}catch(e){console.warn('Pre-bid snapshot',e.message)}}
 function syncDetailBid(){if(!$('detailOverlay')?.classList.contains('open'))return;const q=lots[detailIndex],isCurrent=Number(q?.no)===Number(lots[i]?.no),status=String(managedLotStatuses[String(Number(q?.no))]||'').toLowerCase(),pre=status==='upcoming',snap=detailPrebid.lotId===Number(q?.no)?detailPrebid:null,current=pre&&snap?Number(snap.currentBid||q.price||0):(isCurrent?price:Number(q?.price||0)),mine=pre&&snap?snap.myMaximum:(isCurrent?myLatestBidAmount:null),input=$('detailBidAmount');$('detailCurrentBid').textContent=money(current);$('detailMyBid').textContent=mine!=null?money(mine):'—';$('detailBidTime').textContent=isCurrent?detailCountdown():'Торги по расписанию';if(!detailBidDirty&&document.activeElement!==input)input.value=String(Math.round(mine!=null?mine:current+DETAIL_PREBID_STEP));$('detailBidSubmit').disabled=bidSubmitting||(pre?!snap?.canBid:(!isCurrent||closed));$('detailBidSubmit').textContent=pre?'🔨 СОХРАНИТЬ МАКС. СТАВКУ':'🔨 СДЕЛАТЬ СТАВКУ';}
-function openLotDetail(idx){detailIndex=idx;const q=lots[idx];if(!q)return;const photos=(q.photos||[]).filter(Boolean);$("detailHero").src=photos[0]||'';$("detailHero").style.display=photos.length?'block':'none';$("detailThumbs").innerHTML=photos.map((u,k)=>`<img src="${whiteEscape(u)}" class="${k===0?'active':''}" data-dphoto="${whiteEscape(u)}">`).join('');$("detailThumbs").querySelectorAll('img').forEach(im=>im.onclick=()=>{$("detailHero").src=im.dataset.dphoto;$("detailThumbs").querySelectorAll('img').forEach(z=>z.classList.remove('active'));im.classList.add('active')});$("detailTitle").textContent=q.title;$("detailChips").replaceChildren();$("detailSpecs").innerHTML=completeVehicleDetails(q).map(d=>`<div class="detailrow"><span>${whiteEscape(vehicleLabels[d[0]]||d[0])}</span><b>${whiteEscape(d[1]||'—')}</b></div>`).join('');syncDetailBid();$("catalogOverlay").classList.remove('open');$("queueOverlay").classList.remove('open');$("detailOverlay").classList.add('open');detailBidDirty=false;syncDetailBid();loadDetailPrebid();}
+let lotViewerPhotos=[],lotViewerIndex=0;
+function lotViewerShow(){const img=$('lotPhotoFull');if(!lotViewerPhotos.length)return;img.src=lotViewerPhotos[lotViewerIndex];$('lotPhotoCounter').textContent=(lotViewerIndex+1)+' / '+lotViewerPhotos.length}
+function lotViewerOpen(index=0){const q=lots[detailIndex];lotViewerPhotos=(q?.photos||[]).filter(Boolean);if(!lotViewerPhotos.length)return;lotViewerIndex=Math.max(0,Math.min(index,lotViewerPhotos.length-1));$('lotPhotoViewer').hidden=false;lotViewerShow()}
+function lotViewerClose(){$('lotPhotoViewer').hidden=true}
+function lotViewerStep(n){if(!lotViewerPhotos.length)return;lotViewerIndex=(lotViewerIndex+n+lotViewerPhotos.length)%lotViewerPhotos.length;lotViewerShow()}
+$('lotPhotoClose').onclick=lotViewerClose;$('lotPhotoPrev').onclick=()=>lotViewerStep(-1);$('lotPhotoNext').onclick=()=>lotViewerStep(1);
+$('lotPhotoViewer').addEventListener('click',e=>{if(e.target===$('lotPhotoViewer'))lotViewerClose()});
+let lotViewerTouch=null;
+$('lotPhotoViewer').addEventListener('touchstart',e=>{const t=e.touches[0];lotViewerTouch=t?{x:t.clientX,y:t.clientY}:null},{passive:true});
+$('lotPhotoViewer').addEventListener('touchend',e=>{if(!lotViewerTouch)return;const t=e.changedTouches[0],dx=t.clientX-lotViewerTouch.x,dy=t.clientY-lotViewerTouch.y;lotViewerTouch=null;if(Math.abs(dx)>45&&Math.abs(dx)>Math.abs(dy)*1.2)lotViewerStep(dx<0?1:-1)},{passive:true});
+document.addEventListener('keydown',e=>{if($('lotPhotoViewer').hidden)return;if(e.key==='Escape')lotViewerClose();if(e.key==='ArrowLeft')lotViewerStep(-1);if(e.key==='ArrowRight')lotViewerStep(1)});
+function openLotDetail(idx){detailIndex=idx;const q=lots[idx];if(!q)return;const photos=(q.photos||[]).filter(Boolean);$("detailHero").src=photos[0]||'';$("detailHero").style.display=photos.length?'block':'none';$("detailThumbs").innerHTML=photos.map((u,k)=>`<img src="${whiteEscape(u)}" class="${k===0?'active':''}" data-dphoto="${whiteEscape(u)}">`).join('');$("detailHero").onclick=()=>lotViewerOpen(Math.max(0,photos.indexOf($("detailHero").src)));$("detailThumbs").querySelectorAll('img').forEach((im,k)=>im.onclick=()=>lotViewerOpen(k));$("detailTitle").textContent=q.title;$("detailChips").replaceChildren();const description=String(q.description||'').trim();$("detailDescriptionBox").open=false;$("detailDescriptionBox").hidden=!description;$("detailDescriptionText").textContent=description;$("detailSpecs").innerHTML=completeVehicleDetails(q).map(d=>`<div class="detailrow"><span>${whiteEscape(vehicleLabels[d[0]]||d[0])}</span><b>${whiteEscape(d[1]||'—')}</b></div>`).join('');syncDetailBid();$("catalogOverlay").classList.remove('open');$("queueOverlay").classList.remove('open');$("detailOverlay").classList.add('open');detailBidDirty=false;syncDetailBid();loadDetailPrebid();if(q.id){const requestedId=String(q.id);fetch('/api/public-lot?id='+encodeURIComponent(requestedId),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(data=>{if(!data?.lot||String(lots[detailIndex]?.id)!==requestedId||!$('detailOverlay').classList.contains('open'))return;upsertServerLot(data.lot);const fresh=lots[detailIndex];const text=String(fresh.description||'').trim();$('detailDescriptionBox').hidden=!text;$('detailDescriptionText').textContent=text;}).catch(e=>console.warn('Description refresh failed',e));}}
 
 function render(doSubscribe=true){
  const x=lots[i];
@@ -357,7 +369,7 @@ function updateBidVisualState(){
  const my=$("myBidAmount");if(my)my.textContent=myLatestBidAmount==null?'—':money(myLatestBidAmount);
  if(!closed){const target=money(price+inc);btn.innerHTML=whiteGavel+(userIsLeader()?' ПОВЫСИТЬ ДО ':' СДЕЛАТЬ СТАВКУ ')+target;}
 }
-function closeModernScreens(){document.querySelectorAll(".modernScreen").forEach(x=>x.classList.remove("open"));document.querySelectorAll("#modernBottomNav button").forEach(x=>x.classList.remove("active"));}
+function closeModernScreens(){document.body.classList.remove("telegramLiveLaunch");document.querySelectorAll(".modernScreen").forEach(x=>x.classList.remove("open"));document.querySelectorAll("#modernBottomNav button").forEach(x=>x.classList.remove("active"));}
 function setModernActive(key){document.querySelectorAll("#modernBottomNav button").forEach(x=>x.classList.toggle("active",x.dataset.modern===key));}
 function applyReferenceLayout(){
  const main=document.querySelector('.main'),details=$("details"),bid=document.querySelector('.bidcol');
@@ -603,12 +615,19 @@ const personalInformation=window.GalaxyAccountInformation.createAccountInformati
   onClose:()=>{setModernActive("profile");$("profileScreen").classList.add("open");}
 });
 
-async function refreshAdminAccess(){
-  if(!tgUser?.id){adminAccess={admin:false,owner:false};return adminAccess;}
-  try{const r=await fetch("/api/admin-access",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({initData:tg?.initData||""})});const d=await r.json();adminAccess=r.ok?d:{admin:false,owner:false};}
-  catch(e){adminAccess={admin:false,owner:false};}
-  const show=!!adminAccess.admin; const p=$("openAdminFromProfile"),q=$("adminQuick"),a=$("adminAccountBtn"); if(p)p.style.display=show?"block":"none";if(q)q.style.display=show?"inline-flex":"none";if(a)a.style.display=show?"block":"none";return adminAccess;
-}
+const adminAccessController=window.GalaxyAdminAccess.createController({
+  fetch:(url,options)=>fetch(url,options),
+  getUserId:()=>tgUser?.id,
+  getInitData:()=>tg?.initData||"",
+  onAccess:access=>{
+    adminAccess=access;
+    window.GalaxyAdminAccess.setButtonAccess($("openAdminFromProfile"),access.admin);
+    const q=$("adminQuick"),a=$("adminAccountBtn");
+    if(q)q.style.display=access.admin?"inline-flex":"none";
+    if(a)a.style.display=access.admin?"block":"none";
+  }
+});
+async function refreshAdminAccess(){return adminAccessController.refresh();}
 async function loadAccountProfile(options={}){
   const hint=$("accountHint");
   if(!tgUser?.id){
@@ -655,8 +674,16 @@ function openAccount(){
 $("settingsBtn").onclick=openAccount;
 renderModernMarkets();
 document.querySelectorAll("[data-close-modern]").forEach(b=>b.onclick=()=>{closeModernScreens();setModernActive("home");$("homeScreen").classList.add("open")});
-document.querySelectorAll("#modernBottomNav [data-modern]").forEach(b=>b.onclick=()=>{const k=b.dataset.modern;closeModernScreens();setModernActive(k);if(k==="home")$("homeScreen").classList.add("open");else if(k==="markets")$("marketsScreen").classList.add("open");else if(k==="bids"){renderModernMyBids();$("myBidsScreen").classList.add("open")}else if(k==="profile"){syncModernProfile();$("profileScreen").classList.add("open");loadAccountProfile();refreshAdminAccess()}});
-document.querySelectorAll("[data-home-auction]").forEach(b=>b.onclick=()=>{closeModernScreens();setModernActive("markets");$("marketsScreen").classList.add("open");});
+document.querySelectorAll("#modernBottomNav [data-modern]").forEach(b=>b.onclick=()=>{
+ const k=b.dataset.modern;
+ if(k==="markets"){openAuctionDirectionScreen();return;}
+ closeModernScreens();setModernActive(k);
+ if(k==="home")$("homeScreen").classList.add("open");
+ else if(k==="bids"){renderModernMyBids();$("myBidsScreen").classList.add("open")}
+ else if(k==="profile"){syncModernProfile();$("profileScreen").classList.add("open");loadAccountProfile();refreshAdminAccess()}
+});
+document.querySelectorAll("[data-home-auction]").forEach(b=>b.onclick=openAuctionDirectionScreen);
+$("auctionDirectionUSA").onclick=enterAuctionMarkets;
 $("openAccountFromProfile").onclick=()=>{closeModernScreens();openAccount()};
 $("openAdminFromProfile").onclick=()=>{closeModernScreens();openAdminPanel()};
 $("accountClose").onclick=()=>$("accountOverlay").classList.remove("open");
@@ -701,7 +728,7 @@ function renderAdminClientProfileTab(tab){
   document.querySelectorAll('[data-client-profile-tab]').forEach(b=>b.classList.toggle('active',b.dataset.clientProfileTab===tab));
   if(tab==='history'){root.innerHTML=`<div class="adminClientHistoryRow"><b>Регистрация клиента</b><span>Telegram ID ${whiteEscape(String(adminProfileClient?.telegram_id||'—'))}</span></div><div class="adminClientHistoryRow"><b>Текущий статус: ${whiteEscape(adminStatusLabel(adminProfileClient?.account_status))}</b><span>Депозит ${adminMoney(adminProfileClient?.deposit_amount)} • лимит ${adminMoney(adminProfileClient?.bid_limit)}</span></div>`;return;}
   if(tab==='docs'){root.innerHTML='<div class="adminClientEmpty">Документов у клиента пока нет.</div>';return;}
-  root.innerHTML='<div class="adminClientEmpty">Автомобили клиента появятся здесь после подтверждённой покупки.</div>';
+  const cars=adminProfileClient?._cars||[];root.innerHTML=cars.length?cars.map(c=>`<div class="adminClientHistoryRow" style="display:flex;gap:10px;align-items:center">${c.primary_image?`<img src="${whiteEscape(c.primary_image)}" style="width:72px;height:54px;object-fit:cover;border-radius:10px">`:''}<div><b>${whiteEscape([c.make,c.model,c.year].filter(Boolean).join(' '))}</b><span>Лот ${whiteEscape(c.lot_number)} • ${adminMoney(c.amount)} • ${c.status==='pending'?'Ожидает подтверждения':'SOLD'}${c.counteroffer?.amount?' • предложение '+adminMoney(c.counteroffer.amount):''}</span></div></div>`).join(''):'<div class="adminClientEmpty">У клиента пока нет выигранных автомобилей.</div>';
 }
 function openAdminClientProfile(u){
   if(!u)return; adminProfileClient=u;
@@ -709,8 +736,12 @@ function openAdminClientProfile(u){
   $("adminClientProfileName").textContent=name; $("adminClientProfileUsername").textContent=u.username?'@'+u.username:'Без username'; $("adminClientProfileId").textContent=u.telegram_id||'—'; $("adminClientProfileAvatar").textContent=(name.slice(0,2)||'MK').toUpperCase();
   const st=String(u.account_status||'pending').toLowerCase(), badge=$("adminClientProfileStatus"); badge.textContent=adminStatusLabel(st); badge.className='adminClientProfileStatus '+st;
   $("adminClientProfileDeposit").textContent=adminMoney(u.deposit_amount); $("adminClientProfileLimit").textContent=adminMoney(u.bid_limit);
-  $("adminClientCarsCount").textContent='0'; $("adminClientDocsCount").textContent='0'; $("adminClientShippingCount").textContent='0'; $("adminClientCarsTabCount").textContent='(0)'; $("adminClientDocsTabCount").textContent='(0)';
+  const phone=String(u.phone||''),email=String(u.email||''),addr=u.residence_address&&typeof u.residence_address==='object'?[u.residence_address.country,u.residence_address.region,u.residence_address.city,u.residence_address.street].filter(Boolean).join(', '):String(u.residence_address||'');
+  const wa=phone?'https://wa.me/'+phone.replace(/\D/g,''):'';
+  $("adminClientContacts").innerHTML=`<b style="display:block;margin-bottom:6px">Контакты клиента</b><div>📞 ${whiteEscape(phone||'Не указан')}</div><div>✉️ ${whiteEscape(email||'Не указан')}</div><div>📍 ${whiteEscape(addr||u.country||'Не указан')}</div>${wa?`<a href="${wa}" target="_blank" rel="noopener" style="display:block;margin-top:10px;padding:11px;text-align:center;border-radius:10px;background:#16a34a;color:white;text-decoration:none;font-weight:800">Написать в WhatsApp</a>`:''}`;
+  $("adminClientCarsCount").textContent='…'; $("adminClientDocsCount").textContent='0'; $("adminClientShippingCount").textContent='0'; $("adminClientCarsTabCount").textContent='(0)'; $("adminClientDocsTabCount").textContent='(0)';
   renderAdminClientProfileTab('cars'); $("adminClientProfileOverlay").classList.add('open');
+  adminApi('/api/admin-client-cars',{telegramId:u.telegram_id}).then(out=>{u._cars=out.cars||[];$("adminClientCarsCount").textContent=String(u._cars.length);$("adminClientCarsTabCount").textContent='('+u._cars.length+')';if(adminProfileClient===u)renderAdminClientProfileTab('cars')}).catch(()=>{$("adminClientCarsCount").textContent='0'});
 }
 async function openAdminPanel(){
   await refreshAdminAccess(); if(!adminAccess.admin){alert("Нет доступа к админ-панели");return;}
@@ -749,7 +780,7 @@ function renderAdminLots(){
   const count=g=>adminLots.filter(x=>group(x)===g).length;
   $("adminLotsSummary").textContent=`Все ${adminLots.length} • Предстоящие ${count('auction')} • Ожидают подтверждения ${count('pending')} • Проданные ${count('sold')}`;
   const labels={inventory:'В НАЛИЧИИ',auction:'ПРЕДСТОЯЩИЙ',pending:'ОЖИДАЕТ',sold:'ПРОДАНО'};
-  root.innerHTML=shown.map(l=>{const idx=adminLots.indexOf(l),pic=l.primary_image||l.images?.[0]?.image_url||"",g=group(l),winner=g==='pending'||g==='sold'?(l.winner_username||l.winner_user_id||'—'):'';return `<div class="adminLotCard" data-admin-lot="${idx}" role="button" tabindex="0">${pic?`<img class="adminLotPic" src="${pic}" alt="${whiteEscape([l.make,l.model,l.year].filter(Boolean).join(' '))}">`:''}<div class="adminLotInfo"><b>${whiteEscape(l.make||"")} ${whiteEscape(l.model||"")} ${l.year||""}</b><small>${l.mileage==null?'—':Number(l.mileage).toLocaleString()+' km'} • Starting ${adminMoney(l.starting_bid)}</small><small>${l.vin?"VIN "+whiteEscape(l.vin):"Без VIN"}</small>${winner?`<span class="adminLotDay">🏆 Победитель: ${whiteEscape(winner)} • ${adminMoney(l.winning_bid||0)}</span>`:''}</div><span class="adminLotStatus ${g}">${labels[g]}</span><span class="adminChevron">›</span></div>`}).join("")||'<div class="emptyWatch">Автомобили не найдены.</div>';
+  root.innerHTML=shown.map(l=>{const idx=adminLots.indexOf(l),pic=l.primary_image||l.images?.[0]?.image_url||"",g=group(l),winner=g==='pending'||g==='sold'?(l.winner_username||l.winner_user_id||'—'):'';return `<div class="adminLotCard" data-admin-lot="${idx}" role="button" tabindex="0">${pic?`<img class="adminLotPic" src="${pic}" alt="${whiteEscape([l.make,l.model,l.year].filter(Boolean).join(' '))}">`:''}<div class="adminLotInfo"><b>${whiteEscape(l.make||"")} ${whiteEscape(l.model||"")} ${l.year||""}</b><small>${l.mileage==null?'—':Number(l.mileage).toLocaleString()+' миль'} • Starting ${adminMoney(l.starting_bid)}</small><small>${l.vin?"VIN "+whiteEscape(l.vin):"Без VIN"}</small>${winner?`<span class="adminLotDay">🏆 Победитель: ${whiteEscape(winner)} • ${adminMoney(l.winning_bid||0)}</span>`:''}</div><span class="adminLotStatus ${g}">${labels[g]}</span><span class="adminChevron">›</span></div>`}).join("")||'<div class="emptyWatch">Автомобили не найдены.</div>';
   root.querySelectorAll('[data-admin-lot]').forEach(el=>{const open=()=>openAdminLotManage(adminLots[Number(el.dataset.adminLot)]);el.onclick=open;el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();open()}}});
 }
 let adminManagedLot=null;
@@ -760,7 +791,7 @@ function openAdminLotManage(l){
   $("adminLotManageMeta").innerHTML=`<span>${l.year||'—'} год</span><span>VIN: ${whiteEscape(l.vin||'—')}</span><span>Lot ID: ${whiteEscape(l.lot_number??l.id??'—')}</span>`;
   $("adminLotManageStatus").textContent=stLabel;$("adminLotManageStatus").className=`adminLotManageStatus ${l.status||"draft"}`;const pd=$("adminPendingDecision");if(pd){const isPending=stNow==="pending";pd.style.display=isPending?"block":"none";if(isPending){$("adminPendingWinner").textContent="🏆 Победитель: "+(l.winner_username||l.winner_user_id||"—");$("adminPendingAmount").textContent="Финальная ставка: "+adminMoney(l.winning_bid||0);}}
   $("manageMake").value=l.make||'';$("manageModel").value=l.model||'';$("manageYear").value=l.year||'';$("manageMileage").value=l.mileage??'';$("manageVin").value=l.vin||'';$("manageStarting").value=Number(l.starting_bid||0);$("manageDescription").value=l.description||'';
-  const hasBids=Number(l.bid_count||0)>0, sold=stNow==='sold';$("adminLotDelete").disabled=hasBids||sold;$("adminLotDelete").title=hasBids||sold?'Лот со ставками/SOLD нельзя удалить':'';
+  const hasBids=Number(l.bid_count||0)>0, sold=stNow==='sold';$("adminLotDelete").disabled=hasBids||sold;$("adminLotQuickDelete").disabled=hasBids||sold;$("adminLotDelete").title=hasBids||sold?'Лот со ставками/SOLD нельзя удалить':'';
   $("adminLotManageMsg").textContent="";
   if($("adminLotSchedule")){ $("adminLotSchedule").style.display=stNow==="draft"?"block":"none"; $("adminLotSchedule").textContent="＋ ДОБАВИТЬ НА ЛОТ"; }
   if($("adminLotStartLive")) $("adminLotStartLive").style.display="none";
@@ -768,7 +799,7 @@ function openAdminLotManage(l){
   $("adminLotManageOverlay").classList.add("open");
 }
 async function saveManagedLot(){if(!adminManagedLot)return;const msg=$("adminLotManageMsg"),btn=$("adminLotSaveChanges");btn.disabled=true;msg.textContent='Сохраняю…';try{const out=await adminApi('/api/admin-update-lot',{lotId:adminManagedLot.id,make:$("manageMake").value.trim(),model:$("manageModel").value.trim(),year:$("manageYear").value?Number($("manageYear").value):null,mileage:$("manageMileage").value?Number($("manageMileage").value):null,vin:$("manageVin").value.trim()||null,startingBid:Number($("manageStarting").value||0),description:$("manageDescription").value.trim()||null});adminManagedLot={...adminManagedLot,...out.lot,description:$("manageDescription").value.trim()||null};msg.textContent='✅ Изменения сохранены';msg.className='adminSaveMsg ok';await loadAdminLots();const fresh=adminLots.find(x=>String(x.id)===String(adminManagedLot.id));if(fresh)openAdminLotManage(fresh)}catch(e){msg.textContent='Ошибка: '+e.message;msg.className='adminSaveMsg error'}finally{btn.disabled=false}}
-async function adminPendingAction(decision){if(!adminManagedLot||String(adminManagedLot.status).toLowerCase()!=='pending')return;const msg=$("adminLotManageMsg");try{const out=await adminApi('/api/admin-pending-action',{lotId:adminManagedLot.id,decision});msg.textContent=decision==='approve'?'✅ Продажа подтверждена':'↩️ Автомобиль возвращён в «Все»';msg.className='adminSaveMsg ok';await loadAdminLots();if(decision==='approve')await refreshHomeSales();const fresh=adminLots.find(x=>String(x.id)===String(adminManagedLot.id));if(fresh)openAdminLotManage(fresh);}catch(e){msg.textContent='Ошибка: '+e.message;msg.className='adminSaveMsg error'}}
+async function adminPendingAction(decision){if(!adminManagedLot||String(adminManagedLot.status).toLowerCase()!=='pending')return;const msg=$("adminLotManageMsg");try{const payload={lotId:adminManagedLot.id,decision};if(decision==='counteroffer')payload.amount=Number($("adminCounterofferAmount").value||0);const out=await adminApi('/api/admin-pending-action',payload);msg.textContent=decision==='approve'?'✅ Продажа подтверждена':'↩️ Автомобиль возвращён в «Все»';msg.className='adminSaveMsg ok';await loadAdminLots();if(decision==='approve')await refreshHomeSales();const fresh=adminLots.find(x=>String(x.id)===String(adminManagedLot.id));if(fresh)openAdminLotManage(fresh);}catch(e){msg.textContent='Ошибка: '+e.message;msg.className='adminSaveMsg error'}}
 async function archiveManagedLot(){if(!adminManagedLot)return;if(!confirm(`Архивировать ${adminManagedLot.make||""} ${adminManagedLot.model||""}? История сохранится.`))return;await adminLotAction('archive')}
 async function deleteManagedLot(){if(!adminManagedLot)return;if(!confirm(`Удалить ${adminManagedLot.make||""} ${adminManagedLot.model||""} навсегда?`))return;const msg=$("adminLotManageMsg");try{await adminApi('/api/admin-delete-lot',{lotId:adminManagedLot.id});msg.textContent='✅ Лот удалён';msg.className='adminSaveMsg ok';await loadAdminLots();setTimeout(()=>$("adminLotManageOverlay").classList.remove('open'),500)}catch(e){msg.textContent='Ошибка: '+e.message;msg.className='adminSaveMsg error'}}
 async function adminLotAction(action){
@@ -806,9 +837,10 @@ async function chooseLotImages(e){
   try{for(let i=0;i<files.length;i++){const dataUrl=await fileToCompressedDataUrl(files[i]);adminLotFiles.push({name:files[i].name||`photo-${i+1}.jpg`,dataUrl,preview:dataUrl})}renderLotPhotoPreview();$("adminLotMsg").textContent=adminLotFiles.length?`Выбрано фото: ${adminLotFiles.length}`:"";$("adminLotMsg").className="adminSaveMsg";}
   catch(err){$("adminLotMsg").textContent="Ошибка фото: "+err.message;$("adminLotMsg").className="adminSaveMsg error";}
 }
+$("lotDirection").addEventListener("change",()=>{$("lotTransitFields").hidden=$("lotDirection").value!=="transfer";});
 async function saveAdminLot(){
   const btn=$("adminLotSave"),msg=$("adminLotMsg");
-  const payload={make:$("lotMake").value.trim(),model:$("lotModel").value.trim(),year:Number($("lotYear").value)||null,mileage:Number($("lotMileage").value)||null,vin:$("lotVin").value.trim()||null,specs:$("lotSpecs").value.trim()||null,engine:$("lotEngine").value.trim()||null,fuel:$("lotFuel").value.trim()||null,transmission:$("lotTransmission").value.trim()||null,drive:$("lotDrive").value.trim()||null,exteriorColor:$("lotExterior").value.trim()||null,interiorColor:$("lotInterior").value.trim()||null,seats:Number($("lotSeats").value)||null,startingBid:Number($("lotStartingBid").value)||0,reservePrice:$("lotReserve").value?Number($("lotReserve").value):null,sellerApprovalRequired:$("lotSellerApproval").checked,description:$("lotDescription").value.trim()||null};
+  const payload={make:$("lotMake").value.trim(),model:$("lotModel").value.trim(),year:Number($("lotYear").value)||null,mileage:Number($("lotMileage").value)||null,vin:$("lotVin").value.trim()||null,specs:$("lotSpecs").value.trim()||null,engine:$("lotEngine").value.trim()||null,fuel:$("lotFuel").value.trim()||null,transmission:$("lotTransmission").value.trim()||null,drive:$("lotDrive").value.trim()||null,exteriorColor:$("lotExterior").value.trim()||null,interiorColor:$("lotInterior").value.trim()||null,seats:Number($("lotSeats").value)||null,startingBid:Number($("lotStartingBid").value)||0,reservePrice:$("lotReserve").value?Number($("lotReserve").value):null,sellerApprovalRequired:$("lotSellerApproval").checked,description:$("lotDescription").value.trim()||null,direction:$("lotDirection").value,transit:($("lotDirection").value==="transfer"?{from:$("lotTransitFrom").value.trim(),to:$("lotTransitTo").value.trim(),carrier:$("lotTransitCarrier").value.trim(),tracking:$("lotTransitTracking").value.trim(),eta:$("lotTransitEta").value}:null)};
   if(!payload.make||!payload.model){msg.textContent="Укажи марку и модель";msg.className="adminSaveMsg error";return}
   btn.disabled=true;btn.textContent="СОЗДАЮ LOT…";msg.textContent="";
   try{
@@ -818,7 +850,7 @@ async function saveAdminLot(){
   }catch(e){msg.textContent="Ошибка: "+e.message;msg.className="adminSaveMsg error";}
   finally{btn.disabled=false;btn.textContent="ДОБАВИТЬ В «ВСЕ»";}
 }
-$("adminTabClients").onclick=()=>setAdminView("clients");$("adminTabLots").onclick=()=>setAdminView("lots");$("adminAddLotBtn").onclick=openAddLot;$("adminLotsView")?.querySelectorAll(".adminStatusFilter [data-status]").forEach(b=>b.onclick=()=>{const v=b.dataset.status;$("adminLotFilter").value=v;$("adminLotsView").querySelectorAll(".adminStatusFilter [data-status]").forEach(x=>x.classList.toggle("active",x===b));renderAdminLots();});$("adminLotsReload").onclick=loadAdminLots;$("adminLotManageClose").onclick=$("adminLotManageBack").onclick=()=>$("adminLotManageOverlay").classList.remove("open");$("adminLotManageOverlay").onclick=e=>{if(e.target===$("adminLotManageOverlay"))$("adminLotManageOverlay").classList.remove("open")};$("adminApproveSale").onclick=()=>adminPendingAction("approve");$("adminRejectSale").onclick=()=>adminPendingAction("reject");$("adminLotStartLive").onclick=()=>adminLotAction("live");$("adminLotSchedule").onclick=()=>adminLotAction("upcoming");$("adminLotSaveChanges").onclick=saveManagedLot;$("adminLotArchive").onclick=archiveManagedLot;$("adminLotDelete").onclick=deleteManagedLot;$("adminLotSearch").oninput=renderAdminLots;$("adminLotFilter").onchange=renderAdminLots;$("adminLotClose").onclick=$("adminLotBack").onclick=()=>$("adminLotOverlay").classList.remove("open");$("adminLotOverlay").onclick=e=>{if(e.target===$("adminLotOverlay"))$("adminLotOverlay").classList.remove("open")};$("lotImages").onchange=chooseLotImages;$("adminLotSave").onclick=saveAdminLot;
+$("adminTabClients").onclick=()=>setAdminView("clients");$("adminTabLots").onclick=()=>setAdminView("lots");$("adminAddLotBtn").onclick=openAddLot;$("adminLotsView")?.querySelectorAll(".adminStatusFilter [data-status]").forEach(b=>b.onclick=()=>{const v=b.dataset.status;$("adminLotFilter").value=v;$("adminLotsView").querySelectorAll(".adminStatusFilter [data-status]").forEach(x=>x.classList.toggle("active",x===b));renderAdminLots();});$("adminLotsReload").onclick=loadAdminLots;$("adminLotManageClose").onclick=$("adminLotManageBack").onclick=()=>$("adminLotManageOverlay").classList.remove("open");$("adminLotManageOverlay").onclick=e=>{if(e.target===$("adminLotManageOverlay"))$("adminLotManageOverlay").classList.remove("open")};$("adminApproveSale").onclick=()=>adminPendingAction("approve");$("adminRejectSale").onclick=()=>adminPendingAction("reject");$("adminCounterofferSale").onclick=()=>adminPendingAction("counteroffer");$("adminLotStartLive").onclick=()=>adminLotAction("live");$("adminLotSchedule").onclick=()=>adminLotAction("upcoming");$("adminLotSaveChanges").onclick=saveManagedLot;$("adminLotQuickSave").onclick=saveManagedLot;$("adminLotQuickDelete").onclick=deleteManagedLot;$("adminLotArchive").onclick=archiveManagedLot;$("adminLotDelete").onclick=deleteManagedLot;$("adminLotSearch").oninput=renderAdminLots;$("adminLotFilter").onchange=renderAdminLots;$("adminLotClose").onclick=$("adminLotBack").onclick=()=>$("adminLotOverlay").classList.remove("open");$("adminLotOverlay").onclick=e=>{if(e.target===$("adminLotOverlay"))$("adminLotOverlay").classList.remove("open")};$("lotImages").onchange=chooseLotImages;$("adminLotSave").onclick=saveAdminLot;
 
 $("adminQuick").onclick=openAdminPanel;$("adminAccountBtn").onclick=openAdminPanel;$("adminClose").onclick=()=>$("adminOverlay").classList.remove("open");$("adminOverlay").onclick=e=>{if(e.target===$("adminOverlay"))$("adminOverlay").classList.remove("open")};$("adminReload").onclick=loadAdminClients;$("adminSearch").oninput=renderAdminClients;$("adminEditClose").onclick=$("adminEditBack").onclick=()=>$("adminEditOverlay").classList.remove("open");$("adminEditOverlay").onclick=e=>{if(e.target===$("adminEditOverlay"))$("adminEditOverlay").classList.remove("open")};$("adminSave").onclick=saveAdminClient;
 
@@ -853,7 +885,8 @@ function whiteRenderBidRows(requestRefresh=true){
  document.querySelectorAll('[data-bid-tab]').forEach(b=>b.classList.toggle('active',b.dataset.bidTab===whiteBidTab));
  let rows=[];
  if(whiteBidTab==='favorites'){$('myBidsList').innerHTML=favs.map(idx=>whiteCarCard(idx,'<span class="myBidStatus win">Избранное</span>')).join('')||'<div class="emptyWatch">❤️ Пока нет избранных авто.<br><small>В списке лотов нажмите звёздочку ☆.</small></div>';}
- else {rows=myCarsSnapshot[whiteBidTab]||[];const empty=whiteBidTab==='pending'?'⏳ Пока нет автомобилей, ожидающих подтверждения.':whiteBidTab==='tracking'?'🚢 Отслеживание пока пусто.':'📄 Документы пока отсутствуют.';$('myBidsList').innerHTML=rows.map(r=>{const idx=lots.findIndex(x=>String(x.id||'')===String(r.id)||Number(x.no)===Number(r.lot_number));const label=whiteBidTab==='pending'?'⏳ Ожидает подтверждения':whiteBidTab==='tracking'?'🚢 Отслеживание':'📄 Документы';return idx>=0?whiteCarCard(idx,`<span class="myBidStatus ${whiteBidTab==='pending'?'':'win'}">${label}${r.amount?' · '+money(r.amount):''}</span>`):''}).join('')||`<div class="emptyWatch">${empty}</div>`;}
+ else {rows=myCarsSnapshot[whiteBidTab]||[];const empty=whiteBidTab==='pending'?'⏳ Пока нет автомобилей, ожидающих подтверждения.':whiteBidTab==='tracking'?'🚢 Отслеживание пока пусто.':'📄 Документы пока отсутствуют.';$('myBidsList').innerHTML=rows.map(r=>{const idx=lots.findIndex(x=>String(x.id||'')===String(r.id)||Number(x.no)===Number(r.lot_number));const label=whiteBidTab==='pending'?'⏳ Ожидает подтверждения':whiteBidTab==='tracking'?'🚢 Отслеживание':'📄 Документы';const offer=r.counteroffer?.status==='pending'?r.counteroffer:null;const extra=`<span class="myBidStatus ${whiteBidTab==='pending'?'':'win'}">${label}${r.amount?' · '+money(r.amount):''}</span>${offer?`<div style="margin-top:8px;padding:10px;border:1px solid #f0b429;border-radius:10px"><b>Продавец предлагает ${money(offer.amount)}</b><div style="display:flex;gap:6px;margin-top:7px"><button data-offer-decision="accept" data-offer-lot="${whiteEscape(r.id)}">Принять</button><button data-offer-decision="decline" data-offer-lot="${whiteEscape(r.id)}">Отказаться</button></div></div>`:''}`;return idx>=0?whiteCarCard(idx,extra):''}).join('')||`<div class="emptyWatch">${empty}</div>`;}
+ $('myBidsList').querySelectorAll('[data-offer-decision]').forEach(btn=>btn.onclick=async e=>{e.stopPropagation();btn.disabled=true;try{const r=await fetch('/api/counteroffer-response',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:tg?.initData||'',lotId:btn.dataset.offerLot,decision:btn.dataset.offerDecision})});const d=await r.json();if(!r.ok)throw Error(d.error||'Не удалось ответить');await refreshMyCars();whiteRenderBidRows(false);if(btn.dataset.offerDecision==='accept')refreshHomeSales()}catch(err){alert(err.message)}finally{btn.disabled=false}});
  $('myBidsList').querySelectorAll('[data-white-lot]').forEach(el=>el.onclick=()=>openLotDetail(Number(el.dataset.whiteLot)));
  if(requestRefresh)refreshMyCars();
 }
@@ -880,8 +913,9 @@ function whiteInit(){
 }
 
 whiteInit();
-// Always render the full 15-lot app immediately, even before Supabase responds.
-render();
+// Do not flash the legacy demo car before the authoritative server lot arrives.
+document.body.classList.add('liveLotLoading');
+
 subscribeAuctionState();
 fetchAuctionState().then(()=>{
   start();
@@ -895,7 +929,7 @@ fetchAuctionState().then(()=>{
       if(r.ok){const snap=await r.json();syncServerClock(snap.serverNow,requestStarted);
         if(snap.lotStatuses){managedLotStatuses=snap.lotStatuses;renderCatalog();renderWatchlist();} if(snap.startAt){galaxyStartAt=snap.startAt;const al=$("lot");if(al)al.textContent=auctionDateLabel();} if(Array.isArray(snap.todayQueue)){liveTodayQueue=snap.todayQueue.map(Number); const lb=$("lotsBtn");if(lb)lb.textContent=`Лоты (${liveTodayQueue.length}) ›`;renderCatalog();}
         if(snap.state){
-          if(snap.lot)upsertServerLot(snap.lot);
+          if(snap.lot){upsertServerLot(snap.lot);document.body.classList.remove('liveLotLoading');}
           // live-sync includes the authoritative visible pre-bid price while waiting.
           // Use it on the main upcoming card, and carry the same price into LIVE.
           if(snap.state.current_bid==null){const li=lots.findIndex(x=>Number(x.no)===Number(snap.state.lot_id||0));snap.state.current_bid=li>=0?lots[li].price:0;}
@@ -985,6 +1019,25 @@ fetchAuctionState().then(()=>{
   });
 })();
 
+// Navigation: edge swipe and safe exit from vehicle editor.
+(function(){
+ const editor=$('adminLotManageOverlay');
+ let initial=null;
+ function snapshot(){return ['manageMake','manageModel','manageYear','manageMileage','manageVin','manageStarting','manageDescription'].map(id=>$(id)?.value||'').join('\\u001f')}
+ function exitEditor(){if(!editor?.classList.contains('open'))return false;if(initial!==null&&snapshot()!==initial&&!confirm('Выйти без сохранения изменений?'))return false;editor.classList.remove('open');return true}
+ const oldOpen=openAdminLotManage;
+ openAdminLotManage=function(l){oldOpen(l);initial=snapshot()};
+ ['adminLotManageBack','adminLotManageClose'].forEach(id=>{const b=$(id);if(b)b.onclick=exitEditor});
+ editor?.addEventListener('click',e=>{if(e.target===editor)exitEditor()});
+ const save=saveManagedLot;
+ saveManagedLot=async function(){await save();if(editor?.classList.contains('open'))initial=snapshot()};
+ let touch=null;
+ document.addEventListener('touchstart',e=>{const t=e.touches[0];touch=t&&t.clientX<=32?{x:t.clientX,y:t.clientY}:null},{passive:true});
+ document.addEventListener('touchend',e=>{if(!touch)return;const t=e.changedTouches[0],dx=t.clientX-touch.x,dy=Math.abs(t.clientY-touch.y);touch=null;if(dx<90||dy>65||dx<dy*1.5)return;
+ const overlays=['adminLotManageOverlay','adminEditOverlay','adminClientProfileOverlay','adminLotOverlay','adminOverlay','detailOverlay','catalogOverlay','queueOverlay','accountOverlay','profileLanguageOverlay','myBidsScreen','profileScreen','marketsScreen'];
+ for(const id of overlays){const el=$(id);if(!el?.classList.contains('open'))continue;if(id==='adminLotManageOverlay')exitEditor();else if(id==='detailOverlay'){$('detailOverlay').classList.remove('open');$('catalogOverlay').classList.add('open')}else el.classList.remove('open');break}
+ },{passive:true});
+})();
 // FINAL-67: verified admin client profile routing + iOS zoom lock.
 (function(){
  const overlay=$("adminClientProfileOverlay"); if(overlay){
@@ -1007,29 +1060,71 @@ setInterval(()=>{if(!stateRow||stateRow.status!=='waiting'||!galaxyStartAt)retur
 
 /* Telegram launch intents contain only an opaque lot id or the public route name. */
 function decodeLaunchValue(value){try{return decodeURIComponent(atob(String(value||'').replace(/-/g,'+').replace(/_/g,'/')))}catch(e){return ''}}
-function readLaunchIntent(){const raw=String(tg?.initDataUnsafe?.start_param||new URLSearchParams(location.search).get('tgWebAppStartParam')||'');if(raw==='live')return {live:true};if(raw.startsWith('lot_'))return {lotId:decodeLaunchValue(raw.slice(4))};return {}}
+function readLaunchIntent(){
+ const params=new URLSearchParams(location.search);
+ // Explicit lot links from the bot's Web App button take priority over stale Telegram launch parameters.
+ const directLot=params.get('lotId');
+ if(directLot)return {lotId:directLot};
+ const raw=String(params.get('tgWebAppStartParam')||tg?.initDataUnsafe?.start_param||'');
+ if(raw==='live')return {live:true};
+ if(raw.startsWith('lot_')){const lotId=decodeLaunchValue(raw.slice(4));if(lotId)return {lotId};}
+ return {};
+}
 async function sharedLotRegistrationGate(){
- const intent=readLaunchIntent();if(!intent.lotId)return true;
- if(!tgUser?.id||!tg?.initData)return true;
+ // Registration is account-based, not link-based: a new Telegram user must
+ // complete the four required fields even if a bot/menu launch loses lot_xxx.
+ if(!tgUser?.id||!tg?.initData){console.warn('Telegram registration verification unavailable');return false;}
+ const page=$('shareRegistrationPage');if(!page)return false;
  try{
   await registrationReady;
   const r=await fetch('/api/account-information',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:tg.initData,action:'read'})});
   const d=await r.json().catch(()=>({})),info=d.information||{};
-  if(r.ok&&info.full_name&&info.phone&&info.phone_country&&info.email&&info.residence_address)return true;
-  const page=$('shareRegistrationPage');if(!page)return true;
+  const address=info.residence_address;
+  const validAddress=typeof address==='string'?!!address.trim():address&&typeof address==='object'&&Object.values(address).some(v=>typeof v==='string'&&v.trim());
+  if(r.ok&&String(info.full_name||'').trim()&&String(info.phone||'').trim()&&String(info.phone_country||'').trim()&&String(info.email||'').trim()&&validAddress)return true;
   page.hidden=false;page.setAttribute('aria-hidden','false');
   $('shareRegName').value=info.full_name||[tgUser.first_name,tgUser.last_name].filter(Boolean).join(' ');
   $('shareRegCountry').value=info.phone_country||'AE';$('shareRegEmail').value=info.email||'';
+  $('shareRegError').textContent=r.ok?'':(d.error||'Не удалось проверить регистрацию. Попробуйте ещё раз.');
   return false;
- }catch(e){console.warn('Shared lot registration check failed',e);return true;}
+ }catch(e){
+  console.warn('Registration check failed',e);
+  page.hidden=false;page.setAttribute('aria-hidden','false');
+  $('shareRegName').value=[tgUser.first_name,tgUser.last_name].filter(Boolean).join(' ');
+  $('shareRegError').textContent='Не удалось проверить регистрацию. Попробуйте ещё раз.';
+  return false;
+ }
+}
+let registrationDestination='home';
+function openMainHome(){try{closeModernScreens();setModernActive('home');$('homeScreen').classList.add('open');window.scrollTo(0,0)}catch(e){console.error('Could not open home',e)}}
+function openAuctionMarkets(){closeModernScreens();setModernActive('markets');$('marketsScreen').classList.add('open')}
+function openAuctionDirectionScreen(){closeModernScreens();setModernActive('markets');$('auctionDirectionScreen').classList.add('open');const c=$('auctionDirectionUSACount');if(c)c.textContent=String(lots?.length||0);}
+
+let auctionEntryBusy=false;
+async function enterAuctionMarkets(){
+ if(auctionEntryBusy)return;
+ auctionEntryBusy=true;
+ registrationDestination='live';
+ try{
+  const ready=await sharedLotRegistrationGate();
+  if(ready)openRegistrationDestination();
+ }catch(e){console.warn('Auction entry failed',e)}
+ finally{auctionEntryBusy=false}
+}
+function openRegistrationDestination(){
+ if(registrationDestination==='live'){closeModernScreens();document.body.classList.add('telegramLiveLaunch');setModernActive('');window.scrollTo(0,0);}
+ else if(registrationDestination==='lots')openTodayLots();
+ else if(registrationDestination==='markets')openAuctionMarkets();
+ else openMainHome();
 }
 async function applyLaunchIntent(){
  const intent=readLaunchIntent();
- if(intent.live){closeModernScreens();document.body.classList.add('telegramLiveLaunch');setModernActive('');window.scrollTo(0,0);return;}
- const ready=await sharedLotRegistrationGate();if(ready)openTodayLots();
+ registrationDestination=intent.live?'live':(intent.lotId?'lots':'home');
+ const ready=await sharedLotRegistrationGate();
+ if(ready)openRegistrationDestination();
 }
 /* Share uses one path for the live vehicle and every row in the lot queue. */
-function sharedLotUrl(q){const u=new URL('/api/share',window.location.origin);if(q.id)u.searchParams.set('id',q.id);else u.searchParams.set('lot',Number(q.no));return u.toString();}
+function sharedLotUrl(q){if(q.id)return new URL('/car/'+encodeURIComponent(String(q.id)),window.location.origin).toString();const u=new URL('/api/share',window.location.origin);u.searchParams.set('lot',Number(q.no));return u.toString();}
 async function shareLot(idx){
     const q=lots[idx]; if(!q)return;
     const url=sharedLotUrl(q);
@@ -1047,27 +1142,11 @@ async function shareLot(idx){
       const r=await fetch('/api/account-information',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:tg?.initData||'',action:'complete_registration',full_name:$('shareRegName').value,phone:{country:$('shareRegCountry').value,number:$('shareRegPhone').value},email:$('shareRegEmail').value,residence_address:$('shareRegAddress').value})});
       const d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.error||'Не удалось сохранить регистрацию.');
       window.accountData={...window.accountData,...d.information};currentAccountProfile={...currentAccountProfile,...d.information};
-      const page=$('shareRegistrationPage');page.hidden=true;page.setAttribute('aria-hidden','true');openTodayLots();
+      const page=$('shareRegistrationPage');page.hidden=true;page.setAttribute('aria-hidden','true');openRegistrationDestination();
     }catch(problem){err.textContent=problem.message||'Не удалось сохранить регистрацию.';}
     finally{btn.disabled=false;btn.textContent='ПРОДОЛЖИТЬ К АУКЦИОНУ';}
   });
   function openTodayLots(){try{closeModernScreens();renderCatalog();$('catalogOverlay').classList.add('open');}catch(e){console.error('Could not open today lots',e);}}
-  let sharedOpened=false;
-  function openSharedLot(){
-    if(sharedOpened)return;
-    const params=new URLSearchParams(location.search),intent=readLaunchIntent(),id=params.get('lotId')||intent.lotId,no=Number(params.get('lot')||intent.lot||0);
-    if(!id&&(!Number.isFinite(no)||!no))return;
-    const idx=lots.findIndex(q=>id?String(q.id||'')===id:Number(q.no)===no);
-    if(idx<0){if(id)fetch('/api/public-lot?id='+encodeURIComponent(id),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(out=>{if(out?.lot){upsertServerLot(out.lot);openSharedLot();}});return;}
-    sharedOpened=true;
-    try{
-      if(typeof closeModernScreens==='function')closeModernScreens();
-      openLotDetail(idx);
-    }catch(e){console.error('Could not open shared lot',e);}
-  }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(openSharedLot,350));
-  else setTimeout(openSharedLot,350);
-  window.addEventListener('galaxy-public-lots-updated',openSharedLot);
 
 // FINAL-84: Home sales are driven by confirmed SOLD lots, not demo data.
 let homeSalesSnapshot={count:0,volume:0,sold:[]};
