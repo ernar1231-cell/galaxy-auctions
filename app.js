@@ -679,8 +679,8 @@ document.querySelectorAll("[data-home-auction]").forEach(b=>b.onclick=openAuctio
 $("auctionDirectionUSA").onclick=enterAuctionMarkets;
 // Temporary navigation: all three direction cards open the existing USA LIVE screen.
 // No separate auctions or bids are enabled by these buttons.
-$("auctionDirectionDubai").onclick=enterAuctionMarkets;
-$("auctionDirectionTransfer").onclick=enterAuctionMarkets;
+$("auctionDirectionDubai").onclick=()=>window.galaxyOpenDirectionCatalog?.('dubai');
+$("auctionDirectionTransfer").onclick=()=>window.galaxyOpenDirectionCatalog?.('transfer');
 $("openAccountFromProfile").onclick=()=>{closeModernScreens();openAccount()};
 $("openAdminFromProfile").onclick=()=>{closeModernScreens();openAdminPanel()};
 $("accountClose").onclick=()=>$("accountOverlay").classList.remove("open");
