@@ -14,11 +14,27 @@ async function open(direction){
   const r=await fetch('/api/public-lots?t='+Date.now(),{cache:'no-store'});if(!r.ok)throw Error('Каталог временно недоступен');
   const data=await r.json();if(!screen.classList.contains('open'))return;
   const cars=(Array.isArray(data.lots)?data.lots:[]).filter(l=>directionOf(l)===direction);
-  root.innerHTML=cars.length?cars.map(l=>{
-   const image=l.primary_image||l.images?.[0]?.image_url||'';
-   return '<article class="directionCatalogCar">'+(image?'<img loading="lazy" src="'+safe(image)+'" alt="Автомобиль">':'<div class="directionCatalogNoImage">🚘</div>')+
-    '<div><b>'+safe([l.make,l.model,l.year].filter(Boolean).join(' '))+'</b><small>Лот № '+safe(l.lot_number||'—')+'</small><small>Статус: '+safe(l.status==='live'?'LIVE':'Предстоящий')+'</small></div></article>';
-  }).join(''):'<div class="directionCatalogEmpty">Пока нет опубликованных автомобилей в этом направлении.</div>';
+  const lot=cars[0];
+  if(!lot){root.innerHTML='<div class="directionCatalogEmpty">Пока нет опубликованных автомобилей в этом направлении.</div>';return;}
+  const photos=(lot.images||[]).map(x=>x.image_url).filter(Boolean);
+  if(!photos.length&&lot.primary_image)photos.push(lot.primary_image);
+  let imageIndex=0;
+  const image=photos[0]||'';
+  const name=[lot.make,lot.model,lot.year].filter(Boolean).join(' ');
+  const details=[['Пробег',lot.mileage],['Двигатель',lot.engine],['Топливо',lot.fuel],['Трансмиссия',lot.transmission],['Привод',lot.drivetrain],['Салон',lot.interior_color],['Цвет',lot.color],['VIN',lot.vin]];
+  root.innerHTML='<div class="directionLiveStatus"><span>● LIVE AUCTION · Звук выключен</span></div>'+
+    '<div class="directionLiveStrip"><b>Завтра · 18:00</b><small>Позиция 1 из '+cars.length+'</small><strong>Лоты ('+cars.length+')</strong></div>'+
+    '<div class="directionLivePhoto">'+(image?'<img id="directionLiveImage" src="'+safe(image)+'" alt="'+safe(name)+'">':'<div class="directionCatalogNoImage">🚘</div>')+
+    (photos.length>1?'<button type="button" class="directionPhotoPrev" id="directionPhotoPrev">‹</button><button type="button" class="directionPhotoNext" id="directionPhotoNext">›</button>':'')+
+    '<span id="directionPhotoCount">'+(photos.length?'1/'+photos.length:'Нет фото')+'</span></div>'+
+    '<div class="directionLiveInfo"><section><h3>'+safe(name)+'</h3>'+details.filter(x=>x[1]!=null&&x[1]!=='').map(x=>'<div class="directionLiveSpec"><span>'+safe(x[0])+'</span><b>'+safe(x[1])+'</b></div>').join('')+
+    '<div class="directionLiveSpec"><span>Лот №</span><b>'+safe(lot.lot_number)+'</b></div></section>'+
+    '<aside><small>Ожидаем начало аукциона</small><div class="directionLiveClock">18:00</div><small>Начало по времени Дубая</small><p>Стартовая цена</p><strong>'+safe(lot.starting_bid!=null?'$'+Number(lot.starting_bid).toLocaleString('en-US'):'Уточняется')+'</strong></aside></div>'+
+    '<div class="directionLiveBid"><button type="button" disabled>−</button><b>Ставки пока недоступны</b><button type="button" disabled>+</button><button type="button" disabled>СДЕЛАТЬ СТАВКУ</button></div>'+
+    '<p class="directionLiveNotice">Аукцион готовится к запуску. Ставки откроются после подключения независимого LIVE.</p>';
+  const showPhoto=()=>{const img=$('directionLiveImage');if(img)img.src=photos[imageIndex];$('directionPhotoCount').textContent=(imageIndex+1)+'/'+photos.length;};
+  $('directionPhotoPrev')?.addEventListener('click',()=>{imageIndex=(imageIndex+photos.length-1)%photos.length;showPhoto()});
+  $('directionPhotoNext')?.addEventListener('click',()=>{imageIndex=(imageIndex+1)%photos.length;showPhoto()});
  }catch(e){root.textContent='Не удалось загрузить каталог. Попробуйте ещё раз.'}
 }
 window.galaxyOpenDirectionCatalog=open;
