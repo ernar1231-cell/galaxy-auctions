@@ -822,7 +822,7 @@ function resetLotForm(){
   ["lotYear","lotMake","lotModel","lotMileage","lotVin","lotSpecs","lotEngine","lotFuel","lotTransmission","lotDrive","lotSeats","lotExterior","lotInterior","lotStartingBid","lotReserve","lotDescription"].forEach(id=>$(id).value="");
   $("lotSellerApproval").checked=false;$("lotImages").value="";adminLotFiles=[];renderLotPhotoPreview();$("adminLotMsg").textContent="";
 }
-function openAddLot(){resetLotForm();$("adminLotOverlay").classList.add("open")}
+function openAddLot(){resetLotForm();$("lotDirection").value=adminSelectedDirection;$("lotTransitFields").hidden=adminSelectedDirection!=="transfer";$("adminLotOverlay").classList.add("open")}
 let adminVinVehicle=null;
 function openVinImport(){adminVinVehicle=null;$("adminVinInput").value="";$("adminVinMsg").textContent="";$("adminVinPreview").style.display="none";$("adminVinOverlay").classList.add("open");setTimeout(()=>$("adminVinInput").focus(),120)}
 function closeVinImport(){$("adminVinOverlay").classList.remove("open")}
