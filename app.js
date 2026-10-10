@@ -276,7 +276,7 @@ function lotCountLabel(count){return GalaxySchedule.pluralizeLots(count)}
 function renderCatalog(){
  const root=$("catalogList"); if(!root)return;
  const rows=liveTodayQueue.map(no=>{const idx=lots.findIndex(q=>Number(q.no)===Number(no));return idx<0?null:{q:lots[idx],idx};}).filter(x=>x&&String(managedLotStatuses[String(Number(x.q.no))]||"").toLowerCase()!=="archived"&&String(managedLotStatuses[String(Number(x.q.no))]||"").toLowerCase()!=="draft");
- const label=auctionDateLabel(),head=document.querySelector('#catalogOverlay .sheetHead b'); if(head)head.textContent=`ЛОТЫ (${rows.length}) · ${label}`;
+ const label=selectedAuctionDirection==='usa'?auctionDateLabel():(selectedAuctionDirection==='dubai'?'Аукцион Дубай':'Автомобили в пути'),head=document.querySelector('#catalogOverlay .sheetHead b'); if(head)head.textContent=`ЛОТЫ (${rows.length}) · ${label}`;
  root.innerHTML=rows.map(({q,idx},pos)=>`<div class="catalogItem" data-open-lot="${idx}">${q.photos[0]?`<img src="${whiteEscape(q.photos[0])}" alt="${whiteEscape(q.title)}">`:''}<div><b>${label}</b><small>${whiteEscape(q.title)}</small><small>Позиция ${pos+1} из ${rows.length} • ${whiteEscape(q.meta[0])} • ${whiteEscape(q.meta[1])} • <strong>${lotStatus(idx)}</strong></small></div><div class="catalogActions"><button class="starBtn ${isFavorite(idx)?'on':''}" data-star="${idx}" aria-label="Избранное">${isFavorite(idx)?'★':'☆'}</button><button class="catalogShareBtn" data-share-lot="${idx}" aria-label="Поделиться">⇧</button></div></div>`).join("")||'<div class="emptyWatch">Предстоящих лотов пока нет.</div>';
  root.querySelectorAll('[data-star]').forEach(b=>b.onclick=e=>{e.stopPropagation();toggleFavorite(Number(b.dataset.star))});
  root.querySelectorAll('[data-share-lot]').forEach(b=>b.onclick=e=>{e.stopPropagation();shareLot(Number(b.dataset.shareLot))});
@@ -572,7 +572,7 @@ $("detailOverlay").onclick=e=>{if(e.target===$("detailOverlay"))$("detailOverlay
 $("detailBidMinus").onclick=()=>{const el=$("detailBidAmount"),q=lots[detailIndex],base=Number(detailPrebid.lotId===Number(q?.no)?detailPrebid.currentBid:q?.price||0);detailBidDirty=true;el.value=String(Math.max(base+DETAIL_PREBID_STEP,Number(el.value||base+DETAIL_PREBID_STEP)-DETAIL_PREBID_STEP))};
 $("detailBidPlus").onclick=()=>{const el=$("detailBidAmount"),q=lots[detailIndex],base=Number(detailPrebid.lotId===Number(q?.no)?detailPrebid.currentBid:q?.price||0);detailBidDirty=true;el.value=String(Math.max(base+DETAIL_PREBID_STEP,Number(el.value||base)+DETAIL_PREBID_STEP))};
 $("detailBidAmount").addEventListener("input",()=>{detailBidDirty=true});
-$("detailBidSubmit").onclick=async()=>{const q=lots[detailIndex],status=String(managedLotStatuses[String(Number(q?.no))]||'').toLowerCase(),pre=status==='upcoming';if(selectedAuctionDirection!=='usa'){alert('Ставки этого направления ещё не подключены.');return;}if(!pre){submitBid();return}if(!tg?.initData){alert("Откройте Galaxy Auctions через Telegram.");return}const maximum=Math.round(Number($("detailBidAmount").value||0));bidSubmitting=true;syncDetailBid();try{const res=await fetch('/api/prebid',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:tg.initData,lotId:Number(q.no),action:'place',maximum})}),out=await res.json();if(!res.ok){if(out.code==='BID_NOT_ACTIVE')alert('Администратор должен установить статус ACTIVE.');else if(out.code==='LIMIT_REQUIRED')alert('Администратор должен установить лимит ставок.');else if(out.code==='DEPOSIT_REQUIRED')alert('Участие не разрешено.');else if(out.code==='LIMIT_EXCEEDED')alert('Максимальная ставка выше лимита аккаунта: '+money(Number(out.bidLimit||0)));else alert(out.error||'Ставка не принята.');return}detailPrebid={lotId:Number(q.no),currentBid:Number(out.currentBid||0),myMaximum:out.myMaximum==null?null:Number(out.myMaximum),leader:out.leader||null,canBid:true};detailBidDirty=false;syncDetailBid();await fetchAuctionState()}finally{bidSubmitting=false;syncDetailBid()}};
+$("detailBidSubmit").onclick=async()=>{const q=lots[detailIndex],status=String(managedLotStatuses[String(Number(q?.no))]||'').toLowerCase(),pre=status==='upcoming';if(selectedAuctionDirection!=='usa'){alert('Ставки этого направления ещё не подключены.');return;}if(selectedAuctionDirection!=='usa'){alert('Ставки этого направления пока не подключены.');return;}if(!pre){submitBid();return}if(!tg?.initData){alert("Откройте Galaxy Auctions через Telegram.");return}const maximum=Math.round(Number($("detailBidAmount").value||0));bidSubmitting=true;syncDetailBid();try{const res=await fetch('/api/prebid',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:tg.initData,lotId:Number(q.no),action:'place',maximum})}),out=await res.json();if(!res.ok){if(out.code==='BID_NOT_ACTIVE')alert('Администратор должен установить статус ACTIVE.');else if(out.code==='LIMIT_REQUIRED')alert('Администратор должен установить лимит ставок.');else if(out.code==='DEPOSIT_REQUIRED')alert('Участие не разрешено.');else if(out.code==='LIMIT_EXCEEDED')alert('Максимальная ставка выше лимита аккаунта: '+money(Number(out.bidLimit||0)));else alert(out.error||'Ставка не принята.');return}detailPrebid={lotId:Number(q.no),currentBid:Number(out.currentBid||0),myMaximum:out.myMaximum==null?null:Number(out.myMaximum),leader:out.leader||null,canBid:true};detailBidDirty=false;syncDetailBid();await fetchAuctionState()}finally{bidSubmitting=false;syncDetailBid()}};
 
 $("mkBtn").onclick=()=>{$("queueOverlay").classList.remove("open");$("marketRadial").classList.toggle("open")};
 document.querySelectorAll("[data-market]").forEach(b=>b.onclick=()=>{selectedCountry=b.dataset.market;document.querySelectorAll("[data-market]").forEach(x=>x.classList.toggle("selected",x===b));$("marketRadial").classList.remove("open")});
@@ -1135,6 +1135,7 @@ function openAuctionDirectionScreen(){closeModernScreens();setModernActive('mark
 // Direction context for the existing LIVE screen. Do not alter USA state or bids.
 let selectedAuctionDirection='usa';
 let selectedDirectionQueue=[];
+let savedUsaLiveQueue=null;
 async function loadSelectedAuctionQueue(direction){
  if(direction==='usa'){selectedDirectionQueue=[];return [];}
  const response=await fetch('/api/direction-queue?direction='+encodeURIComponent(direction)+'&t='+Date.now(),{cache:'no-store'});
@@ -1162,6 +1163,7 @@ function renderSelectedDirectionPreview(){
  if(selectedAuctionDirection==='usa')return;
  if(realtimeChannel){db.removeChannel(realtimeChannel);realtimeChannel=null;}
  stopAuctionEffects();
+ if(savedUsaLiveQueue===null)savedUsaLiveQueue=liveTodayQueue.slice();
  const queue=selectedDirectionQueue||[];
  for(const car of queue){upsertServerLot(car);}
  liveTodayQueue=queue.map(x=>Number(x.lot_number));
@@ -1191,7 +1193,7 @@ function renderSelectedDirectionPreview(){
  $('soundStatus').textContent='ПРОСМОТР ЛОТОВ · Торги не запущены';
 }
 function openRegistrationDestination(){
- if(registrationDestination==='live'){closeModernScreens();document.body.classList.add('telegramLiveLaunch');setModernActive('');window.scrollTo(0,0);if(selectedAuctionDirection!=='usa')renderSelectedDirectionPreview();else{$('detailBidSubmit').disabled=false;fetchAuctionState();}}
+ if(registrationDestination==='live'){closeModernScreens();document.body.classList.add('telegramLiveLaunch');setModernActive('');window.scrollTo(0,0);if(selectedAuctionDirection!=='usa')renderSelectedDirectionPreview();else{$('detailBidSubmit').disabled=false;if(savedUsaLiveQueue!==null){liveTodayQueue=savedUsaLiveQueue;savedUsaLiveQueue=null;}fetchAuctionState();}}
  else if(registrationDestination==='lots')openTodayLots();
  else if(registrationDestination==='markets')openAuctionMarkets();
  else openMainHome();
