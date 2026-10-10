@@ -60,6 +60,7 @@ async function placeBid(options = {}) {
         return response(options.concurrentBid ? [] : [{...state, ...body}]);
       }
       assert.ok(parsed.pathname.endsWith('/auction_bids'));
+      if (method === 'GET') return response([]);
       assert.equal(method, 'POST');
       return response([{id: 10, ...body}]);
     }
