@@ -1530,3 +1530,25 @@ body.mk-white #auctionDirectionScreen .auctionDirectionDisabled .auctionDirectio
 .directionLiveBid{display:flex;gap:5px;margin:12px 2px}.directionLiveBid button,.directionLiveBid b{border:1px solid #e1e7f0;border-radius:10px;padding:12px 7px;background:#f3f6fb;color:#6b7b90;font-size:11px;text-align:center}
 .directionLiveBid b{flex:1}.directionLiveBid button:last-child{background:#1c4276;color:#fff;opacity:.55;font-weight:800}
 .directionLiveNotice{font-size:11px;color:#74849a;text-align:center;margin:8px 0}
+
+/* Compact auction preview: same top-level layout density as USA LIVE */
+#directionCatalogScreen{background:#fff!important;padding:0!important;overflow-y:auto!important}
+#directionCatalogScreen .directionCatalogHead{position:absolute!important;top:9px;left:9px;z-index:10;padding:0!important}
+#directionCatalogScreen #directionCatalogBack{width:28px!important;height:32px!important;border-radius:9px!important;background:#edf4ff!important;font-size:24px!important}
+#directionCatalogScreen #directionCatalogTitle,#directionCatalogScreen #directionCatalogSubtitle{display:none!important}
+#directionCatalogItems{padding:0 8px 90px!important}
+.directionLiveBrand{display:flex;align-items:center;justify-content:space-between;height:54px;padding:6px 6px 6px 45px;background:#fff}
+.directionLiveBrand img{display:block;max-width:205px;width:70%;max-height:42px;object-fit:contain;object-position:left center}
+.directionLiveBrand span{font-size:23px;color:#163351}
+.directionLiveStatus{margin:0 -8px!important;padding:5px 10px!important;font-size:10px!important;background:#f4f7fb!important}
+.directionLiveStrip{margin:0 -4px!important;padding:5px 0!important;font-size:10px!important}
+.directionLivePhoto{aspect-ratio:1.35!important;border-radius:12px!important}
+.directionLiveInfo{margin:7px 0 8px!important;grid-template-columns:minmax(0,56%) minmax(0,44%)!important;gap:6px!important}
+.directionLiveInfo h3{font-size:16px!important;margin:0 0 5px!important}
+.directionLiveSpec{padding:4px 0!important;font-size:10px!important}
+.directionLiveInfo aside{padding:7px 4px!important;gap:4px!important}
+.directionLiveClock{width:108px!important;height:108px!important;font-size:25px!important}
+.directionLiveInfo aside strong{font-size:23px!important}
+.directionLiveBid{margin:8px 0 0!important;gap:4px!important}
+.directionLiveBid button,.directionLiveBid b{padding:9px 4px!important}
+.directionLiveNotice{margin:6px 0 0!important;font-size:10px!important}
