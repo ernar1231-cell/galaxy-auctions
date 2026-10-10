@@ -679,8 +679,8 @@ document.querySelectorAll("[data-home-auction]").forEach(b=>b.onclick=openAuctio
 $("auctionDirectionUSA").onclick=enterAuctionMarkets;
 // Temporary navigation: all three direction cards open the existing USA LIVE screen.
 // No separate auctions or bids are enabled by these buttons.
-$("auctionDirectionDubai").onclick=enterAuctionMarkets;
-$("auctionDirectionTransfer").onclick=enterAuctionMarkets;
+$("auctionDirectionDubai").onclick=()=>enterAuctionMarkets('dubai');
+$("auctionDirectionTransfer").onclick=()=>enterAuctionMarkets('transfer');
 $("openAccountFromProfile").onclick=()=>{closeModernScreens();openAccount()};
 $("openAdminFromProfile").onclick=()=>{closeModernScreens();openAdminPanel()};
 $("accountClose").onclick=()=>$("accountOverlay").classList.remove("open");
@@ -1125,8 +1125,23 @@ function syncAuctionDirectionUSACount(){
 }
 function openAuctionDirectionScreen(){closeModernScreens();setModernActive('markets');$('auctionDirectionScreen').classList.add('open');syncAuctionDirectionUSACount();}
 
+// Direction context for the existing LIVE screen. Do not alter USA state or bids.
+let selectedAuctionDirection='usa';
+let selectedDirectionQueue=[];
+async function loadSelectedAuctionQueue(direction){
+ if(direction==='usa'){selectedDirectionQueue=[];return [];}
+ const response=await fetch('/api/direction-queue?direction='+encodeURIComponent(direction)+'&t='+Date.now(),{cache:'no-store'});
+ if(!response.ok)throw new Error('Не удалось загрузить лоты направления');
+ const data=await response.json();
+ if(!Array.isArray(data.queue))throw new Error('Некорректный список лотов');
+ selectedDirectionQueue=data.queue;
+ return selectedDirectionQueue;
+}
 let auctionEntryBusy=false;
-async function enterAuctionMarkets(){
+async function enterAuctionMarkets(direction='usa'){
+ selectedAuctionDirection=['usa','dubai','transfer'].includes(direction)?direction:'usa';
+ try{await loadSelectedAuctionQueue(selectedAuctionDirection)}catch(e){console.warn('Direction queue failed',e);selectedDirectionQueue=[];}
+
  if(auctionEntryBusy)return;
  auctionEntryBusy=true;
  registrationDestination='live';
