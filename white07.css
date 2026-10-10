@@ -1552,3 +1552,15 @@ body.mk-white #auctionDirectionScreen .auctionDirectionDisabled .auctionDirectio
 .directionLiveBid{margin:8px 0 0!important;gap:4px!important}
 .directionLiveBid button,.directionLiveBid b{padding:9px 4px!important}
 .directionLiveNotice{margin:6px 0 0!important;font-size:10px!important}
+
+/* Align Dubai and transit preview with USA auction viewport, without separate back button */
+#directionCatalogScreen .directionCatalogHead,
+#directionCatalogScreen #directionCatalogBack,
+#directionCatalogScreen #directionCatalogTitle,
+#directionCatalogScreen #directionCatalogSubtitle{display:none!important}
+#directionCatalogScreen{padding:0!important;margin:0!important;background:#fff!important}
+#directionCatalogItems{padding:0 8px 90px!important;margin:0!important}
+#directionCatalogScreen .directionLiveBrand{height:52px!important;padding:3px 6px!important;margin:0!important}
+#directionCatalogScreen .directionLiveBrand img{width:190px!important;max-height:40px!important}
+#directionCatalogScreen .directionLiveStatus{margin:0 -8px!important}
+#directionCatalogScreen .directionLiveStrip{margin:0!important}
