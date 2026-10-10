@@ -115,6 +115,7 @@ let whitePhotoLot=null;
 let whiteBidTab="active";
 let whiteMyRows=[];
 async function syncRecentBidders(){
+ if(selectedAuctionDirection!=='usa'){renderRecentBidders([]);return;}
  try{
   const lotId=Number(lots[i].no);
   const {data,error}=await db.from("auction_bids").select("user_id,username,country,amount,created_at,id").eq("lot_id",lotId).neq("country","PB").order("id",{ascending:false}).limit(4);
@@ -158,7 +159,7 @@ async function fetchAuctionState(){
 function normalizedPhotos(l){const seen=new Set();return [...(l.images||[]).sort((a,b)=>(Number(a.sort_order)||0)-(Number(b.sort_order)||0)).map(x=>x?.image_url),l.primary_image].filter(u=>{u=String(u||'').trim();if(!u||seen.has(u))return false;seen.add(u);return true;});}
 function upsertServerLot(l){if(!l)return;const no=String(l.lot_number).padStart(3,'0'),photos=normalizedPhotos(l);const sourceDetails=[["Mileage",l.mileage==null?null:`${Number(l.mileage).toLocaleString()} миль`],["Engine",l.engine],["Fuel",l.fuel],["Transmission",l.transmission],["Drive",l.drive],["Interior",l.interior_color],["Exterior",l.exterior_color],["VIN",l.vin],["Auction location",l.auction_location||l.auction_yard||l.location],["Estimated retail value",l.estimated_retail_value==null?null:money(Number(l.estimated_retail_value))],["Primary damage",l.primary_damage],["Specs",l.specs],["Seats",l.seats]];const q={id:l.id,no,title:[l.make,l.model,l.year].filter(Boolean).join(' '),price:Number(l.starting_bid||0),meta:[l.mileage==null?'—':`${Number(l.mileage).toLocaleString()} миль`,l.fuel||'—',l.transmission||'—',l.drive||'—'],photos,description:String(l.description||'').replace(/\n?\[\[[^\]]+\]\]/g,'').trim(),details:sourceDetails.filter(d=>d[1]!==null&&d[1]!==undefined&&String(d[1]).trim()!=='')};const idx=lots.findIndex(x=>String(x.id||'')===String(l.id||'')||Number(x.no)===Number(l.lot_number));if(idx>=0){if(!q.photos.length)q.photos=lots[idx].photos;if(q.meta.every(v=>v==='—'||v==='0 миль'))q.meta=lots[idx].meta;lots[idx]={...lots[idx],...q};}else lots.push(q);}
 function applyAuctionState(row,forceRender=false){
- if(!row)return;
+ if(!row||selectedAuctionDirection!=='usa')return;
  const incomingAudioKey=String(row.lot_id||1);
  const shouldRestartAudio=incomingAudioKey!==lastPhaseAudioKey;
  stateRow=row;
@@ -204,6 +205,7 @@ async function writeState(patch){
 }
 let bidSubmitting=false;
 async function submitBid(){
+ if(selectedAuctionDirection!=='usa'){alert('Ставки этого направления ещё не подключены.');return;}
  ctx();
  if(bidSubmitting)return;
  const frontLotId=Number(lots[i]?.no||0);
@@ -493,6 +495,7 @@ function playSoldVoice(){
  const a=$("soldAudio");if(!a)return;a.currentTime=0;a.volume=1;a.play().catch(()=>{});
 }
 async function updateFromClock(){
+ if(selectedAuctionDirection!=='usa')return;
  if(!stateRow)return;
  const started=new Date(stateRow.phase_started_at||stateRow.updated_at||Date.now()).getTime();
  const age=Math.max(0,(serverNowMs()-started)/1000);
@@ -1151,8 +1154,37 @@ async function enterAuctionMarkets(direction='usa'){
  }catch(e){console.warn('Auction entry failed',e)}
  finally{auctionEntryBusy=false}
 }
+function renderSelectedDirectionPreview(){
+ if(selectedAuctionDirection==='usa')return;
+ const queue=selectedDirectionQueue||[];
+ for(const car of queue){upsertServerLot(car);}
+ liveTodayQueue=queue.map(x=>Number(x.lot_number));
+ if(queue.length){
+  const first=queue[0];
+  i=Math.max(0,lots.findIndex(x=>Number(x.no)===Number(first.lot_number)));
+  price=Number(first.starting_bid||0);
+  render(false);
+  $('count').textContent='Позиция 1 из '+queue.length;
+ }else{
+  $('title').textContent='Ожидаем автомобили';
+  $('count').textContent='Позиция — из 0';
+  $('lotsBtn').textContent='Лоты (0) ›';
+  $('gallery').replaceChildren();
+  $('photo').removeAttribute('src');$('photo').style.display='none';
+  $('details').replaceChildren();
+  renderCatalog();
+ }
+ $('lot').textContent=selectedAuctionDirection==='dubai'?'Аукцион Дубай':'Автомобили в пути';
+ $('circleTime').textContent='18:00';
+ $('circleLabel').textContent='Начало по времени Дубая';
+ $('price').textContent=money(price);
+ $('leaderPrice').textContent=money(price);
+ $('bid').disabled=true;
+ $('bid').textContent='СТАВКИ ПОКА НЕДОСТУПНЫ';
+ $('soundStatus').textContent='ПРОСМОТР ЛОТОВ · Торги не запущены';
+}
 function openRegistrationDestination(){
- if(registrationDestination==='live'){closeModernScreens();document.body.classList.add('telegramLiveLaunch');setModernActive('');window.scrollTo(0,0);}
+ if(registrationDestination==='live'){closeModernScreens();document.body.classList.add('telegramLiveLaunch');setModernActive('');window.scrollTo(0,0);if(selectedAuctionDirection!=='usa')renderSelectedDirectionPreview();}
  else if(registrationDestination==='lots')openTodayLots();
  else if(registrationDestination==='markets')openAuctionMarkets();
  else openMainHome();
