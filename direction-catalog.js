@@ -14,41 +14,13 @@ async function open(direction){
   const r=await fetch('/api/public-lots?t='+Date.now(),{cache:'no-store'});if(!r.ok)throw Error('Каталог временно недоступен');
   const data=await r.json();if(!screen.classList.contains('open'))return;
   const cars=(Array.isArray(data.lots)?data.lots:[]).filter(l=>directionOf(l)===direction);
-  window.galaxyDirectionCars=cars;
-  window.galaxyDirectionSelected=direction;
-  window.galaxyDirectionIndex=0;
-  renderDirectionLot();
-
+  root.innerHTML=cars.length?cars.map(l=>{
+   const image=l.primary_image||l.images?.[0]?.image_url||'';
+   return '<article class="directionCatalogCar">'+(image?'<img loading="lazy" src="'+safe(image)+'" alt="Автомобиль">':'<div class="directionCatalogNoImage">🚘</div>')+
+    '<div><b>'+safe([l.make,l.model,l.year].filter(Boolean).join(' '))+'</b><small>Лот № '+safe(l.lot_number||'—')+'</small><small>Статус: '+safe(l.status==='live'?'LIVE':'Предстоящий')+'</small></div></article>';
+  }).join(''):'<div class="directionCatalogEmpty">Пока нет опубликованных автомобилей в этом направлении.</div>';
  }catch(e){root.textContent='Не удалось загрузить каталог. Попробуйте ещё раз.'}
 }
-
-function renderDirectionLot(){
- const cars=window.galaxyDirectionCars||[],root=$('directionCatalogItems');
- if(!cars.length){root.innerHTML='<div class="directionCatalogEmpty">Пока нет опубликованных автомобилей в этом направлении.</div>';return}
- const index=Math.max(0,Math.min(window.galaxyDirectionIndex||0,cars.length-1)),l=cars[index];
- const photos=(l.images||[]).map(x=>x.image_url).filter(Boolean);
- if(!photos.length&&l.primary_image)photos.push(l.primary_image);
- const pic=photos[0]||'';
- const specs=[['Пробег',l.mileage==null?'—':Number(l.mileage).toLocaleString('ru-RU')+' миль'],['Двигатель',l.engine||'—'],['Топливо',l.fuel||'—'],['Трансмиссия',l.transmission||'—'],['VIN',l.vin||'—']];
- root.innerHTML='<div class="directionLiveMeta">● АУКЦИОН · '+safe(window.galaxyDirectionSelected==='dubai'?'ДУБАЙ':'В ПУТИ')+' <span>Лоты ('+cars.length+')</span></div>'+
- '<div class="directionLiveHero">'+(pic?'<img id="directionLivePhoto" src="'+safe(pic)+'" alt="Фото автомобиля">':'<div class="directionCatalogNoImage">🚘</div>')+
- '<button type="button" id="directionPrevPhoto" aria-label="Предыдущее фото">‹</button><button type="button" id="directionNextPhoto" aria-label="Следующее фото">›</button><small id="directionPhotoPosition">1/'+Math.max(1,photos.length)+'</small></div>'+
- '<div class="directionLiveTitle"><b>'+safe([l.make,l.model,l.year].filter(Boolean).join(' '))+'</b><small>Лот № '+safe(l.lot_number||'—')+' · '+(index+1)+' из '+cars.length+'</small></div>'+
- '<div class="directionLiveInfo"><div>'+specs.map(([k,v])=>'<p><span>'+safe(k)+'</span><strong>'+safe(v)+'</strong></p>').join('')+'</div>'+
- '<aside><small>Стартовая цена</small><b>
- $('auctionDirectionDubai')?.addEventListener('click',()=>open('dubai'));
- $('auctionDirectionTransfer')?.addEventListener('click',()=>open('transfer'));
- $('directionCatalogBack')?.addEventListener('click',back);
-});
-})();+Number(l.starting_bid||0).toLocaleString('en-US')+'</b><small>Статус: '+safe(l.status==='live'?'LIVE':'Предстоящий')+'</small></aside></div>'+
- '<div class="directionLiveActions"><button id="directionPrevLot" type="button">‹ Предыдущий</button><button id="directionNextLot" type="button">Следующий ›</button></div>'+
- '<div class="directionLiveNotice">Просмотр лота. Ставки этого направления пока не подключены к отдельному серверу торгов.</div>';
- let p=0;function photo(delta){if(!photos.length)return;p=(p+delta+photos.length)%photos.length;$('directionLivePhoto').src=photos[p];$('directionPhotoPosition').textContent=(p+1)+'/'+photos.length}
- $('directionPrevPhoto').onclick=()=>photo(-1);$('directionNextPhoto').onclick=()=>photo(1);
- $('directionPrevLot').onclick=()=>{window.galaxyDirectionIndex=(index+cars.length-1)%cars.length;renderDirectionLot()};
- $('directionNextLot').onclick=()=>{window.galaxyDirectionIndex=(index+1)%cars.length;renderDirectionLot()};
-}
-
 document.addEventListener('DOMContentLoaded',()=>{
  $('auctionDirectionDubai')?.addEventListener('click',()=>open('dubai'));
  $('auctionDirectionTransfer')?.addEventListener('click',()=>open('transfer'));
