@@ -920,7 +920,7 @@ fetchAuctionState().then(()=>{
     try{
       const r=await fetch('/api/live-sync?t='+requestStarted,{cache:'no-store'});
       if(r.ok){const snap=await r.json();syncServerClock(snap.serverNow,requestStarted);
-        if(snap.lotStatuses){managedLotStatuses=snap.lotStatuses;renderCatalog();renderWatchlist();} if(snap.startAt){galaxyStartAt=snap.startAt;const al=$("lot");if(al)al.textContent=auctionDateLabel();} if(Array.isArray(snap.todayQueue)){liveTodayQueue=snap.todayQueue.map(Number); const lb=$("lotsBtn");if(lb)lb.textContent=`Лоты (${liveTodayQueue.length}) ›`;renderCatalog();}
+        if(snap.lotStatuses){managedLotStatuses=snap.lotStatuses;renderCatalog();renderWatchlist();syncAuctionDirectionUSACount();} if(snap.startAt){galaxyStartAt=snap.startAt;const al=$("lot");if(al)al.textContent=auctionDateLabel();} if(Array.isArray(snap.todayQueue)){liveTodayQueue=snap.todayQueue.map(Number); const lb=$("lotsBtn");if(lb)lb.textContent=`Лоты (${liveTodayQueue.length}) ›`;renderCatalog();syncAuctionDirectionUSACount();}
         if(snap.state){
           if(snap.lot){upsertServerLot(snap.lot);document.body.classList.remove('liveLotLoading');}
           // live-sync includes the authoritative visible pre-bid price while waiting.
@@ -1091,7 +1091,20 @@ async function sharedLotRegistrationGate(){
 let registrationDestination='home';
 function openMainHome(){try{closeModernScreens();setModernActive('home');$('homeScreen').classList.add('open');window.scrollTo(0,0)}catch(e){console.error('Could not open home',e)}}
 function openAuctionMarkets(){closeModernScreens();setModernActive('markets');$('marketsScreen').classList.add('open')}
-function openAuctionDirectionScreen(){closeModernScreens();setModernActive('markets');$('auctionDirectionScreen').classList.add('open');const c=$('auctionDirectionUSACount');if(c)c.textContent=String(lots?.length||0);}
+function syncAuctionDirectionUSACount(){
+ const c=$('auctionDirectionUSACount');if(!c)return;
+ // Match the authoritative LIVE queue, not all inventory lots.
+ // The catalog excludes draft and archived entries from its visible list.
+ if(!Array.isArray(liveTodayQueue)||!liveTodayQueue.length){c.textContent='—';return;}
+ const count=liveTodayQueue.filter(no=>{
+  const n=Number(no);
+  if(!lots.some(q=>Number(q.no)===n))return false;
+  const status=String(managedLotStatuses[String(n)]||'').toLowerCase();
+  return status!=='archived'&&status!=='draft';
+ }).length;
+ c.textContent=String(count);
+}
+function openAuctionDirectionScreen(){closeModernScreens();setModernActive('markets');$('auctionDirectionScreen').classList.add('open');syncAuctionDirectionUSACount();}
 
 let auctionEntryBusy=false;
 async function enterAuctionMarkets(){
