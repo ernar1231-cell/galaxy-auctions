@@ -940,7 +940,30 @@ fetchAuctionState().then(()=>{
   start();
   // Fast authoritative sync. Realtime remains primary; this 400 ms snapshot closes
   // reconnect/network gaps and keeps state, BONUS TIME, leader and bids aligned on every phone.
-  let snapshotBusy=false;
+  let snapshotBusy=false,usaFallbackAt=0;
+  async function restoreUsaPreview(){
+   if(selectedAuctionDirection!=='usa'||Date.now()-usaFallbackAt<15000)return;
+   usaFallbackAt=Date.now();
+   try{
+    const r=await fetch('/api/public-lots?t='+Date.now(),{cache:'no-store'});
+    if(!r.ok)return;
+    const data=await r.json();
+    const rows=(Array.isArray(data.lots)?data.lots:[]).filter(l=>l.direction==='usa'&&['upcoming','live'].includes(String(l.status||'').toLowerCase()));
+    if(!rows.length)return;
+    for(const car of rows)upsertServerLot(car);
+    liveTodayQueue=rows.map(l=>Number(l.lot_number));
+    const first=rows[0];
+    i=Math.max(0,lots.findIndex(l=>Number(l.no)===Number(first.lot_number)));
+    price=Number(first.starting_bid||0);
+    render(false);
+    document.body.classList.remove('liveLotLoading');
+    $('lotsBtn').textContent='Лоты ('+rows.length+') ›';
+    $('count').textContent='Позиция 1 из '+rows.length;
+    $('bid').disabled=true;
+    $('bid').textContent='ОЖИДАЕМ LIVE';
+    renderCatalog();
+   }catch(e){console.warn('USA preview fallback unavailable',e);}
+  }
   setInterval(async()=>{
     if(snapshotBusy||selectedAuctionDirection!=='usa')return;snapshotBusy=true;const requestStarted=Date.now();
     try{
@@ -954,12 +977,13 @@ fetchAuctionState().then(()=>{
           if(snap.state.current_bid==null){const li=lots.findIndex(x=>Number(x.no)===Number(snap.state.lot_id||0));snap.state.current_bid=li>=0?lots[li].price:0;}
           applyAuctionState(snap.state,false);
         }
+        if(!snap.lot&&(!snap.todayQueue||!snap.todayQueue.length))await restoreUsaPreview();
         if(Array.isArray(snap.bids)){renderRecentBidders(snap.bids);latestLeaderUserId=snap.bids[0]?.user_id?String(snap.bids[0].user_id):null;
           if(tgUser?.id){const mine=snap.bids.find(b=>String(b.user_id)===String(tgUser.id));if(mine){userHasBidThisLot=true;myLatestBidAmount=Number(mine.amount);}}
           updateBidVisualState();
         }
       }
-    }catch(e){}finally{snapshotBusy=false;}
+    }catch(e){await restoreUsaPreview();}finally{snapshotBusy=false;}
   },400);
 });
 
