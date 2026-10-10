@@ -16,7 +16,7 @@ module.exports=async(req,res)=>{
   const [sessions,assignments,lots]=await Promise.all([
    get('galaxy_auction_sessions?direction=eq.'+direction+'&select=direction,enabled,timezone,local_start,phase,current_lot_number,current_bid'),
    get('galaxy_auction_lot_assignments?direction=eq.'+direction+'&select=lot_number,queue_position&order=queue_position.asc,lot_number.asc'),
-   get('auction_lots?status=in.(upcoming,live)&select=lot_number,make,model,year,status,description,starting_bid,mileage,engine,fuel,transmission,drive,interior_color,exterior_color,vin,auction_lot_images(image_url,is_primary,sort_order)')
+   get('auction_lots?status=in.(upcoming,live)&select=*,auction_lot_images(image_url,is_primary,sort_order)')
   ]);
   const allowed=new Map(assignments.map(x=>[Number(x.lot_number),Number(x.queue_position)]));
   const queue=lots.filter(l=>allowed.has(Number(l.lot_number))&&directionOf(l)===direction)
