@@ -1564,3 +1564,5 @@ body.mk-white #auctionDirectionScreen .auctionDirectionDisabled .auctionDirectio
 #directionCatalogScreen .directionLiveBrand img{width:190px!important;max-height:40px!important}
 #directionCatalogScreen .directionLiveStatus{margin:0 -8px!important}
 #directionCatalogScreen .directionLiveStrip{margin:0!important}
+
+#directionCatalogScreen .directionLotPicker{display:grid;gap:7px;margin:10px 0 20px;padding:9px;background:#eef4fb;border-radius:12px}#directionCatalogScreen .directionLotPicker button{display:block;width:100%;padding:12px 10px;text-align:left;border:1px solid #d9e6f4;border-radius:9px;background:white;color:#173454;font-size:13px;font-weight:700}
