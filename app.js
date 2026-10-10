@@ -115,6 +115,7 @@ let whitePhotoLot=null;
 let whiteBidTab="active";
 let whiteMyRows=[];
 async function syncRecentBidders(){
+ if(selectedAuctionDirection!=='usa'){renderRecentBidders([]);return;}
  try{
   const lotId=Number(lots[i].no);
   const {data,error}=await db.from("auction_bids").select("user_id,username,country,amount,created_at,id").eq("lot_id",lotId).neq("country","PB").order("id",{ascending:false}).limit(4);
@@ -129,6 +130,7 @@ async function syncRecentBidders(){
  }catch(e){console.warn("Recent bids",e.message)}
 }
 async function syncLatestBid(){
+ if(selectedAuctionDirection!=='usa')return;
  try{
   const lotId=Number(lots[i].no);
   const {data,error}=await db.from("auction_bids").select("amount,user_id,username,country,created_at").eq("lot_id",lotId).neq("country","PB").order("created_at",{ascending:false}).limit(1);
@@ -137,6 +139,7 @@ async function syncLatestBid(){
  }catch(e){console.warn("Supabase read",e.message)}
 }
 function subscribeLot(){
+ if(selectedAuctionDirection!=='usa')return;
  if(realtimeChannel) db.removeChannel(realtimeChannel);
  const lotId=Number(lots[i].no);
  realtimeChannel=db.channel("auction_bids_"+lotId).on("postgres_changes",{event:"INSERT",schema:"public",table:"auction_bids",filter:`lot_id=eq.${lotId}`},payload=>{
@@ -149,6 +152,7 @@ function subscribeLot(){
  }).subscribe();
 }
 async function fetchAuctionState(){
+ if(selectedAuctionDirection!=='usa')return;
  try{
   const {data,error}=await db.from("auction_state").select("*").eq("id",1).single();
   if(error) throw error;
@@ -158,7 +162,7 @@ async function fetchAuctionState(){
 function normalizedPhotos(l){const seen=new Set();return [...(l.images||[]).sort((a,b)=>(Number(a.sort_order)||0)-(Number(b.sort_order)||0)).map(x=>x?.image_url),l.primary_image].filter(u=>{u=String(u||'').trim();if(!u||seen.has(u))return false;seen.add(u);return true;});}
 function upsertServerLot(l){if(!l)return;const no=String(l.lot_number).padStart(3,'0'),photos=normalizedPhotos(l);const sourceDetails=[["Mileage",l.mileage==null?null:`${Number(l.mileage).toLocaleString()} миль`],["Engine",l.engine],["Fuel",l.fuel],["Transmission",l.transmission],["Drive",l.drive],["Interior",l.interior_color],["Exterior",l.exterior_color],["VIN",l.vin],["Auction location",l.auction_location||l.auction_yard||l.location],["Estimated retail value",l.estimated_retail_value==null?null:money(Number(l.estimated_retail_value))],["Primary damage",l.primary_damage],["Specs",l.specs],["Seats",l.seats]];const q={id:l.id,no,title:[l.make,l.model,l.year].filter(Boolean).join(' '),price:Number(l.starting_bid||0),meta:[l.mileage==null?'—':`${Number(l.mileage).toLocaleString()} миль`,l.fuel||'—',l.transmission||'—',l.drive||'—'],photos,description:String(l.description||'').replace(/\n?\[\[[^\]]+\]\]/g,'').trim(),details:sourceDetails.filter(d=>d[1]!==null&&d[1]!==undefined&&String(d[1]).trim()!=='')};const idx=lots.findIndex(x=>String(x.id||'')===String(l.id||'')||Number(x.no)===Number(l.lot_number));if(idx>=0){if(!q.photos.length)q.photos=lots[idx].photos;if(q.meta.every(v=>v==='—'||v==='0 миль'))q.meta=lots[idx].meta;lots[idx]={...lots[idx],...q};}else lots.push(q);}
 function applyAuctionState(row,forceRender=false){
- if(!row)return;
+ if(!row||selectedAuctionDirection!=='usa')return;
  const incomingAudioKey=String(row.lot_id||1);
  const shouldRestartAudio=incomingAudioKey!==lastPhaseAudioKey;
  stateRow=row;
@@ -204,6 +208,7 @@ async function writeState(patch){
 }
 let bidSubmitting=false;
 async function submitBid(){
+ if(selectedAuctionDirection!=='usa'){alert('Ставки этого направления ещё не подключены.');return;}
  ctx();
  if(bidSubmitting)return;
  const frontLotId=Number(lots[i]?.no||0);
@@ -271,7 +276,7 @@ function lotCountLabel(count){return GalaxySchedule.pluralizeLots(count)}
 function renderCatalog(){
  const root=$("catalogList"); if(!root)return;
  const rows=liveTodayQueue.map(no=>{const idx=lots.findIndex(q=>Number(q.no)===Number(no));return idx<0?null:{q:lots[idx],idx};}).filter(x=>x&&String(managedLotStatuses[String(Number(x.q.no))]||"").toLowerCase()!=="archived"&&String(managedLotStatuses[String(Number(x.q.no))]||"").toLowerCase()!=="draft");
- const label=auctionDateLabel(),head=document.querySelector('#catalogOverlay .sheetHead b'); if(head)head.textContent=`ЛОТЫ (${rows.length}) · ${label}`;
+ const label=selectedAuctionDirection==='usa'?auctionDateLabel():(selectedAuctionDirection==='dubai'?'Аукцион Дубай':'Автомобили в пути'),head=document.querySelector('#catalogOverlay .sheetHead b'); if(head)head.textContent=`ЛОТЫ (${rows.length}) · ${label}`;
  root.innerHTML=rows.map(({q,idx},pos)=>`<div class="catalogItem" data-open-lot="${idx}">${q.photos[0]?`<img src="${whiteEscape(q.photos[0])}" alt="${whiteEscape(q.title)}">`:''}<div><b>${label}</b><small>${whiteEscape(q.title)}</small><small>Позиция ${pos+1} из ${rows.length} • ${whiteEscape(q.meta[0])} • ${whiteEscape(q.meta[1])} • <strong>${lotStatus(idx)}</strong></small></div><div class="catalogActions"><button class="starBtn ${isFavorite(idx)?'on':''}" data-star="${idx}" aria-label="Избранное">${isFavorite(idx)?'★':'☆'}</button><button class="catalogShareBtn" data-share-lot="${idx}" aria-label="Поделиться">⇧</button></div></div>`).join("")||'<div class="emptyWatch">Предстоящих лотов пока нет.</div>';
  root.querySelectorAll('[data-star]').forEach(b=>b.onclick=e=>{e.stopPropagation();toggleFavorite(Number(b.dataset.star))});
  root.querySelectorAll('[data-share-lot]').forEach(b=>b.onclick=e=>{e.stopPropagation();shareLot(Number(b.dataset.shareLot))});
@@ -348,7 +353,7 @@ function render(doSubscribe=true){
  renderWatchlist();renderCatalog();
  const labels={...vehicleLabels,Steering:'Руль',Warranty:'Гарантия',Power:'Мощность',Key:'Ключи'};
  $("details").innerHTML=completeVehicleDetails(x).map(d=>`<div class="detailrow"><span>${whiteEscape(labels[d[0]]||d[0])}</span><b>${whiteEscape(d[1]||'—')}</b></div>`).join("");
- if(doSubscribe)subscribeLot();syncRecentBidders();update();
+ if(doSubscribe&&selectedAuctionDirection==='usa')subscribeLot();syncRecentBidders();update();
 }
 
 function userIsLeader(){return !!(tgUser?.id && latestLeaderUserId && String(tgUser.id)===String(latestLeaderUserId));}
@@ -435,6 +440,7 @@ function syncModernProfile(){
  syncPersonalInformationCard();
 }
 function update(){
+ if(selectedAuctionDirection!=='usa')return;
  const waiting=stateRow?.status==='waiting';const bonus=whiteIsBonus();
  $("selectedInc").textContent="+"+money(inc);$("price").textContent=money(price);$("leaderPrice").textContent=money(price);$("bidder").textContent="Bidder #"+bidder;
  $("timer").textContent=closed?'SOLD':whiteTime(seconds);
@@ -493,6 +499,7 @@ function playSoldVoice(){
  const a=$("soldAudio");if(!a)return;a.currentTime=0;a.volume=1;a.play().catch(()=>{});
 }
 async function updateFromClock(){
+ if(selectedAuctionDirection!=='usa')return;
  if(!stateRow)return;
  const started=new Date(stateRow.phase_started_at||stateRow.updated_at||Date.now()).getTime();
  const age=Math.max(0,(serverNowMs()-started)/1000);
@@ -565,7 +572,7 @@ $("detailOverlay").onclick=e=>{if(e.target===$("detailOverlay"))$("detailOverlay
 $("detailBidMinus").onclick=()=>{const el=$("detailBidAmount"),q=lots[detailIndex],base=Number(detailPrebid.lotId===Number(q?.no)?detailPrebid.currentBid:q?.price||0);detailBidDirty=true;el.value=String(Math.max(base+DETAIL_PREBID_STEP,Number(el.value||base+DETAIL_PREBID_STEP)-DETAIL_PREBID_STEP))};
 $("detailBidPlus").onclick=()=>{const el=$("detailBidAmount"),q=lots[detailIndex],base=Number(detailPrebid.lotId===Number(q?.no)?detailPrebid.currentBid:q?.price||0);detailBidDirty=true;el.value=String(Math.max(base+DETAIL_PREBID_STEP,Number(el.value||base)+DETAIL_PREBID_STEP))};
 $("detailBidAmount").addEventListener("input",()=>{detailBidDirty=true});
-$("detailBidSubmit").onclick=async()=>{const q=lots[detailIndex],status=String(managedLotStatuses[String(Number(q?.no))]||'').toLowerCase(),pre=status==='upcoming';if(!pre){submitBid();return}if(!tg?.initData){alert("Откройте Galaxy Auctions через Telegram.");return}const maximum=Math.round(Number($("detailBidAmount").value||0));bidSubmitting=true;syncDetailBid();try{const res=await fetch('/api/prebid',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:tg.initData,lotId:Number(q.no),action:'place',maximum})}),out=await res.json();if(!res.ok){if(out.code==='BID_NOT_ACTIVE')alert('Администратор должен установить статус ACTIVE.');else if(out.code==='LIMIT_REQUIRED')alert('Администратор должен установить лимит ставок.');else if(out.code==='DEPOSIT_REQUIRED')alert('Участие не разрешено.');else if(out.code==='LIMIT_EXCEEDED')alert('Максимальная ставка выше лимита аккаунта: '+money(Number(out.bidLimit||0)));else alert(out.error||'Ставка не принята.');return}detailPrebid={lotId:Number(q.no),currentBid:Number(out.currentBid||0),myMaximum:out.myMaximum==null?null:Number(out.myMaximum),leader:out.leader||null,canBid:true};detailBidDirty=false;syncDetailBid();await fetchAuctionState()}finally{bidSubmitting=false;syncDetailBid()}};
+$("detailBidSubmit").onclick=async()=>{const q=lots[detailIndex],status=String(managedLotStatuses[String(Number(q?.no))]||'').toLowerCase(),pre=status==='upcoming';if(selectedAuctionDirection!=='usa'){alert('Ставки этого направления ещё не подключены.');return;}if(selectedAuctionDirection!=='usa'){alert('Ставки этого направления пока не подключены.');return;}if(!pre){submitBid();return}if(!tg?.initData){alert("Откройте Galaxy Auctions через Telegram.");return}const maximum=Math.round(Number($("detailBidAmount").value||0));bidSubmitting=true;syncDetailBid();try{const res=await fetch('/api/prebid',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:tg.initData,lotId:Number(q.no),action:'place',maximum})}),out=await res.json();if(!res.ok){if(out.code==='BID_NOT_ACTIVE')alert('Администратор должен установить статус ACTIVE.');else if(out.code==='LIMIT_REQUIRED')alert('Администратор должен установить лимит ставок.');else if(out.code==='DEPOSIT_REQUIRED')alert('Участие не разрешено.');else if(out.code==='LIMIT_EXCEEDED')alert('Максимальная ставка выше лимита аккаунта: '+money(Number(out.bidLimit||0)));else alert(out.error||'Ставка не принята.');return}detailPrebid={lotId:Number(q.no),currentBid:Number(out.currentBid||0),myMaximum:out.myMaximum==null?null:Number(out.myMaximum),leader:out.leader||null,canBid:true};detailBidDirty=false;syncDetailBid();await fetchAuctionState()}finally{bidSubmitting=false;syncDetailBid()}};
 
 $("mkBtn").onclick=()=>{$("queueOverlay").classList.remove("open");$("marketRadial").classList.toggle("open")};
 document.querySelectorAll("[data-market]").forEach(b=>b.onclick=()=>{selectedCountry=b.dataset.market;document.querySelectorAll("[data-market]").forEach(x=>x.classList.toggle("selected",x===b));$("marketRadial").classList.remove("open")});
@@ -679,8 +686,8 @@ document.querySelectorAll("[data-home-auction]").forEach(b=>b.onclick=openAuctio
 $("auctionDirectionUSA").onclick=enterAuctionMarkets;
 // Temporary navigation: all three direction cards open the existing USA LIVE screen.
 // No separate auctions or bids are enabled by these buttons.
-$("auctionDirectionDubai").onclick=enterAuctionMarkets;
-$("auctionDirectionTransfer").onclick=enterAuctionMarkets;
+$("auctionDirectionDubai").onclick=()=>enterAuctionMarkets('dubai');
+$("auctionDirectionTransfer").onclick=()=>enterAuctionMarkets('transfer');
 $("openAccountFromProfile").onclick=()=>{closeModernScreens();openAccount()};
 $("openAdminFromProfile").onclick=()=>{closeModernScreens();openAdminPanel()};
 $("accountClose").onclick=()=>$("accountOverlay").classList.remove("open");
@@ -1125,10 +1132,26 @@ function syncAuctionDirectionUSACount(){
 }
 function openAuctionDirectionScreen(){closeModernScreens();setModernActive('markets');$('auctionDirectionScreen').classList.add('open');syncAuctionDirectionUSACount();}
 
+// Direction context for the existing LIVE screen. Do not alter USA state or bids.
+let selectedAuctionDirection='usa';
+let selectedDirectionQueue=[];
+let savedUsaLiveQueue=null;
+async function loadSelectedAuctionQueue(direction){
+ if(direction==='usa'){selectedDirectionQueue=[];return [];}
+ const response=await fetch('/api/direction-queue?direction='+encodeURIComponent(direction)+'&t='+Date.now(),{cache:'no-store'});
+ if(!response.ok)throw new Error('Не удалось загрузить лоты направления');
+ const data=await response.json();
+ if(!Array.isArray(data.queue))throw new Error('Некорректный список лотов');
+ selectedDirectionQueue=data.queue;
+ return selectedDirectionQueue;
+}
 let auctionEntryBusy=false;
-async function enterAuctionMarkets(){
+async function enterAuctionMarkets(direction='usa'){
  if(auctionEntryBusy)return;
  auctionEntryBusy=true;
+ selectedAuctionDirection=['usa','dubai','transfer'].includes(direction)?direction:'usa';
+ try{await loadSelectedAuctionQueue(selectedAuctionDirection)}catch(e){console.warn('Direction queue failed',e);selectedDirectionQueue=[];}
+
  registrationDestination='live';
  try{
   const ready=await sharedLotRegistrationGate();
@@ -1136,8 +1159,41 @@ async function enterAuctionMarkets(){
  }catch(e){console.warn('Auction entry failed',e)}
  finally{auctionEntryBusy=false}
 }
+function renderSelectedDirectionPreview(){
+ if(selectedAuctionDirection==='usa')return;
+ if(realtimeChannel){db.removeChannel(realtimeChannel);realtimeChannel=null;}
+ stopAuctionEffects();
+ if(savedUsaLiveQueue===null)savedUsaLiveQueue=liveTodayQueue.slice();
+ const queue=selectedDirectionQueue||[];
+ for(const car of queue){upsertServerLot(car);}
+ liveTodayQueue=queue.map(x=>Number(x.lot_number));
+ if(queue.length){
+  const first=queue[0];
+  i=Math.max(0,lots.findIndex(x=>Number(x.no)===Number(first.lot_number)));
+  price=Number(first.starting_bid||0);
+  render(false);
+  $('count').textContent='Позиция 1 из '+queue.length;
+ }else{
+  $('title').textContent='Ожидаем автомобили';
+  $('count').textContent='Позиция — из 0';
+  $('lotsBtn').textContent='Лоты (0) ›';
+  $('gallery').replaceChildren();
+  $('photo').removeAttribute('src');$('photo').style.display='none';
+  $('details').replaceChildren();
+  renderCatalog();
+ }
+ $('lot').textContent=selectedAuctionDirection==='dubai'?'Аукцион Дубай':'Автомобили в пути';
+ $('circleTime').textContent='18:00';
+ $('circleLabel').textContent='Начало по времени Дубая';
+ $('price').textContent=money(price);
+ $('leaderPrice').textContent=money(price);
+ $('bid').disabled=true;
+ $('bid').textContent='СТАВКИ ПОКА НЕДОСТУПНЫ';
+ $('detailBidSubmit').disabled=true;
+ $('soundStatus').textContent='ПРОСМОТР ЛОТОВ · Торги не запущены';
+}
 function openRegistrationDestination(){
- if(registrationDestination==='live'){closeModernScreens();document.body.classList.add('telegramLiveLaunch');setModernActive('');window.scrollTo(0,0);}
+ if(registrationDestination==='live'){closeModernScreens();document.body.classList.add('telegramLiveLaunch');setModernActive('');window.scrollTo(0,0);if(selectedAuctionDirection!=='usa')renderSelectedDirectionPreview();else{$('detailBidSubmit').disabled=false;if(savedUsaLiveQueue!==null){liveTodayQueue=savedUsaLiveQueue;savedUsaLiveQueue=null;}fetchAuctionState();}}
  else if(registrationDestination==='lots')openTodayLots();
  else if(registrationDestination==='markets')openAuctionMarkets();
  else openMainHome();

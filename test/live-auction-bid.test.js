@@ -32,8 +32,9 @@ async function placeBid(options = {}) {
   const response = (data, ok = true) => ({ok, json: async () => JSON.parse(JSON.stringify(data))});
   const sandbox = {
     require: (name) => {
-      assert.equal(name, 'crypto');
-      return crypto;
+      if (name === 'crypto') return crypto;
+      if (name === './_auction-direction') return {directionOf: (lot) => String(lot.description || '').includes('"direction":"dubai"') ? 'dubai' : String(lot.description || '').includes('"direction":"transfer"') ? 'transfer' : 'usa'};
+      throw new Error('Unexpected module: ' + name);
     },
     module: {exports: {}}, Buffer, URLSearchParams,
     process: {env: {
@@ -52,12 +53,14 @@ async function placeBid(options = {}) {
         assert.equal(parsed.searchParams.get('telegram_id'), 'eq.' + telegramId);
         return options.lookupFailed ? response({message: 'Database unavailable'}, false) : response([user]);
       }
+      if (parsed.pathname.endsWith('/auction_lots')) return response([{description:'[GALAXY_DIRECTION:{"direction":"usa"}]'}]);
       if (parsed.pathname.endsWith('/auction_state')) {
         if (method === 'GET') return response([state]);
         assert.equal(method, 'PATCH');
         return response(options.concurrentBid ? [] : [{...state, ...body}]);
       }
       assert.ok(parsed.pathname.endsWith('/auction_bids'));
+      if (method === 'GET') return response([]);
       assert.equal(method, 'POST');
       return response([{id: 10, ...body}]);
     }
