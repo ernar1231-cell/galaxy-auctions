@@ -22,7 +22,7 @@ async function open(direction){
   const image=photos[0]||'';
   const name=[lot.make,lot.model,lot.year].filter(Boolean).join(' ');
   const details=[['Пробег',lot.mileage],['Двигатель',lot.engine],['Топливо',lot.fuel],['Трансмиссия',lot.transmission],['Привод',lot.drivetrain],['Салон',lot.interior_color],['Цвет',lot.color],['VIN',lot.vin]];
-  root.innerHTML='<div class="directionLiveStatus"><span>● LIVE AUCTION · Звук выключен</span></div>'+
+  root.innerHTML='<div class="directionLiveBrand"><img src="assets/galaxy-auctions-logo.png" alt="Galaxy Auctions"><span aria-hidden="true">♧</span></div><div class="directionLiveStatus"><span>● LIVE AUCTION · Звук выключен</span></div>'+
     '<div class="directionLiveStrip"><b>Завтра · 18:00</b><small>Позиция 1 из '+cars.length+'</small><strong>Лоты ('+cars.length+')</strong></div>'+
     '<div class="directionLivePhoto">'+(image?'<img id="directionLiveImage" src="'+safe(image)+'" alt="'+safe(name)+'">':'<div class="directionCatalogNoImage">🚘</div>')+
     (photos.length>1?'<button type="button" class="directionPhotoPrev" id="directionPhotoPrev">‹</button><button type="button" class="directionPhotoNext" id="directionPhotoNext">›</button>':'')+
