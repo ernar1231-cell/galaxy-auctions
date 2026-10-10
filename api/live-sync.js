@@ -1,3 +1,4 @@
+const {directionOf}=require('./_auction-direction');
 const SUPABASE_URL=String(process.env.SUPABASE_URL||'https://exfxcgiuotraszeqefha.supabase.co').replace(/\/$/,'');
 const key=()=>process.env.SUPABASE_SERVICE_ROLE_KEY;
 async function sfetch(path,opts={}){const k=key();if(!k)throw new Error('SUPABASE_SERVICE_ROLE_KEY is not configured');return fetch(SUPABASE_URL+'/rest/v1/'+path,{...opts,headers:{apikey:k,Authorization:`Bearer ${k}`,'Content-Type':'application/json',...(opts.headers||{})}})}
@@ -14,7 +15,7 @@ function scheduledStart(state,now){
  const nextIndex=Math.floor((waitingSince-FIRST_AUCTION_MS)/DAY_MS)+1;
  return new Date(FIRST_AUCTION_MS+nextIndex*DAY_MS);
 }
-async function activeLots(){const r=await sfetch('auction_lots?status=in.(upcoming,live)&select=id,lot_number,starting_bid,status,description,sort_order&order=sort_order.asc,lot_number.asc');if(!r.ok)return[];return await r.json()||[]}
+async function activeLots(){const r=await sfetch('auction_lots?status=in.(upcoming,live)&select=id,lot_number,starting_bid,status,description,sort_order&order=sort_order.asc,lot_number.asc');if(!r.ok)return[];return ((await r.json())||[]).filter(l=>directionOf(l)==='usa')}
 function orderedQueue(rows,state){const current=Number(state?.lot_id||0);if(state?.status!=='live'||!current)return rows.slice();const selected=rows.find(x=>Number(x.lot_number)===current);return selected?[selected,...rows.filter(x=>Number(x.lot_number)!==current)]:rows.slice();}
 async function bidderCountries(bids){
  const ids=[...new Set((bids||[]).map(b=>String(b.user_id||'')).filter(Boolean))];
