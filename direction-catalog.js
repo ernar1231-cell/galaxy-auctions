@@ -23,8 +23,6 @@ async function open(direction){
 }
 window.galaxyOpenDirectionCatalog=open;
 function bindDirectionButtons(){
- $('auctionDirectionDubai')?.addEventListener('click',()=>open('dubai'));
- $('auctionDirectionTransfer')?.addEventListener('click',()=>open('transfer'));
  $('directionCatalogBack')?.addEventListener('click',back);
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bindDirectionButtons,{once:true});else bindDirectionButtons();
