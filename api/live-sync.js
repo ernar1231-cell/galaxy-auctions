@@ -15,7 +15,7 @@ function scheduledStart(state,now){
  const nextIndex=Math.floor((waitingSince-FIRST_AUCTION_MS)/DAY_MS)+1;
  return new Date(FIRST_AUCTION_MS+nextIndex*DAY_MS);
 }
-async function activeLots(){const r=await sfetch('auction_lots?status=in.(upcoming,live)&select=id,lot_number,starting_bid,status,description,sort_order&order=sort_order.asc,lot_number.asc');if(!r.ok)return[];return ((await r.json())||[]).filter(l=>directionOf(l)==='usa')}
+async function activeLots(){const r=await sfetch('auction_lots?status=in.(upcoming,live)&select=id,lot_number,starting_bid,status,description,sort_order&order=sort_order.asc,lot_number.asc');if(!r.ok)throw new Error('Could not load USA auction lots');const rows=await r.json();if(!Array.isArray(rows))throw new Error('Invalid USA auction lots response');return rows.filter(l=>directionOf(l)==='usa')}
 function orderedQueue(rows,state){const current=Number(state?.lot_id||0);if(state?.status!=='live'||!current)return rows.slice();const selected=rows.find(x=>Number(x.lot_number)===current);return selected?[selected,...rows.filter(x=>Number(x.lot_number)!==current)]:rows.slice();}
 async function bidderCountries(bids){
  const ids=[...new Set((bids||[]).map(b=>String(b.user_id||'')).filter(Boolean))];

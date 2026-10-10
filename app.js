@@ -942,10 +942,10 @@ fetchAuctionState().then(()=>{
   // reconnect/network gaps and keeps state, BONUS TIME, leader and bids aligned on every phone.
   let snapshotBusy=false;
   setInterval(async()=>{
-    if(snapshotBusy)return;snapshotBusy=true;const requestStarted=Date.now();
+    if(snapshotBusy||selectedAuctionDirection!=='usa')return;snapshotBusy=true;const requestStarted=Date.now();
     try{
       const r=await fetch('/api/live-sync?t='+requestStarted,{cache:'no-store'});
-      if(r.ok){const snap=await r.json();syncServerClock(snap.serverNow,requestStarted);
+      if(r.ok){const snap=await r.json();if(selectedAuctionDirection!=='usa')return;syncServerClock(snap.serverNow,requestStarted);
         if(snap.lotStatuses){managedLotStatuses=snap.lotStatuses;renderCatalog();renderWatchlist();syncAuctionDirectionUSACount();} if(snap.startAt){galaxyStartAt=snap.startAt;const al=$("lot");if(al)al.textContent=auctionDateLabel();} if(Array.isArray(snap.todayQueue)){liveTodayQueue=snap.todayQueue.map(Number); const lb=$("lotsBtn");if(lb)lb.textContent=`Лоты (${liveTodayQueue.length}) ›`;renderCatalog();syncAuctionDirectionUSACount();}
         if(snap.state){
           if(snap.lot){upsertServerLot(snap.lot);document.body.classList.remove('liveLotLoading');}
@@ -1164,6 +1164,7 @@ function renderSelectedDirectionPreview(){
  if(realtimeChannel){db.removeChannel(realtimeChannel);realtimeChannel=null;}
  stopAuctionEffects();
  if(savedUsaLiveQueue===null)savedUsaLiveQueue=liveTodayQueue.slice();
+ document.body.classList.remove('liveLotLoading');
  const queue=selectedDirectionQueue||[];
  for(const car of queue){upsertServerLot(car);}
  liveTodayQueue=queue.map(x=>Number(x.lot_number));
@@ -1193,7 +1194,7 @@ function renderSelectedDirectionPreview(){
  $('soundStatus').textContent='ПРОСМОТР ЛОТОВ · Торги не запущены';
 }
 function openRegistrationDestination(){
- if(registrationDestination==='live'){closeModernScreens();document.body.classList.add('telegramLiveLaunch');setModernActive('');window.scrollTo(0,0);if(selectedAuctionDirection!=='usa')renderSelectedDirectionPreview();else{$('detailBidSubmit').disabled=false;if(savedUsaLiveQueue!==null){liveTodayQueue=savedUsaLiveQueue;savedUsaLiveQueue=null;}fetchAuctionState();}}
+ if(registrationDestination==='live'){closeModernScreens();document.body.classList.add('telegramLiveLaunch');setModernActive('');window.scrollTo(0,0);if(selectedAuctionDirection!=='usa')renderSelectedDirectionPreview();else{$('detailBidSubmit').disabled=false;document.body.classList.add('liveLotLoading');if(savedUsaLiveQueue!==null){liveTodayQueue=savedUsaLiveQueue;savedUsaLiveQueue=null;}fetchAuctionState();}}
  else if(registrationDestination==='lots')openTodayLots();
  else if(registrationDestination==='markets')openAuctionMarkets();
  else openMainHome();
