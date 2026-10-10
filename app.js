@@ -1146,11 +1146,11 @@ async function loadSelectedAuctionQueue(direction){
 }
 let auctionEntryBusy=false;
 async function enterAuctionMarkets(direction='usa'){
+ if(auctionEntryBusy)return;
+ auctionEntryBusy=true;
  selectedAuctionDirection=['usa','dubai','transfer'].includes(direction)?direction:'usa';
  try{await loadSelectedAuctionQueue(selectedAuctionDirection)}catch(e){console.warn('Direction queue failed',e);selectedDirectionQueue=[];}
 
- if(auctionEntryBusy)return;
- auctionEntryBusy=true;
  registrationDestination='live';
  try{
   const ready=await sharedLotRegistrationGate();
@@ -1160,6 +1160,8 @@ async function enterAuctionMarkets(direction='usa'){
 }
 function renderSelectedDirectionPreview(){
  if(selectedAuctionDirection==='usa')return;
+ if(realtimeChannel){db.removeChannel(realtimeChannel);realtimeChannel=null;}
+ stopAuctionEffects();
  const queue=selectedDirectionQueue||[];
  for(const car of queue){upsertServerLot(car);}
  liveTodayQueue=queue.map(x=>Number(x.lot_number));
@@ -1185,10 +1187,11 @@ function renderSelectedDirectionPreview(){
  $('leaderPrice').textContent=money(price);
  $('bid').disabled=true;
  $('bid').textContent='СТАВКИ ПОКА НЕДОСТУПНЫ';
+ $('detailBidSubmit').disabled=true;
  $('soundStatus').textContent='ПРОСМОТР ЛОТОВ · Торги не запущены';
 }
 function openRegistrationDestination(){
- if(registrationDestination==='live'){closeModernScreens();document.body.classList.add('telegramLiveLaunch');setModernActive('');window.scrollTo(0,0);if(selectedAuctionDirection!=='usa')renderSelectedDirectionPreview();}
+ if(registrationDestination==='live'){closeModernScreens();document.body.classList.add('telegramLiveLaunch');setModernActive('');window.scrollTo(0,0);if(selectedAuctionDirection!=='usa')renderSelectedDirectionPreview();else{$('detailBidSubmit').disabled=false;fetchAuctionState();}}
  else if(registrationDestination==='lots')openTodayLots();
  else if(registrationDestination==='markets')openAuctionMarkets();
  else openMainHome();
