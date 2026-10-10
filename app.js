@@ -920,7 +920,7 @@ fetchAuctionState().then(()=>{
     try{
       const r=await fetch('/api/live-sync?t='+requestStarted,{cache:'no-store'});
       if(r.ok){const snap=await r.json();syncServerClock(snap.serverNow,requestStarted);
-        if(snap.lotStatuses){managedLotStatuses=snap.lotStatuses;renderCatalog();renderWatchlist();syncAuctionDirectionUSACount();} if(snap.startAt){galaxyStartAt=snap.startAt;const al=$("lot");if(al)al.textContent=auctionDateLabel();} if(Array.isArray(snap.todayQueue)){liveTodayQueue=snap.todayQueue.map(Number); const lb=$("lotsBtn");if(lb)lb.textContent=`Лоты (${liveTodayQueue.length}) ›`;renderCatalog();}
+        if(snap.lotStatuses){managedLotStatuses=snap.lotStatuses;renderCatalog();renderWatchlist();syncAuctionDirectionUSACount();} if(snap.startAt){galaxyStartAt=snap.startAt;const al=$("lot");if(al)al.textContent=auctionDateLabel();} if(Array.isArray(snap.todayQueue)){liveTodayQueue=snap.todayQueue.map(Number); const lb=$("lotsBtn");if(lb)lb.textContent=`Лоты (${liveTodayQueue.length}) ›`;renderCatalog();syncAuctionDirectionUSACount();}
         if(snap.state){
           if(snap.lot){upsertServerLot(snap.lot);document.body.classList.remove('liveLotLoading');}
           // live-sync includes the authoritative visible pre-bid price while waiting.
