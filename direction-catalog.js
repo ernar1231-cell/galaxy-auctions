@@ -11,9 +11,17 @@ async function open(direction){
  screen.classList.add('open');$('directionCatalogTitle').textContent=labels[direction][0];$('directionCatalogSubtitle').textContent=labels[direction][1];
  const root=$('directionCatalogItems');root.textContent='Загрузка автомобилей…';
  try{
-  const r=await fetch('/api/direction-queue?direction='+encodeURIComponent(direction)+'&t='+Date.now(),{cache:'no-store'});if(!r.ok)throw Error('Каталог временно недоступен');
-  const data=await r.json();if(!screen.classList.contains('open'))return;
-  const cars=Array.isArray(data.queue)?data.queue:[];
+  let cars=[];
+  try{
+   const r=await fetch('/api/direction-queue?direction='+encodeURIComponent(direction)+'&t='+Date.now(),{cache:'no-store'});
+   if(!r.ok)throw Error('Direction queue unavailable');
+   const data=await r.json();cars=Array.isArray(data.queue)?data.queue:[];
+  }catch(queueError){
+   const r=await fetch('/api/public-lots?t='+Date.now(),{cache:'no-store'});
+   if(!r.ok)throw Error('Каталог временно недоступен');
+   const data=await r.json();cars=(Array.isArray(data.lots)?data.lots:[]).filter(l=>directionOf(l)===direction);
+  }
+  if(!screen.classList.contains('open'))return;
   let currentIndex=0;
   function renderSelectedLot(){const lot=cars[currentIndex];
   if(!lot){root.innerHTML='<div class="directionLiveBrand"><img src="assets/galaxy-auctions-logo.png" alt="Galaxy Auctions"></div><div class="directionLiveStrip"><b>18:00 · Дубай</b><strong>Лоты (0)</strong></div><div class="directionCatalogEmpty">Лоты (0). Ожидаем добавления автомобилей через админку.</div>';return;}
