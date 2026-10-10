@@ -1357,3 +1357,7 @@ body.mk-white #auctionDirectionScreen .auctionDirectionSoon{
  body.mk-white #auctionDirectionScreen .auctionDirectionShip{height:104px!important}
  body.mk-white #auctionDirectionScreen .auctionDirectionCopy b{font-size:14px!important}
 }
+
+
+/* Keep the Admin Panel entry hidden until verified access explicitly reveals it. */
+body.mk-white .profileMenu>button[hidden]{display:none!important}

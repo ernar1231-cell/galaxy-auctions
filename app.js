@@ -427,7 +427,7 @@ function selectedProfileLanguage(){try{const code=localStorage.getItem(profileLa
 function syncProfileLanguage(){const code=selectedProfileLanguage();$('modernProfileLanguage').textContent=PROFILE_LANGUAGES[code];document.querySelectorAll('[data-profile-language]').forEach(b=>b.classList.toggle('active',b.dataset.profileLanguage===code))}
 function syncModernProfile(){
  if(!window.accountData)return;const d=window.accountData;const name=[d.first_name,d.last_name].filter(Boolean).join(' ')||d.username||'Telegram user';
- $("modernProfileName").textContent=name;$("modernProfileUser").textContent=d.username?'@'+d.username:String(d.telegram_id||'');$("modernProfileAvatar").textContent=(name.slice(0,2)||'MK').toUpperCase();$("modernProfileDeposit").textContent=money(Number(d.deposit_amount||0));$("modernProfileLimit").textContent=money(Number(d.bid_limit||0));$("openAdminFromProfile").style.display=d.is_admin?'block':'none';
+ $("modernProfileName").textContent=name;$("modernProfileUser").textContent=d.username?'@'+d.username:String(d.telegram_id||'');$("modernProfileAvatar").textContent=(name.slice(0,2)||'MK').toUpperCase();$("modernProfileDeposit").textContent=money(Number(d.deposit_amount||0));$("modernProfileLimit").textContent=money(Number(d.bid_limit||0));
  setProfileAvatar($("modernProfileAvatar"),d,name);
  const active=String(d.account_status||'').toLowerCase()==='active';$("modernProfileStatus").textContent=active?'● Активный аккаунт':'● '+String(d.account_status||'ОЖИДАЕТ АКТИВАЦИИ').toUpperCase();$("modernProfileStatus").classList.toggle('inactive',!active);
  const phone=String(d.phone||'').trim(),flag=PROFILE_FLAGS[String(d.phone_country||'').toUpperCase()]||'';$("modernProfilePhone").textContent=phone?`${flag?flag+' ':''}${phone}`:'📞 Телефон не указан';$("modernProfileEmail").textContent=d.email?'✉️ '+d.email:'✉️ Email не указан';
@@ -615,12 +615,19 @@ const personalInformation=window.GalaxyAccountInformation.createAccountInformati
   onClose:()=>{setModernActive("profile");$("profileScreen").classList.add("open");}
 });
 
-async function refreshAdminAccess(){
-  if(!tgUser?.id){adminAccess={admin:false,owner:false};return adminAccess;}
-  try{const r=await fetch("/api/admin-access",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({initData:tg?.initData||""})});const d=await r.json();adminAccess=r.ok?d:{admin:false,owner:false};}
-  catch(e){adminAccess={admin:false,owner:false};}
-  const show=!!adminAccess.admin; const p=$("openAdminFromProfile"),q=$("adminQuick"),a=$("adminAccountBtn"); if(p)p.style.display=show?"block":"none";if(q)q.style.display=show?"inline-flex":"none";if(a)a.style.display=show?"block":"none";return adminAccess;
-}
+const adminAccessController=window.GalaxyAdminAccess.createController({
+  fetch:(url,options)=>fetch(url,options),
+  getUserId:()=>tgUser?.id,
+  getInitData:()=>tg?.initData||"",
+  onAccess:access=>{
+    adminAccess=access;
+    window.GalaxyAdminAccess.setButtonAccess($("openAdminFromProfile"),access.admin);
+    const q=$("adminQuick"),a=$("adminAccountBtn");
+    if(q)q.style.display=access.admin?"inline-flex":"none";
+    if(a)a.style.display=access.admin?"block":"none";
+  }
+});
+async function refreshAdminAccess(){return adminAccessController.refresh();}
 async function loadAccountProfile(options={}){
   const hint=$("accountHint");
   if(!tgUser?.id){
@@ -673,7 +680,7 @@ document.querySelectorAll("#modernBottomNav [data-modern]").forEach(b=>b.onclick
  closeModernScreens();setModernActive(k);
  if(k==="home")$("homeScreen").classList.add("open");
  else if(k==="bids"){renderModernMyBids();$("myBidsScreen").classList.add("open")}
- else if(k==="profile"){syncModernProfile();loadAccountProfile();$("profileScreen").classList.add("open")}
+ else if(k==="profile"){syncModernProfile();$("profileScreen").classList.add("open");loadAccountProfile();refreshAdminAccess()}
 });
 document.querySelectorAll("[data-home-auction]").forEach(b=>b.onclick=openAuctionDirectionScreen);
 $("auctionDirectionUSA").onclick=enterAuctionMarkets;
