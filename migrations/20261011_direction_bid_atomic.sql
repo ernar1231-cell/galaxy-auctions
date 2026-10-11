@@ -4,7 +4,7 @@ BEGIN;
 CREATE OR REPLACE FUNCTION public.galaxy_place_direction_bid(
  p_direction text,p_lot_number bigint,p_user_telegram_id text,p_increment numeric
 ) RETURNS TABLE(event_id bigint,new_bid numeric)
-LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$
+LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
 DECLARE
  s public.galaxy_auction_sessions%ROWTYPE;
  a public.galaxy_auction_lot_assignments%ROWTYPE;
