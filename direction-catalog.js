@@ -14,12 +14,12 @@ async function open(direction){
  stopDirectionAudio();directionSoundOn=false;screen.classList.add('open');document.body.classList.add('directionPreviewOpen');$('directionCatalogTitle').textContent=labels[direction][0];$('directionCatalogSubtitle').textContent=labels[direction][1];
  const root=$('directionCatalogItems');root.textContent='Загрузка автомобилей…';
  try{
-  let cars=[],startAt=null;
+  let cars=[],startAt=null,clockOffsetMs=0;
   try{
    const r=await fetch('/api/direction-live-state?direction='+encodeURIComponent(direction)+'&t='+Date.now(),{cache:'no-store'});
    if(!r.ok)throw Error('Direction LIVE state unavailable');
    const data=await r.json();if(!Array.isArray(data.queue))throw Error('Invalid queue');
-   cars=data.queue;startAt=data.startAt||null;
+   cars=data.queue;startAt=data.startAt||null;if(data.serverNow)clockOffsetMs=new Date(data.serverNow).getTime()-Date.now();
   }catch(liveError){
   try{
    const r=await fetch('/api/direction-queue?direction='+encodeURIComponent(direction)+'&t='+Date.now(),{cache:'no-store'});
@@ -67,7 +67,7 @@ async function open(direction){
   $('directionPhotoNext')?.addEventListener('click',()=>{imageIndex=(imageIndex+1)%photos.length;showPhoto()});
   }
   renderSelectedLot();
-  if(startAt){const tick=()=>{if(!screen.classList.contains('open'))return;const el=$('directionLiveCountdown');if(!el)return;const remaining=Math.max(0,Math.floor((new Date(startAt).getTime()-Date.now())/1000));const hh=String(Math.floor(remaining/3600)).padStart(2,'0'),mm=String(Math.floor(remaining%3600/60)).padStart(2,'0'),ss=String(remaining%60).padStart(2,'0');el.textContent=hh+':'+mm+':'+ss;};tick();clearInterval(window.galaxyDirectionCountdownTimer);window.galaxyDirectionCountdownTimer=setInterval(tick,1000);}
+  if(startAt){const tick=()=>{if(!screen.classList.contains('open'))return;const el=$('directionLiveCountdown');if(!el)return;const remaining=Math.max(0,Math.floor((new Date(startAt).getTime()-(Date.now()+clockOffsetMs))/1000));const hh=String(Math.floor(remaining/3600)).padStart(2,'0'),mm=String(Math.floor(remaining%3600/60)).padStart(2,'0'),ss=String(remaining%60).padStart(2,'0');el.textContent=hh+':'+mm+':'+ss;};tick();clearInterval(window.galaxyDirectionCountdownTimer);window.galaxyDirectionCountdownTimer=setInterval(tick,1000);}
  }catch(e){root.textContent='Не удалось загрузить каталог. Попробуйте ещё раз.'}
 }
 window.galaxyOpenDirectionCatalog=open;
