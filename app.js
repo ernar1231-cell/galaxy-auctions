@@ -799,6 +799,26 @@ function openAdminLotManage(l){
   adminManagedLot=l;const pic=l.primary_image||l.images?.[0]?.image_url||"";
   $("adminLotManagePic").src=pic;$("adminLotManagePic").style.display=pic?'block':'none';$("adminLotManageTitle").textContent=`${l.make||""} ${l.model||""} ${l.year||""}`;
   const stNow=String(l.status||"draft").toLowerCase(),rejected=stNow==='draft'&&/\[\[rejected:/.test(String(l.description||'')), stLabel=rejected?'ПРОДАЖА ОТКЛОНЕНА':stNow==='draft'?'В НАЛИЧИИ':stNow==='upcoming'?'ПРЕДСТОЯЩИЙ':stNow==='live'?'LIVE':stNow==='pending'?'ОЖИДАЕТ ПОДТВЕРЖДЕНИЯ':stNow==='sold'?'ПРОДАЖА ПОДТВЕРЖДЕНА':stNow.toUpperCase();
+  let directionSelectButton=$("adminDirectionSelectCurrent");
+  if(!directionSelectButton){
+   directionSelectButton=document.createElement('button');
+   directionSelectButton.id='adminDirectionSelectCurrent';
+   directionSelectButton.type='button';
+   directionSelectButton.className='adminActionBtn';
+   $("adminLotManageMeta")?.insertAdjacentElement('afterend',directionSelectButton);
+  }
+  const managedDirection=adminDirectionOf(l);
+  directionSelectButton.style.display=['dubai','transfer'].includes(managedDirection)&&['upcoming','draft'].includes(String(l.status||'').toLowerCase())?'block':'none';
+  directionSelectButton.textContent='Установить текущим лотом · '+(managedDirection==='dubai'?'Дубай':'В пути');
+  directionSelectButton.onclick=async()=>{
+   if(!confirm('Установить этот автомобиль текущим лотом выбранного направления?'))return;
+   directionSelectButton.disabled=true;
+   try{
+    await adminApi('/api/admin-direction-select-lot',{direction:managedDirection,lotNumber:Number(l.lot_number)});
+    $("adminLotManageMsg").textContent='✅ Текущий лот выбран. Аукцион остаётся в ожидании.';
+   }catch(e){$("adminLotManageMsg").textContent='Ошибка: '+e.message;}
+   finally{directionSelectButton.disabled=false;}
+  };
   $("adminLotManageMeta").innerHTML=`<span>${l.year||'—'} год</span><span>VIN: ${whiteEscape(l.vin||'—')}</span><span>Lot ID: ${whiteEscape(l.lot_number??l.id??'—')}</span>`;
   $("adminLotManageStatus").textContent=stLabel;$("adminLotManageStatus").className=`adminLotManageStatus ${l.status||"draft"}`;const pd=$("adminPendingDecision");if(pd){const isPending=stNow==="pending";pd.style.display=isPending?"block":"none";if(isPending){$("adminPendingWinner").textContent="🏆 Победитель: "+(l.winner_username||l.winner_user_id||"—");$("adminPendingAmount").textContent="Финальная ставка: "+adminMoney(l.winning_bid||0);}}
   $("manageMake").value=l.make||'';$("manageModel").value=l.model||'';$("manageYear").value=l.year||'';$("manageMileage").value=l.mileage??'';$("manageVin").value=l.vin||'';$("manageStarting").value=Number(l.starting_bid||0);$("manageDescription").value=l.description||'';$("manageDirection").value=adminDirectionOf(l);
