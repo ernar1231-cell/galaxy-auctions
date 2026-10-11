@@ -19,7 +19,7 @@ function nextStart(now,timezone,localStart){
  if(timezone!==AUCTION_TIMEZONE)throw Error('Unsupported timezone');
  return new Date(date.getTime()-4*3600000).toISOString();
 }
-module.exports=async(req,res)=>{
+module.exports=Object.assign(async(req,res)=>{
  res.setHeader('Cache-Control','no-store');
  if(req.method!=='GET')return res.status(405).json({error:'Method not allowed'});
  let direction;
@@ -39,7 +39,8 @@ module.exports=async(req,res)=>{
   });
   const current=queue.find(x=>Number(x.lot_number)===Number(session.current_lot_number))||queue[0]||null;
   const enabled=session.enabled===true;
-  const startAt=nextStart(new Date(),session.timezone,session.local_start);
-  return res.status(200).json({direction,enabled,timezone:session.timezone,local_start:session.local_start,startAt,phase:enabled?session.phase:'waiting',lotCount:queue.length,queue,currentLot:current,currentBid:enabled?session.current_bid:null,biddingAvailable:false});
+  const now=new Date();
+  const startAt=nextStart(now,session.timezone,session.local_start);
+  return res.status(200).json({direction,enabled,timezone:session.timezone,local_start:session.local_start,startAt,serverNow:now.toISOString(),phase:enabled?session.phase:'waiting',lotCount:queue.length,queue,currentLot:current,currentBid:enabled?session.current_bid:null,biddingAvailable:false});
  }catch(e){return res.status(503).json({error:'Auction session temporarily unavailable'});}
-};
+},{nextStart});
