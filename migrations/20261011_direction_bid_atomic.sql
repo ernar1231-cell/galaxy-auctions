@@ -1,5 +1,5 @@
 -- Atomic direction-specific bidding. This migration is NOT auto-applied.
--- Requires manual review of existing auction_users fields and session transitions.
+-- Reviewed against existing auction_users fields. Sessions remain disabled until separately authorized and tested.\n-- Only the trusted server using service_role may invoke this function; Telegram initData must be verified by that server.
 BEGIN;
 CREATE OR REPLACE FUNCTION public.galaxy_place_direction_bid(
  p_direction text,p_lot_number bigint,p_user_telegram_id text,p_increment numeric
@@ -24,12 +24,12 @@ BEGIN
  IF NOT EXISTS (
   SELECT 1 FROM public.auction_lots l
   WHERE l.lot_number=p_lot_number AND l.status='live'
-   AND l.description LIKE '%[GALAXY_DIRECTION:{"direction":"'||p_direction||'"}]%'
+   AND position('"direction":"'||p_direction||'"' in replace(coalesce(l.description,''), chr(92), '')) > 0
  ) THEN RAISE EXCEPTION 'Lot not live in direction'; END IF;
  SELECT * INTO u FROM public.auction_users WHERE telegram_id::text=p_user_telegram_id;
  IF NOT FOUND OR lower(coalesce(u.account_status,''))<>'active' THEN RAISE EXCEPTION 'Account not active'; END IF;
  v_next:=s.current_bid+p_increment;
- IF u.bid_limit IS NULL OR u.bid_limit::numeric<v_next THEN RAISE EXCEPTION 'Bid limit exceeded'; END IF;
+ IF coalesce(u.deposit_amount,0)<=0 OR u.bid_limit IS NULL OR u.bid_limit::numeric<v_next THEN RAISE EXCEPTION 'Bid limit exceeded'; END IF;
  UPDATE public.galaxy_auction_sessions SET current_bid=v_next,phase='red',phase_started_at=now(),updated_at=now()
  WHERE direction=p_direction;
  INSERT INTO public.galaxy_auction_bid_events(direction,lot_number,user_telegram_id,amount)
