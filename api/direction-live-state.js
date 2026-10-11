@@ -1,5 +1,6 @@
 'use strict';
 const {assertDirection,selectDirectionQueue,AUCTION_TIMEZONE}=require('./_multi-auction-core');
+const {phaseClock}=require('./_direction-phase-clock');
 const base=()=>String(process.env.SUPABASE_URL||'').replace(/\/$/,'');
 const key=()=>process.env.SUPABASE_SERVICE_ROLE_KEY;
 async function read(path){
@@ -41,6 +42,6 @@ module.exports=Object.assign(async(req,res)=>{
   const enabled=session.enabled===true;
   const now=new Date();
   const startAt=nextStart(now,session.timezone,session.local_start);
-  return res.status(200).json({direction,enabled,timezone:session.timezone,local_start:session.local_start,startAt,serverNow:now.toISOString(),phase:enabled?session.phase:'waiting',lotCount:queue.length,queue,currentLot:current,currentBid:enabled?session.current_bid:null,biddingAvailable:false});
+  return res.status(200).json({direction,enabled,timezone:session.timezone,local_start:session.local_start,startAt,serverNow:now.toISOString(),phase:enabled?session.phase:'waiting',phaseClock:phaseClock(session,now.getTime()),lotCount:queue.length,queue,currentLot:current,currentBid:enabled?session.current_bid:null,biddingAvailable:false});
  }catch(e){return res.status(503).json({error:'Auction session temporarily unavailable'});}
 },{nextStart});
