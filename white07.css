@@ -1574,3 +1574,6 @@ body.directionPreviewOpen #directionCatalogItems{padding:0 8px calc(85px + env(s
 body.directionPreviewOpen #modernBottomNav{display:flex!important;visibility:visible!important;opacity:1!important;position:fixed!important;bottom:0!important;z-index:1000!important}
 body.directionPreviewOpen .directionLiveBrand{height:48px!important;padding:4px 6px!important}
 body.directionPreviewOpen .directionLiveBrand img{max-height:40px!important}
+
+body.directionPreviewOpen .directionLiveStatus{display:flex;align-items:center;justify-content:space-between;gap:8px}
+body.directionPreviewOpen #directionSoundToggle{border:1px solid #cddcec;border-radius:9px;background:#fff;color:#173351;padding:7px 10px;font-size:11px;font-weight:800}
