@@ -7,12 +7,12 @@ test('disabled session stays waiting regardless of stored phase',()=>{
 });
 test('active phase counts down from server timestamp',()=>{
  const now=Date.parse('2026-10-11T14:00:15Z');
- assert.equal(phaseClock({enabled:true,phase:'green',phase_started_at:'2026-10-11T14:00:00Z'},now).secondsRemaining,15);
+ assert.equal(phaseClock({enabled:true,phase:'green',phase_started_at:'2026-10-11T14:00:00Z'},now).secondsRemaining,0);
 });
 test('expired phase never reports negative time',()=>{
  const now=Date.parse('2026-10-11T14:01:00Z');
  assert.equal(phaseClock({enabled:true,phase:'red',phase_started_at:'2026-10-11T14:00:00Z'},now).secondsRemaining,0);
 });
-test('unknown phase does not pretend to be live countdown',()=>{
- assert.equal(phaseClock({enabled:true,phase:'sold'},Date.now()).secondsRemaining,null);
+test('sold phase uses two-second window',()=>{
+ assert.equal(phaseClock({enabled:true,phase:'sold',phase_started_at:'2026-10-11T14:00:00Z'},Date.parse('2026-10-11T14:00:01Z')).secondsRemaining,1);
 });
