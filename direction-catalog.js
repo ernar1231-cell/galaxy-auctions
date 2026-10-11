@@ -66,6 +66,7 @@ async function open(direction){
   $('directionPhotoPrev')?.addEventListener('click',()=>{imageIndex=(imageIndex+photos.length-1)%photos.length;showPhoto()});
   $('directionPhotoNext')?.addEventListener('click',()=>{imageIndex=(imageIndex+1)%photos.length;showPhoto()});
   }
+  screen.addEventListener('galaxy-direction-current-lot',event=>{if(!screen.classList.contains('open'))return;const n=cars.findIndex(x=>Number(x.lot_number)===Number(event.detail?.lotNumber));if(n>=0&&n!==currentIndex){currentIndex=n;renderSelectedLot();}},{signal:(()=>{const controller=new AbortController();screen.addEventListener('galaxy-direction-close',()=>controller.abort(),{once:true});return controller.signal;})()});
   renderSelectedLot();
   if(startAt){const tick=()=>{if(!screen.classList.contains('open'))return;const el=$('directionLiveCountdown');if(!el)return;const remaining=Math.max(0,Math.floor((new Date(startAt).getTime()-(Date.now()+clockOffsetMs))/1000));const hh=String(Math.floor(remaining/3600)).padStart(2,'0'),mm=String(Math.floor(remaining%3600/60)).padStart(2,'0'),ss=String(remaining%60).padStart(2,'0');el.textContent=hh+':'+mm+':'+ss;};tick();clearInterval(window.galaxyDirectionCountdownTimer);window.galaxyDirectionCountdownTimer=setInterval(tick,1000);}
  }catch(e){root.textContent='Не удалось загрузить каталог. Попробуйте ещё раз.'}
