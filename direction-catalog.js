@@ -1,14 +1,17 @@
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
+let directionSoundOn=false;let directionAudio=null;
+function stopDirectionAudio(){if(directionAudio){directionAudio.pause();directionAudio.currentTime=0;}}
+function toggleDirectionSound(){directionSoundOn=!directionSoundOn;if(!directionAudio){directionAudio=new Audio('auction-background.mp3');directionAudio.loop=true;directionAudio.volume=.3;}if(directionSoundOn){directionAudio.play().catch(()=>{directionSoundOn=false;});}else stopDirectionAudio();const b=$('directionSoundToggle');if(b)b.textContent=directionSoundOn?'🔊 Звук включён':'🔇 Включить звук';}
 const labels={dubai:['🇦🇪 Аукцион Дубай','Автомобили Дубая · каталог лотов'],transfer:['🚢 Автомобили в пути','Автомобили в доставке · каталог']};
 function directionOf(l){const match=String(l.description||'').match(/\[GALAXY_DIRECTION:(\{[^\n]*?\})\]/);if(match){try{return JSON.parse(match[1]).direction||'usa'}catch(e){}}return 'usa'}
 function safe(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function back(){document.body.classList.remove('directionPreviewOpen');const screen=$('directionCatalogScreen');if(screen)screen.classList.remove('open');$('auctionDirectionScreen')?.classList.add('open')}
+function back(){stopDirectionAudio();directionSoundOn=false;document.body.classList.remove('directionPreviewOpen');const screen=$('directionCatalogScreen');if(screen)screen.classList.remove('open');$('auctionDirectionScreen')?.classList.add('open')}
 async function open(direction){
  const screen=$('directionCatalogScreen');if(!screen)return;
  document.querySelectorAll('.modernScreen').forEach(x=>x.classList.remove('open'));
- screen.classList.add('open');document.body.classList.add('directionPreviewOpen');$('directionCatalogTitle').textContent=labels[direction][0];$('directionCatalogSubtitle').textContent=labels[direction][1];
+ stopDirectionAudio();directionSoundOn=false;screen.classList.add('open');document.body.classList.add('directionPreviewOpen');$('directionCatalogTitle').textContent=labels[direction][0];$('directionCatalogSubtitle').textContent=labels[direction][1];
  const root=$('directionCatalogItems');root.textContent='Загрузка автомобилей…';
  try{
   let cars=[],startAt=null;
@@ -48,6 +51,7 @@ async function open(direction){
     '<aside><small>Ожидаем начало аукциона</small><div class="directionLiveClock" id="directionLiveCountdown">18:00</div><small>Начало по времени Дубая</small><p>Стартовая цена</p><strong>'+safe(lot.starting_bid!=null?'$'+Number(lot.starting_bid).toLocaleString('en-US'):'Уточняется')+'</strong></aside></div>'+
     '<div class="directionLiveBid"><button type="button" disabled>−</button><b>Ставки пока недоступны</b><button type="button" disabled>+</button><button type="button" disabled>СДЕЛАТЬ СТАВКУ</button></div>'+
     '<p class="directionLiveNotice">Аукцион готовится к запуску. Ставки откроются после подключения независимого LIVE.</p>';
+  $('directionSoundToggle')?.addEventListener('click',toggleDirectionSound);
   $('directionLotListButton')?.addEventListener('click',()=>{
    const old=root.querySelector('#directionLotPicker');if(old){old.remove();return}
    const items=cars.map((x,i)=>'<button type="button" data-direction-index="'+i+'">'+safe([x.make,x.model,x.year].filter(Boolean).join(' '))+' · №'+safe(i+1)+'</button>').join('');
@@ -68,7 +72,7 @@ async function open(direction){
 }
 window.galaxyOpenDirectionCatalog=open;
 function bindDirectionButtons(){
- document.querySelectorAll('#modernBottomNav button').forEach(b=>b.addEventListener('click',()=>document.body.classList.remove('directionPreviewOpen')));
+ document.querySelectorAll('#modernBottomNav button').forEach(b=>b.addEventListener('click',()=>{stopDirectionAudio();directionSoundOn=false;document.body.classList.remove('directionPreviewOpen');}));
  $('directionCatalogBack')?.addEventListener('click',back);
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bindDirectionButtons,{once:true});else bindDirectionButtons();
