@@ -34,8 +34,8 @@ async function refresh(){
 }
 document.addEventListener('click',event=>{
  const card=event.target.closest('#auctionDirectionDubai,#auctionDirectionTransfer');
- if(card){activeDirection=card.id==='auctionDirectionDubai'?'dubai':'transfer';activeLot=null;generation++;}
- if(event.target.closest('#modernBottomNav,#directionCatalogBack')){activeDirection=null;activeLot=null;generation++;}
+ if(card){screen()?.dispatchEvent(new Event('galaxy-direction-close'));activeDirection=card.id==='auctionDirectionDubai'?'dubai':'transfer';activeLot=null;generation++;}
+ if(event.target.closest('#modernBottomNav,#directionCatalogBack')){screen()?.dispatchEvent(new Event('galaxy-direction-close'));activeDirection=null;activeLot=null;generation++;}
 });
 setInterval(refresh,3000);
 })();
