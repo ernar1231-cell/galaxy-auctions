@@ -1,6 +1,6 @@
 'use strict';
 // Pure state derivation: no writes, no implicit session activation.
-const DURATIONS=Object.freeze({green:30,red:20,bonus:10});
+const DURATIONS=Object.freeze({green:15,red:15,bonus:15,sold:2});
 function phaseClock(session,nowMs=Date.now()){
  if(!session||session.enabled!==true)return {phase:'waiting',secondsRemaining:null,serverControlled:true};
  const phase=String(session.phase||'waiting').toLowerCase();
