@@ -11,7 +11,13 @@ async function open(direction){
  screen.classList.add('open');$('directionCatalogTitle').textContent=labels[direction][0];$('directionCatalogSubtitle').textContent=labels[direction][1];
  const root=$('directionCatalogItems');root.textContent='Загрузка автомобилей…';
  try{
-  let cars=[];
+  let cars=[],startAt=null;
+  try{
+   const r=await fetch('/api/direction-live-state?direction='+encodeURIComponent(direction)+'&t='+Date.now(),{cache:'no-store'});
+   if(!r.ok)throw Error('Direction LIVE state unavailable');
+   const data=await r.json();if(!Array.isArray(data.queue))throw Error('Invalid queue');
+   cars=data.queue;startAt=data.startAt||null;
+  }catch(liveError){
   try{
    const r=await fetch('/api/direction-queue?direction='+encodeURIComponent(direction)+'&t='+Date.now(),{cache:'no-store'});
    if(!r.ok)throw Error('Direction queue unavailable');
@@ -20,6 +26,7 @@ async function open(direction){
    const r=await fetch('/api/public-lots?t='+Date.now(),{cache:'no-store'});
    if(!r.ok)throw Error('Каталог временно недоступен');
    const data=await r.json();cars=(Array.isArray(data.lots)?data.lots:[]).filter(l=>directionOf(l)===direction);
+  }
   }
   if(!screen.classList.contains('open'))return;
   let currentIndex=0;
@@ -38,7 +45,7 @@ async function open(direction){
     '<span id="directionPhotoCount">'+(photos.length?'1/'+photos.length:'Нет фото')+'</span></div>'+
     '<div class="directionLiveInfo"><section><h3>'+safe(name)+'</h3>'+details.filter(x=>x[1]!=null&&x[1]!=='').map(x=>'<div class="directionLiveSpec"><span>'+safe(x[0])+'</span><b>'+safe(x[1])+'</b></div>').join('')+
     '<div class="directionLiveSpec"><span>Лот №</span><b>'+safe(currentIndex+1)+'</b></div></section>'+
-    '<aside><small>Ожидаем начало аукциона</small><div class="directionLiveClock">18:00</div><small>Начало по времени Дубая</small><p>Стартовая цена</p><strong>'+safe(lot.starting_bid!=null?'$'+Number(lot.starting_bid).toLocaleString('en-US'):'Уточняется')+'</strong></aside></div>'+
+    '<aside><small>Ожидаем начало аукциона</small><div class="directionLiveClock" id="directionLiveCountdown">18:00</div><small>Начало по времени Дубая</small><p>Стартовая цена</p><strong>'+safe(lot.starting_bid!=null?'$'+Number(lot.starting_bid).toLocaleString('en-US'):'Уточняется')+'</strong></aside></div>'+
     '<div class="directionLiveBid"><button type="button" disabled>−</button><b>Ставки пока недоступны</b><button type="button" disabled>+</button><button type="button" disabled>СДЕЛАТЬ СТАВКУ</button></div>'+
     '<p class="directionLiveNotice">Аукцион готовится к запуску. Ставки откроются после подключения независимого LIVE.</p>';
   $('directionLotListButton')?.addEventListener('click',()=>{
@@ -55,6 +62,7 @@ async function open(direction){
   $('directionPhotoNext')?.addEventListener('click',()=>{imageIndex=(imageIndex+1)%photos.length;showPhoto()});
   }
   renderSelectedLot();
+  if(startAt){const tick=()=>{if(!screen.classList.contains('open'))return;const el=$('directionLiveCountdown');if(!el)return;const remaining=Math.max(0,Math.floor((new Date(startAt).getTime()-Date.now())/1000));const hh=String(Math.floor(remaining/3600)).padStart(2,'0'),mm=String(Math.floor(remaining%3600/60)).padStart(2,'0'),ss=String(remaining%60).padStart(2,'0');el.textContent=hh+':'+mm+':'+ss;};tick();clearInterval(window.galaxyDirectionCountdownTimer);window.galaxyDirectionCountdownTimer=setInterval(tick,1000);}
  }catch(e){root.textContent='Не удалось загрузить каталог. Попробуйте ещё раз.'}
 }
 window.galaxyOpenDirectionCatalog=open;
