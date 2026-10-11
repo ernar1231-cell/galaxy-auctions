@@ -4,11 +4,11 @@ const $=id=>document.getElementById(id);
 const labels={dubai:['🇦🇪 Аукцион Дубай','Автомобили Дубая · каталог лотов'],transfer:['🚢 Автомобили в пути','Автомобили в доставке · каталог']};
 function directionOf(l){const match=String(l.description||'').match(/\[GALAXY_DIRECTION:(\{[^\n]*?\})\]/);if(match){try{return JSON.parse(match[1]).direction||'usa'}catch(e){}}return 'usa'}
 function safe(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function back(){const screen=$('directionCatalogScreen');if(screen)screen.classList.remove('open');$('auctionDirectionScreen')?.classList.add('open')}
+function back(){document.body.classList.remove('directionPreviewOpen');const screen=$('directionCatalogScreen');if(screen)screen.classList.remove('open');$('auctionDirectionScreen')?.classList.add('open')}
 async function open(direction){
  const screen=$('directionCatalogScreen');if(!screen)return;
  document.querySelectorAll('.modernScreen').forEach(x=>x.classList.remove('open'));
- screen.classList.add('open');$('directionCatalogTitle').textContent=labels[direction][0];$('directionCatalogSubtitle').textContent=labels[direction][1];
+ screen.classList.add('open');document.body.classList.add('directionPreviewOpen');$('directionCatalogTitle').textContent=labels[direction][0];$('directionCatalogSubtitle').textContent=labels[direction][1];
  const root=$('directionCatalogItems');root.textContent='Загрузка автомобилей…';
  try{
   let cars=[],startAt=null;
@@ -57,6 +57,7 @@ async function open(direction){
     currentIndex=n;renderSelectedLot();
    }));
   });
+  let touchX=null;const photoBox=root.querySelector('.directionLivePhoto');if(photoBox){photoBox.addEventListener('touchstart',e=>{touchX=e.touches[0]?.clientX??null},{passive:true});photoBox.addEventListener('touchend',e=>{if(touchX===null||photos.length<2)return;const end=e.changedTouches[0]?.clientX??touchX;const dx=end-touchX;touchX=null;if(Math.abs(dx)>45){imageIndex=(imageIndex+(dx<0?1:photos.length-1))%photos.length;showPhoto();}},{passive:true});}
   const showPhoto=()=>{const img=$('directionLiveImage');if(img)img.src=photos[imageIndex];$('directionPhotoCount').textContent=(imageIndex+1)+'/'+photos.length;};
   $('directionPhotoPrev')?.addEventListener('click',()=>{imageIndex=(imageIndex+photos.length-1)%photos.length;showPhoto()});
   $('directionPhotoNext')?.addEventListener('click',()=>{imageIndex=(imageIndex+1)%photos.length;showPhoto()});
@@ -67,6 +68,7 @@ async function open(direction){
 }
 window.galaxyOpenDirectionCatalog=open;
 function bindDirectionButtons(){
+ document.querySelectorAll('#modernBottomNav button').forEach(b=>b.addEventListener('click',()=>document.body.classList.remove('directionPreviewOpen')));
  $('directionCatalogBack')?.addEventListener('click',back);
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bindDirectionButtons,{once:true});else bindDirectionButtons();
