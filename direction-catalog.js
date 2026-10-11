@@ -14,12 +14,12 @@ async function open(direction){
  stopDirectionAudio();directionSoundOn=false;screen.classList.add('open');document.body.classList.add('directionPreviewOpen');$('directionCatalogTitle').textContent=labels[direction][0];$('directionCatalogSubtitle').textContent=labels[direction][1];
  const root=$('directionCatalogItems');root.textContent='Загрузка автомобилей…';
  try{
-  let cars=[],startAt=null,clockOffsetMs=0;
+  let cars=[],startAt=null,clockOffsetMs=0,sessionPhase='waiting',sessionEnabled=false,sessionBid=null;
   try{
    const r=await fetch('/api/direction-live-state?direction='+encodeURIComponent(direction)+'&t='+Date.now(),{cache:'no-store'});
    if(!r.ok)throw Error('Direction LIVE state unavailable');
    const data=await r.json();if(!Array.isArray(data.queue))throw Error('Invalid queue');
-   cars=data.queue;startAt=data.startAt||null;if(data.serverNow)clockOffsetMs=new Date(data.serverNow).getTime()-Date.now();
+   cars=data.queue;startAt=data.startAt||null;sessionPhase=data.phase||'waiting';sessionEnabled=data.enabled===true;sessionBid=data.currentBid;if(data.serverNow)clockOffsetMs=new Date(data.serverNow).getTime()-Date.now();
   }catch(liveError){
   try{
    const r=await fetch('/api/direction-queue?direction='+encodeURIComponent(direction)+'&t='+Date.now(),{cache:'no-store'});
@@ -48,8 +48,35 @@ async function open(direction){
     '<span id="directionPhotoCount">'+(photos.length?'1/'+photos.length:'Нет фото')+'</span></div>'+
     '<div class="directionLiveInfo"><section><h3>'+safe(name)+'</h3>'+details.filter(x=>x[1]!=null&&x[1]!=='').map(x=>'<div class="directionLiveSpec"><span>'+safe(x[0])+'</span><b>'+safe(x[1])+'</b></div>').join('')+
     '<div class="directionLiveSpec"><span>Лот №</span><b>'+safe(currentIndex+1)+'</b></div></section>'+
-    '<aside><small>Ожидаем начало аукциона</small><div class="directionLiveClock" id="directionLiveCountdown">18:00</div><small>Начало по времени Дубая</small><p>Стартовая цена</p><strong>'+safe(lot.starting_bid!=null?'$'+Number(lot.starting_bid).toLocaleString('en-US'):'Уточняется')+'</strong></aside></div>'+
-    '<div class="directionLiveBid"><button type="button" disabled>−</button><b>Ставки пока недоступны</b><button type="button" disabled>+</button><button type="button" disabled>СДЕЛАТЬ СТАВКУ</button></div>'+
+    '<aside><small id="directionPhaseLabel">'+(sessionEnabled?'Фаза: '+safe(sessionPhase):'Ожидаем начало аукциона')+'</small><div class="directionLiveClock" id="directionLiveCountdown">18:00</div><small>Начало по времени Дубая</small><p>Стартовая цена</p><strong>'+safe(lot.starting_bid!=null?'$'+Number(lot.starting_bid).toLocaleString('en-US'):'Уточняется')+'</strong></aside></div>'+
+    '<div class="directionLiveBid"><button type="button" disabled>−</button><b id="directionCurrentBid">'+(sessionEnabled&&sessionBid!=null?'Текущая ставка
+    '<p class="directionLiveNotice">Аукцион готовится к запуску. Ставки откроются после подключения независимого LIVE.</p>';
+  $('directionSoundToggle')?.addEventListener('click',toggleDirectionSound);
+  $('directionLotListButton')?.addEventListener('click',()=>{
+   const old=root.querySelector('#directionLotPicker');if(old){old.remove();return}
+   const items=cars.map((x,i)=>'<button type="button" data-direction-index="'+i+'">'+safe([x.make,x.model,x.year].filter(Boolean).join(' '))+' · №'+safe(i+1)+'</button>').join('');
+   root.insertAdjacentHTML('beforeend','<div id="directionLotPicker" class="directionLotPicker">'+items+'</div>');
+   root.querySelectorAll('[data-direction-index]').forEach(btn=>btn.addEventListener('click',()=>{
+    const n=Number(btn.dataset.directionIndex);if(!Number.isInteger(n)||n<0||n>=cars.length)return;
+    currentIndex=n;renderSelectedLot();
+   }));
+  });
+  let touchX=null;const photoBox=root.querySelector('.directionLivePhoto');if(photoBox){photoBox.addEventListener('touchstart',e=>{touchX=e.touches[0]?.clientX??null},{passive:true});photoBox.addEventListener('touchend',e=>{if(touchX===null||photos.length<2)return;const end=e.changedTouches[0]?.clientX??touchX;const dx=end-touchX;touchX=null;if(Math.abs(dx)>45){imageIndex=(imageIndex+(dx<0?1:photos.length-1))%photos.length;showPhoto();}},{passive:true});}
+  const showPhoto=()=>{const img=$('directionLiveImage');if(img)img.src=photos[imageIndex];$('directionPhotoCount').textContent=(imageIndex+1)+'/'+photos.length;};
+  $('directionPhotoPrev')?.addEventListener('click',()=>{imageIndex=(imageIndex+photos.length-1)%photos.length;showPhoto()});
+  $('directionPhotoNext')?.addEventListener('click',()=>{imageIndex=(imageIndex+1)%photos.length;showPhoto()});
+  }
+  renderSelectedLot();
+  if(startAt){const tick=()=>{if(!screen.classList.contains('open'))return;const el=$('directionLiveCountdown');if(!el)return;const remaining=Math.max(0,Math.floor((new Date(startAt).getTime()-(Date.now()+clockOffsetMs))/1000));const hh=String(Math.floor(remaining/3600)).padStart(2,'0'),mm=String(Math.floor(remaining%3600/60)).padStart(2,'0'),ss=String(remaining%60).padStart(2,'0');el.textContent=hh+':'+mm+':'+ss;};tick();clearInterval(window.galaxyDirectionCountdownTimer);window.galaxyDirectionCountdownTimer=setInterval(tick,1000);}
+ }catch(e){root.textContent='Не удалось загрузить каталог. Попробуйте ещё раз.'}
+}
+window.galaxyOpenDirectionCatalog=open;
+function bindDirectionButtons(){
+ document.querySelectorAll('#modernBottomNav button').forEach(b=>b.addEventListener('click',()=>{stopDirectionAudio();directionSoundOn=false;document.body.classList.remove('directionPreviewOpen');}));
+ $('directionCatalogBack')?.addEventListener('click',back);
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bindDirectionButtons,{once:true});else bindDirectionButtons();
+})();+safe(Number(sessionBid).toLocaleString('en-US')):'Ставки пока недоступны')+'</b><button type="button" disabled>+</button><button type="button" disabled>СДЕЛАТЬ СТАВКУ</button></div>'+
     '<p class="directionLiveNotice">Аукцион готовится к запуску. Ставки откроются после подключения независимого LIVE.</p>';
   $('directionSoundToggle')?.addEventListener('click',toggleDirectionSound);
   $('directionLotListButton')?.addEventListener('click',()=>{
