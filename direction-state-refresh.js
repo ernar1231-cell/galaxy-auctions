@@ -42,11 +42,15 @@ async function refresh(){
   if(price)price.textContent=state.enabled&&state.currentBid!=null?'Текущая ставка '+money(state.currentBid):'Ставки пока недоступны';
   for(const id of ['directionBidMinus','directionBidPlus','directionBidSubmit']){
    const button=panel.querySelector('#'+id);
-   if(button)button.disabled=state.biddingAvailable!==true;
+   // Catalog buttons have no verified submit handlers yet: keep them disabled.
+   if(button)button.disabled=true;
   }
   const phase=String(state.phase||'waiting').toLowerCase();
   if(previousPhase==='sold'&&phase!=='sold'&&previousLot!==null){
    await result(panel,d,previousLot,token).catch(()=>{});
+  }
+  if(previousPhase&&previousPhase!==phase){
+   panel.dispatchEvent(new CustomEvent('galaxy-direction-phase-change',{detail:{direction:d,phase,lotNumber}}));
   }
   previousPhase=phase;previousLot=lotNumber;
   if(lotNumber!==null)await history(panel,d,lotNumber,token).catch(()=>{});
