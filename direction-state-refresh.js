@@ -4,6 +4,7 @@
 const screen=()=>document.getElementById('directionCatalogScreen');
 let direction=null,lot=null,generation=0,busy=false,previousPhase='',previousLot=null;
 let bidAllowed=false,increment=100,bidBusy=false;
+let phaseDeadline=0,phaseName='waiting',clockSkewMs=0;
 const money=v=>Number.isFinite(Number(v))?'$'+Number(v).toLocaleString('en-US'):'—';
 async function read(url){const r=await fetch(url,{cache:'no-store'});if(!r.ok)throw Error('Unavailable');return r.json();}
 function area(panel,id){let el=panel.querySelector('#'+id);if(!el){el=document.createElement('section');el.id=id;el.className='directionLiveNotice';panel.querySelector('#directionCatalogItems')?.appendChild(el);}return el;}
@@ -37,11 +38,15 @@ async function refresh(){
    lot=lotNumber;
    panel.dispatchEvent(new CustomEvent('galaxy-direction-current-lot',{detail:{lotNumber}}));
   }
+  const remaining=Number(state.phaseClock?.secondsRemaining);
+  phaseName=String(state.phase||'waiting').toLowerCase();
+  clockSkewMs=Number.isFinite(Date.parse(state.serverNow))?Date.parse(state.serverNow)-Date.now():0;
+  phaseDeadline=state.enabled&&state.phaseClock?.secondsRemaining!=null&&Number.isFinite(remaining)?Date.now()+Math.max(0,remaining)*1000:0;
   const label=panel.querySelector('#directionPhaseLabel');
   if(label)label.textContent=state.enabled?'Фаза: '+String(state.phase||'waiting'):'Ожидаем начало аукциона';
   const price=panel.querySelector('#directionCurrentBid');
   if(price)price.textContent=state.enabled&&state.currentBid!=null?'Текущая ставка '+money(state.currentBid):'Ставки пока недоступны';
-  bidAllowed=state.biddingAvailable===true&&lotNumber!==null&&state.enabled===true;
+  bidAllowed=state.biddingAvailable===true&&lotNumber!==null&&state.enabled===true&&phaseDeadline>Date.now();
   for(const id of ['directionBidMinus','directionBidPlus','directionBidSubmit']){
    const button=panel.querySelector('#'+id);
    if(button)button.disabled=!bidAllowed||bidBusy;
@@ -98,5 +103,17 @@ document.addEventListener('click',async event=>{
  }catch(error){if(token===generation)window.alert(error.message||'Ошибка ставки');}
  finally{bidBusy=false;bidAllowed=false;refresh();}
 });
+setInterval(()=>{
+ const panel=screen();if(!panel?.classList.contains('open')||!direction||!phaseDeadline)return;
+ const remaining=Math.max(0,Math.ceil((phaseDeadline-Date.now())/1000));
+ const clock=panel.querySelector('#directionLiveCountdown');
+ if(clock)clock.textContent=phaseName.toUpperCase()+' '+String(remaining).padStart(2,'0')+'с';
+ if(remaining===0){
+  bidAllowed=false;
+  for(const id of ['directionBidMinus','directionBidPlus','directionBidSubmit']){
+   const button=panel.querySelector('#'+id);if(button)button.disabled=true;
+  }
+ }
+},250);
 setInterval(refresh,3000);
 })();
