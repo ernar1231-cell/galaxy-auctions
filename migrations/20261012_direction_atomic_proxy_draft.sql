@@ -95,7 +95,13 @@ BEGIN
   AND (p_mode<>'manual' OR p_user_telegram_id<>current_leader)
  ) contenders WHERE contenders.user_id<>winner_id;
  final_price:=least(winning_max,greatest(s.current_bid+100,coalesce(runner_max+100,s.current_bid+100)));
+ -- Manual increments are binding: a winning manual +1000 must not settle for +100.
+ IF p_mode='manual' AND winner_id=p_user_telegram_id THEN
+  final_price:=greatest(final_price,candidate);
+ END IF;
  IF final_price<=s.current_bid THEN RAISE EXCEPTION 'No price increase'; END IF;
+ -- A proxy winner may not exceed its maximum, even when a manual bid arrives.
+ IF final_price>winning_max THEN RAISE EXCEPTION 'Winning price exceeds maximum'; END IF;
  UPDATE public.galaxy_auction_sessions x SET current_bid=final_price,phase='red',
  phase_started_at=now(),updated_at=now() WHERE x.direction=p_direction;
  INSERT INTO public.galaxy_auction_bid_events(direction,lot_number,user_telegram_id,amount)
