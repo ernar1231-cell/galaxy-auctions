@@ -15,7 +15,7 @@ test('proxy endpoint is disabled by default',async()=>{const r=await run({direct
 test('USA cannot use direction proxy endpoint',async()=>{const r=await run({direction:'usa',lotNumber:69,maximum:15000},true);assert.equal(r.status,400);});
 test('proxy endpoint fails closed even if flag enabled until atomic pricing is integrated',async()=>{const r=await run({direction:'transfer',lotNumber:70,maximum:15000},true);assert.equal(r.status,503);assert.equal(r.payload.code,'PROXY_EXECUTION_NOT_READY');});
 
-test('no proxy database access when atomic execution is not ready',()=>{
- assert.ok(source.includes("process.env.GALAXY_DIRECTION_PROXY_ATOMIC_READY!=='true'"));
- assert.ok(source.indexOf("GALAXY_DIRECTION_PROXY_ATOMIC_READY")<source.indexOf("fetch(base+'/rest/v1/rpc/galaxy_set_direction_proxy_max'"));
+test('proxy endpoint contains no database writes until atomic competition exists',()=>{
+ assert.equal(source.includes('/rest/v1/rpc/galaxy_set_direction_proxy_max'),false);
+ assert.ok(source.includes('PROXY_EXECUTION_NOT_READY'));
 });
