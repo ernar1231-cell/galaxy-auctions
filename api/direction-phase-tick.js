@@ -15,6 +15,12 @@ module.exports=async(req,res)=>{
   if(!response.ok)throw Error('Session read failed');
   const sessions=await response.json(),results=[];
   for(const session of sessions){
+   if(session.enabled!==true&&session.phase==='waiting'){
+    const start=await fetch(base()+'/rest/v1/rpc/galaxy_start_armed_direction',{method:'POST',headers,body:JSON.stringify({p_direction:session.direction})});
+    if(!start.ok)throw Error('Direction start gate failed');
+    results.push(...(await start.json()));
+    continue;
+   }
    const transition=nextPhase(session);
    if(!transition||!Number.isSafeInteger(transition.lotNumber)||transition.lotNumber<1)continue;
    const isSold=transition.from==='sold';
