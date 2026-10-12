@@ -29,7 +29,7 @@ function toggleDirectionSound(){directionSoundOn=!directionSoundOn;if(!direction
 const labels={dubai:['🇦🇪 Аукцион Дубай','Автомобили Дубая · каталог лотов'],transfer:['🚢 Автомобили в пути','Автомобили в доставке · каталог']};
 function directionOf(l){const match=String(l.description||'').match(/\[GALAXY_DIRECTION:(\{[^\n]*?\})\]/);if(match){try{return JSON.parse(match[1]).direction||'usa'}catch(e){}}return 'usa'}
 function safe(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function back(){stopDirectionAudio();directionSoundOn=false;document.body.classList.remove('directionPreviewOpen');const screen=$('directionCatalogScreen');if(screen)screen.classList.remove('open');$('auctionDirectionScreen')?.classList.add('open')}
+function back(){const panel=$('directionCatalogScreen');if(panel)delete panel.dataset.visibleLotNumber;stopDirectionAudio();directionSoundOn=false;document.body.classList.remove('directionPreviewOpen');const screen=$('directionCatalogScreen');if(screen)screen.classList.remove('open');$('auctionDirectionScreen')?.classList.add('open')}
 async function open(direction){
  const screen=$('directionCatalogScreen');if(!screen)return;
  document.querySelectorAll('.modernScreen').forEach(x=>x.classList.remove('open'));
@@ -62,6 +62,7 @@ async function open(direction){
   let imageIndex=0;
   const image=photos[0]||'';
   const name=[lot.make,lot.model,lot.year].filter(Boolean).join(' ');
+  screen.dataset.visibleLotNumber=String(lot.lot_number);
   const details=[['Пробег',lot.mileage],['Двигатель',lot.engine],['Топливо',lot.fuel],['Трансмиссия',lot.transmission],['Привод',lot.drive],['Салон',lot.interior_color],['Цвет',lot.exterior_color],['VIN',lot.vin]];
   root.innerHTML='<div class="directionLiveBrand"><img src="assets/galaxy-auctions-logo.png" alt="Galaxy Auctions"><span aria-hidden="true">♧</span></div><div class="directionLiveStatus"><span>● LIVE AUCTION · Звук выключен</span></div>'+
     '<div class="directionLiveStrip"><b>18:00 · Дубай</b><small>Позиция '+(currentIndex+1)+' из '+cars.length+'</small><button type="button" id="directionLotListButton">Лоты ('+cars.length+') ›</button></div>'+

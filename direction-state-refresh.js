@@ -51,7 +51,7 @@ async function refresh(){
   if(label)label.textContent=state.enabled?'Фаза: '+String(state.phase||'waiting'):'Ожидаем начало аукциона';
   const price=panel.querySelector('#directionCurrentBid');
   if(price)price.textContent=state.enabled&&state.currentBid!=null?'Текущая ставка '+money(state.currentBid):'Ставки пока недоступны';
-  bidAllowed=state.biddingAvailable===true&&lotNumber!==null&&state.enabled===true&&phaseDeadline>Date.now();
+  bidAllowed=state.biddingAvailable===true&&lotNumber!==null&&state.enabled===true&&phaseDeadline>Date.now()&&Number(panel.dataset.visibleLotNumber)===lotNumber;
   for(const id of ['directionBidMinus','directionBidPlus','directionBidSubmit']){
    const button=panel.querySelector('#'+id);
    if(button)button.disabled=!bidAllowed||bidBusy;
@@ -80,7 +80,7 @@ document.addEventListener('click',event=>{
 const increments=[100,1000,10000];
 document.addEventListener('click',async event=>{
  const button=event.target.closest('#directionBidMinus,#directionBidPlus,#directionBidSubmit');
- if(!button||!screen()?.classList.contains('open')||!bidAllowed||bidBusy||!direction||!lot)return;
+ if(!button||!screen()?.classList.contains('open')||!bidAllowed||bidBusy||!direction||!lot||Number(screen().dataset.visibleLotNumber)!==lot)return;
  if(button.id!=='directionBidSubmit'){
   const index=increments.indexOf(increment);
   increment=increments[Math.max(0,Math.min(increments.length-1,index+(button.id==='directionBidPlus'?1:-1)))];
