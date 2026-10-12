@@ -19,3 +19,9 @@ test('proxy maximum is private and only service role can call function',()=>{
  assert.match(sql,/REVOKE ALL ON public.galaxy_direction_proxy_maxima FROM PUBLIC,anon,authenticated/);
  assert.match(sql,/GRANT EXECUTE ON FUNCTION public.galaxy_direction_submit_bid/);
 });
+
+test('manual winning increment is not silently reduced to minimum proxy step',()=>{
+ assert.match(sql,/IF p_mode='manual' AND winner_id=p_user_telegram_id THEN/);
+ assert.match(sql,/final_price:=greatest\(final_price,candidate\)/);
+ assert.match(sql,/IF final_price>winning_max THEN RAISE EXCEPTION/);
+});
