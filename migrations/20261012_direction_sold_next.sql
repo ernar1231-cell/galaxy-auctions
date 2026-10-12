@@ -9,6 +9,7 @@ DECLARE s public.galaxy_auction_sessions%ROWTYPE;
 DECLARE a public.galaxy_auction_lot_assignments%ROWTYPE;
 DECLARE next_number bigint;
 DECLARE next_price numeric;
+DECLARE last_bid_id bigint;
 BEGIN
  IF p_direction NOT IN ('dubai','transfer') OR p_expected_lot IS NULL THEN
   RAISE EXCEPTION 'Invalid direction or lot';
@@ -30,6 +31,9 @@ BEGIN
    AND l.status='upcoming'
    AND position('"direction":"'||p_direction||'"' in replace(coalesce(l.description,''),chr(92),''))>0
  ORDER BY x.queue_position,x.lot_number LIMIT 1;
+ -- Persist completed result and prevent the same vehicle from re-entering the upcoming queue.
+ UPDATE public.auction_lots l SET status='pending',updated_at=now() WHERE l.lot_number=p_expected_lot AND l.status='live';
+ IF NOT FOUND THEN RAISE EXCEPTION 'Current lot must be live before completing sale'; END IF;
  IF next_number IS NULL THEN
   UPDATE public.galaxy_auction_sessions x SET enabled=false,phase='waiting',phase_started_at=NULL,updated_at=now() WHERE x.direction=p_direction;
   RETURN QUERY SELECT p_direction,p_expected_lot,'waiting'::text,true;RETURN;
