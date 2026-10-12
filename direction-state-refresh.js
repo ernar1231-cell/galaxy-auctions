@@ -3,7 +3,7 @@
 // Isolated read-only Dubai/Transit screen refresh; never modifies USA LIVE.
 const screen=()=>document.getElementById('directionCatalogScreen');
 let direction=null,lot=null,generation=0,busy=false,previousPhase='',previousLot=null;
-let bidAllowed=false,increment=100,bidBusy=false;
+let bidAllowed=false,proxyAllowed=false,increment=100,bidBusy=false;
 let phaseDeadline=0,phaseName='waiting',clockSkewMs=0;
 let completedLot=null;
 const money=v=>Number.isFinite(Number(v))?'$'+Number(v).toLocaleString('en-US'):'—';
@@ -56,6 +56,11 @@ async function refresh(){
    const button=panel.querySelector('#'+id);
    if(button)button.disabled=!bidAllowed||bidBusy;
   }
+  proxyAllowed=bidAllowed&&state.proxyAvailable===true;
+  const proxyInput=panel.querySelector('#directionProxyMaximum');
+  const proxySubmit=panel.querySelector('#directionProxySubmit');
+  if(proxyInput)proxyInput.disabled=!proxyAllowed||bidBusy;
+  if(proxySubmit)proxySubmit.disabled=!proxyAllowed||bidBusy;
   const amount=panel.querySelector('#directionBidAmount');
   if(amount)amount.textContent=bidAllowed?'Шаг ставки '+money(increment):'Ставки пока недоступны';
   const phase=String(state.phase||'waiting').toLowerCase();
@@ -74,8 +79,8 @@ async function refresh(){
 }
 document.addEventListener('click',event=>{
  const card=event.target.closest('#auctionDirectionDubai,#auctionDirectionTransfer');
- if(card){direction=card.id==='auctionDirectionDubai'?'dubai':'transfer';lot=null;completedLot=null;bidAllowed=false;increment=100;previousLot=null;previousPhase='';generation++;}
- if(event.target.closest('#modernBottomNav,#directionCatalogBack')){direction=null;lot=null;completedLot=null;bidAllowed=false;previousLot=null;previousPhase='';generation++;}
+ if(card){direction=card.id==='auctionDirectionDubai'?'dubai':'transfer';lot=null;completedLot=null;bidAllowed=false;proxyAllowed=false;increment=100;previousLot=null;previousPhase='';generation++;}
+ if(event.target.closest('#modernBottomNav,#directionCatalogBack')){direction=null;lot=null;completedLot=null;bidAllowed=false;proxyAllowed=false;previousLot=null;previousPhase='';generation++;}
 });
 const increments=[100,1000,10000];
 document.addEventListener('click',async event=>{
@@ -109,13 +114,42 @@ document.addEventListener('click',async event=>{
  }catch(error){if(token===generation)window.alert(error.message||'Ошибка ставки');}
  finally{bidBusy=false;bidAllowed=false;refresh();}
 });
+document.addEventListener('click',async event=>{
+ if(!event.target.closest('#directionProxySubmit'))return;
+ const panel=screen();
+ if(!panel?.classList.contains('open')||!direction||!lot||!proxyAllowed||bidBusy||
+    Number(panel.dataset.visibleLotNumber)!==lot)return;
+ const maximum=Number(panel.querySelector('#directionProxyMaximum')?.value);
+ if(!Number.isSafeInteger(maximum)||maximum<=0){window.alert('Введите корректную максимальную сумму.');return;}
+ const initData=window.Telegram?.WebApp?.initData;
+ if(!initData){window.alert('Откройте аукцион через Telegram.');return;}
+ const d=direction,lotNumber=lot,token=generation;
+ bidBusy=true;proxyAllowed=false;
+ const control=panel.querySelector('#directionProxySubmit');
+ if(control)control.disabled=true;
+ try{
+  const response=await fetch('/api/direction-set-proxy-max',{
+   method:'POST',headers:{'Content-Type':'application/json'},cache:'no-store',
+   body:JSON.stringify({direction:d,lotNumber,maximum,initData})
+  });
+  const data=await response.json();
+  if(!response.ok||!data.bid)throw Error('Максимальная ставка не принята сервером');
+  if(token===generation&&direction===d&&lot===lotNumber)
+   window.alert('Максимальная ставка принята. Текущая цена: '+money(data.bid.new_bid));
+ }catch(error){if(token===generation)window.alert(error.message||'Ошибка proxy-ставки');}
+ finally{bidBusy=false;refresh();}
+});
 setInterval(()=>{
  const panel=screen();if(!panel?.classList.contains('open')||!direction||!phaseDeadline)return;
  const remaining=Math.max(0,Math.ceil((phaseDeadline-Date.now())/1000));
  const clock=panel.querySelector('#directionLiveCountdown');
  if(clock)clock.textContent=phaseName.toUpperCase()+' '+String(remaining).padStart(2,'0')+'с';
  if(remaining===0){
-  bidAllowed=false;
+  bidAllowed=false;proxyAllowed=false;
+  const proxyInput=panel.querySelector('#directionProxyMaximum');
+  const proxySubmit=panel.querySelector('#directionProxySubmit');
+  if(proxyInput)proxyInput.disabled=true;
+  if(proxySubmit)proxySubmit.disabled=true;
   for(const id of ['directionBidMinus','directionBidPlus','directionBidSubmit']){
    const button=panel.querySelector('#'+id);if(button)button.disabled=true;
   }
