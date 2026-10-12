@@ -86,8 +86,16 @@ BEGIN
  ) contenders ORDER BY max_value DESC,priority ASC,user_id ASC LIMIT 1;
  IF winner_id IS NULL THEN RAISE EXCEPTION 'No bidder'; END IF;
  -- A proxy bidder already leading must not be forced to bid against its own last event.
- IF current_leader=winner_id AND p_mode='proxy' AND p_user_telegram_id=winner_id
- THEN RAISE EXCEPTION 'Already leading'; END IF;
+ IF current_leader=winner_id AND p_mode='proxy' AND p_user_telegram_id=winner_id THEN
+  -- Increasing one's own proxy maximum is not a new competing bid.
+  -- Preserve current price and timer; return the existing leading event.
+  SELECT b.id INTO new_event FROM public.galaxy_auction_bid_events b
+  WHERE b.direction=p_direction AND b.lot_number=p_lot_number
+  ORDER BY b.id DESC LIMIT 1;
+  IF new_event IS NULL THEN RAISE EXCEPTION 'Missing leading event'; END IF;
+  RETURN QUERY SELECT new_event,s.current_bid;
+  RETURN;
+ END IF;
  SELECT max(contenders.max_value) INTO runner_max FROM (
   SELECT x.user_telegram_id AS user_id,x.max_amount AS max_value
   FROM public.galaxy_direction_proxy_maxima x WHERE x.direction=p_direction AND x.lot_number=p_lot_number
