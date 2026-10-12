@@ -25,3 +25,9 @@ test('manual winning increment is not silently reduced to minimum proxy step',()
  assert.match(sql,/final_price:=greatest\(final_price,candidate\)/);
  assert.match(sql,/IF final_price>winning_max THEN RAISE EXCEPTION/);
 });
+
+test('raising an already-leading proxy maximum preserves price and timer',()=>{
+ assert.match(sql,/IF current_leader=winner_id AND p_mode='proxy' AND p_user_telegram_id=winner_id THEN/);
+ assert.match(sql,/RETURN QUERY SELECT new_event,s\.current_bid;/);
+ assert.ok(sql.indexOf('RETURN QUERY SELECT new_event,s.current_bid;')<sql.indexOf('UPDATE public.galaxy_auction_sessions x SET current_bid=final_price'));
+});
