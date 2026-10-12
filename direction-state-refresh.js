@@ -3,6 +3,7 @@
 // Isolated read-only Dubai/Transit screen refresh; never modifies USA LIVE.
 const screen=()=>document.getElementById('directionCatalogScreen');
 let direction=null,lot=null,generation=0,busy=false,previousPhase='',previousLot=null;
+let bidAllowed=false,increment=100,bidBusy=false;
 const money=v=>Number.isFinite(Number(v))?'$'+Number(v).toLocaleString('en-US'):'—';
 async function read(url){const r=await fetch(url,{cache:'no-store'});if(!r.ok)throw Error('Unavailable');return r.json();}
 function area(panel,id){let el=panel.querySelector('#'+id);if(!el){el=document.createElement('section');el.id=id;el.className='directionLiveNotice';panel.querySelector('#directionCatalogItems')?.appendChild(el);}return el;}
@@ -40,11 +41,13 @@ async function refresh(){
   if(label)label.textContent=state.enabled?'Фаза: '+String(state.phase||'waiting'):'Ожидаем начало аукциона';
   const price=panel.querySelector('#directionCurrentBid');
   if(price)price.textContent=state.enabled&&state.currentBid!=null?'Текущая ставка '+money(state.currentBid):'Ставки пока недоступны';
+  bidAllowed=state.biddingAvailable===true&&lotNumber!==null&&state.enabled===true;
   for(const id of ['directionBidMinus','directionBidPlus','directionBidSubmit']){
    const button=panel.querySelector('#'+id);
-   // Catalog buttons have no verified submit handlers yet: keep them disabled.
-   if(button)button.disabled=true;
+   if(button)button.disabled=!bidAllowed||bidBusy;
   }
+  const amount=panel.querySelector('#directionBidAmount');
+  if(amount)amount.textContent=bidAllowed?'Шаг ставки '+money(increment):'Ставки пока недоступны';
   const phase=String(state.phase||'waiting').toLowerCase();
   if(previousPhase==='sold'&&phase!=='sold'&&previousLot!==null){
    await result(panel,d,previousLot,token).catch(()=>{});
@@ -60,8 +63,40 @@ async function refresh(){
 }
 document.addEventListener('click',event=>{
  const card=event.target.closest('#auctionDirectionDubai,#auctionDirectionTransfer');
- if(card){direction=card.id==='auctionDirectionDubai'?'dubai':'transfer';lot=null;previousLot=null;previousPhase='';generation++;}
- if(event.target.closest('#modernBottomNav,#directionCatalogBack')){direction=null;lot=null;previousLot=null;previousPhase='';generation++;}
+ if(card){direction=card.id==='auctionDirectionDubai'?'dubai':'transfer';lot=null;bidAllowed=false;increment=100;previousLot=null;previousPhase='';generation++;}
+ if(event.target.closest('#modernBottomNav,#directionCatalogBack')){direction=null;lot=null;bidAllowed=false;previousLot=null;previousPhase='';generation++;}
+});
+const increments=[100,1000,10000];
+document.addEventListener('click',async event=>{
+ const button=event.target.closest('#directionBidMinus,#directionBidPlus,#directionBidSubmit');
+ if(!button||!screen()?.classList.contains('open')||!bidAllowed||bidBusy||!direction||!lot)return;
+ if(button.id!=='directionBidSubmit'){
+  const index=increments.indexOf(increment);
+  increment=increments[Math.max(0,Math.min(increments.length-1,index+(button.id==='directionBidPlus'?1:-1)))];
+  const amount=screen()?.querySelector('#directionBidAmount');
+  if(amount)amount.textContent='Шаг ставки '+money(increment);
+  return;
+ }
+ const initData=window.Telegram?.WebApp?.initData;
+ if(!initData){window.alert('Для ставки откройте аукцион через Telegram.');return;}
+ const d=direction,lotNumber=lot,token=generation;
+ bidBusy=true;
+ for(const id of ['directionBidMinus','directionBidPlus','directionBidSubmit']){
+  const control=screen()?.querySelector('#'+id);if(control)control.disabled=true;
+ }
+ try{
+  const response=await fetch('/api/direction-place-bid',{
+   method:'POST',headers:{'Content-Type':'application/json'},cache:'no-store',
+   body:JSON.stringify({direction:d,lotNumber,increment,initData})
+  });
+  const result=await response.json();
+  if(!response.ok||!result.bid)throw Error('Ставка не принята сервером');
+  if(token===generation&&direction===d&&lot===lotNumber){
+   const amount=screen()?.querySelector('#directionBidAmount');
+   if(amount)amount.textContent='Ставка принята: '+money(result.bid.new_bid);
+  }
+ }catch(error){if(token===generation)window.alert(error.message||'Ошибка ставки');}
+ finally{bidBusy=false;bidAllowed=false;refresh();}
 });
 setInterval(refresh,3000);
 })();
