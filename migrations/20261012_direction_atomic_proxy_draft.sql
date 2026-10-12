@@ -30,6 +30,7 @@ DECLARE runner_max numeric;
 DECLARE candidate numeric;
 DECLARE final_price numeric;
 DECLARE new_event bigint;
+DECLARE event_count bigint;
 BEGIN
  IF p_direction NOT IN ('dubai','transfer') OR p_lot_number IS NULL
  OR nullif(p_user_telegram_id,'') IS NULL OR p_mode NOT IN ('manual','proxy')
@@ -66,6 +67,9 @@ BEGIN
  END IF;
  -- Existing winning event represents the current leader; only accepted winning
  -- prices are recorded. Never expose hidden proxy maxima to public history.
+ SELECT count(*) INTO event_count FROM public.galaxy_auction_bid_events b
+ WHERE b.direction=p_direction AND b.lot_number=p_lot_number;
+ IF event_count=0 AND s.current_bid<0 THEN RAISE EXCEPTION 'Invalid starting price'; END IF;
  SELECT b.user_telegram_id INTO current_leader
  FROM public.galaxy_auction_bid_events b
  WHERE b.direction=p_direction AND b.lot_number=p_lot_number
