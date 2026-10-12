@@ -73,7 +73,7 @@ async function open(direction){
     '<div class="directionLiveSpec"><span>Лот №</span><b>'+safe(currentIndex+1)+'</b></div></section>'+
     '<aside><small>Ожидаем начало аукциона</small><div class="directionLiveClock" id="directionLiveCountdown">18:00</div><small>Начало по времени Дубая</small><p>Стартовая цена</p><strong>'+safe(lot.starting_bid!=null?'$'+Number(lot.starting_bid).toLocaleString('en-US'):'Уточняется')+'</strong></aside></div>'+
     '<div class="directionLiveBid"><button type="button" id="directionBidMinus" disabled>−</button><b id="directionBidAmount">Ставки пока недоступны</b><button type="button" id="directionBidPlus" disabled>+</button><button type="button" id="directionBidSubmit" disabled>СДЕЛАТЬ СТАВКУ</button></div>'+
-    '<p class="directionLiveNotice">Аукцион готовится к запуску. Ставки откроются после подключения независимого LIVE.</p>';
+    '<div class="directionLiveNotice"><strong>Автоматическая ставка (Proxy)</strong><p>Укажите максимальную сумму. До проверки серверной обработки отправка отключена.</p><input id="directionProxyMaximum" type="number" min="1" step="100" inputmode="numeric" placeholder="Максимум, $" disabled><button id="directionProxySubmit" type="button" disabled>УСТАНОВИТЬ МАКСИМУМ</button></div>'+\n    '<p class="directionLiveNotice">Аукцион готовится к запуску. Ставки откроются после подключения независимого LIVE.</p>';
   $('directionSoundToggle')?.addEventListener('click',toggleDirectionSound);
   $('directionLotListButton')?.addEventListener('click',()=>{
    const old=root.querySelector('#directionLotPicker');if(old){old.remove();return}
