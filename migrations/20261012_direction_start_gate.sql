@@ -25,10 +25,12 @@ BEGIN
  IF NOT EXISTS (
   SELECT 1 FROM public.galaxy_auction_lot_assignments a
   JOIN public.auction_lots l ON l.lot_number=a.lot_number
-  WHERE a.direction=p_direction AND a.lot_number=s.current_lot_number AND l.status='live'
+  WHERE a.direction=p_direction AND a.lot_number=s.current_lot_number AND l.status='upcoming'
  ) THEN
   RETURN QUERY SELECT p_direction,false,s.current_lot_number;RETURN;
  END IF;
+ UPDATE public.auction_lots l SET status='live',updated_at=now() WHERE l.lot_number=s.current_lot_number AND l.status='upcoming';
+ IF NOT FOUND THEN RAISE EXCEPTION 'Lot was already started'; END IF;
  UPDATE public.galaxy_auction_sessions x SET enabled=true,start_armed=false,phase='red',
  phase_started_at=now(),last_started_local_date=today,updated_at=now()
  WHERE x.direction=p_direction;
