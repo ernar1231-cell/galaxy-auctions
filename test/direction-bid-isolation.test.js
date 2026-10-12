@@ -6,14 +6,14 @@ const path=require('node:path');
 const vm=require('node:vm');
 const core=require('../api/_multi-auction-core');
 const source=fs.readFileSync(path.join(__dirname,'../api/direction-place-bid.js'),'utf8');
-async function run(direction,session,assignmentDirection='dubai',lotDirection='dubai'){
+async function run(direction,session,assignmentDirection='dubai',lotDirection='dubai',lotStatus='live'){
  const calls=[];
  const fetch=async(url,opts={})=>{
   const u=new URL(url);calls.push({url:u,method:opts.method||'GET'});
   let data=[];
   if(u.pathname.endsWith('/galaxy_auction_sessions'))data=[session];
   else if(u.pathname.endsWith('/galaxy_auction_lot_assignments'))data=[{lot_number:69,direction:assignmentDirection}];
-  else if(u.pathname.endsWith('/auction_lots'))data=[{lot_number:69,status:'upcoming',description:'[GALAXY_DIRECTION:'+JSON.stringify({direction:lotDirection})+']'}];
+  else if(u.pathname.endsWith('/auction_lots'))data=[{lot_number:69,status:lotStatus,description:'[GALAXY_DIRECTION:'+JSON.stringify({direction:lotDirection})+']'}];
   else throw Error('Unexpected table');
   return {ok:true,json:async()=>data};
  };
@@ -48,4 +48,9 @@ test('bid endpoint remains closed when server activation flag is missing',async(
  let status,body;const res={setHeader(){},status(n){status=n;return this},json(x){body=x;return this}};
  await sandbox.module.exports({method:'POST',body:{direction:'dubai',lotNumber:69}},res);
  assert.equal(status,503);assert.equal(body.code,'BIDDING_NOT_READY');
+});
+
+test('upcoming lot cannot accept a direction bid even if session is active',async()=>{
+ const r=await run('dubai',{direction:'dubai',enabled:true,phase:'red',current_lot_number:69},'dubai','dubai','upcoming');
+ assert.equal(r.status,409);assert.ok(r.calls.every(c=>c.method==='GET'));
 });
