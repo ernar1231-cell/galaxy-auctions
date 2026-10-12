@@ -78,12 +78,21 @@ BEGIN
   WHERE x.direction=p_direction AND x.lot_number=p_lot_number
   UNION ALL SELECT p_user_telegram_id,candidate,now()
   WHERE p_mode='manual'
+  UNION ALL SELECT current_leader,s.current_bid,now()-interval '1 day'
+  WHERE current_leader IS NOT NULL AND NOT EXISTS(
+   SELECT 1 FROM public.galaxy_direction_proxy_maxima z WHERE z.direction=p_direction
+   AND z.lot_number=p_lot_number AND z.user_telegram_id=current_leader)
+  AND (p_mode<>'manual' OR p_user_telegram_id<>current_leader)
  ) contenders ORDER BY max_value DESC,priority ASC,user_id ASC LIMIT 1;
  IF winner_id IS NULL THEN RAISE EXCEPTION 'No bidder'; END IF;
  SELECT max(contenders.max_value) INTO runner_max FROM (
   SELECT x.user_telegram_id AS user_id,x.max_amount AS max_value
   FROM public.galaxy_direction_proxy_maxima x WHERE x.direction=p_direction AND x.lot_number=p_lot_number
   UNION ALL SELECT p_user_telegram_id,candidate WHERE p_mode='manual'
+  UNION ALL SELECT current_leader,s.current_bid WHERE current_leader IS NOT NULL
+  AND NOT EXISTS(SELECT 1 FROM public.galaxy_direction_proxy_maxima z
+   WHERE z.direction=p_direction AND z.lot_number=p_lot_number AND z.user_telegram_id=current_leader)
+  AND (p_mode<>'manual' OR p_user_telegram_id<>current_leader)
  ) contenders WHERE contenders.user_id<>winner_id;
  final_price:=least(winning_max,greatest(s.current_bid+100,coalesce(runner_max+100,s.current_bid+100)));
  IF final_price<=s.current_bid THEN RAISE EXCEPTION 'No price increase'; END IF;
