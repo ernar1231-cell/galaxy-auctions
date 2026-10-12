@@ -38,11 +38,12 @@ module.exports=Object.assign(async(req,res)=>{
    const {auction_lot_images,...fields}=lot;
    return {...fields,display_lot_number:index+1,images,primary_image:(images.find(x=>x.is_primary)||images[0])?.image_url||null};
   });
-  const current=queue.find(x=>Number(x.lot_number)===Number(session.current_lot_number))||queue[0]||null;
+  const current=queue.find(x=>Number(x.lot_number)===Number(session.current_lot_number))||(session.enabled===true?null:queue[0]||null);
   const enabled=session.enabled===true;
   const now=new Date();
   const startAt=nextStart(now,session.timezone,session.local_start);
-  const biddingAvailable=enabled&&['red','green','bonus'].includes(String(session.phase||'').toLowerCase())&&Boolean(current)&&Number(current.lot_number)===Number(session.current_lot_number)&&String(current.status)==='live'&&process.env.GALAXY_DIRECTION_BIDDING_ENABLED==='true';
-  return res.status(200).json({direction,enabled,timezone:session.timezone,local_start:session.local_start,startAt,serverNow:now.toISOString(),phase:enabled?session.phase:'waiting',phaseClock:phaseClock(session,now.getTime()),lotCount:queue.length,queue,currentLot:current,currentBid:enabled?session.current_bid:null,biddingAvailable});
+  const clock=phaseClock(session,now.getTime());
+  const biddingAvailable=enabled&&clock.secondsRemaining!==null&&clock.secondsRemaining>0&&['red','green','bonus'].includes(String(session.phase||'').toLowerCase())&&Boolean(current)&&Number(current.lot_number)===Number(session.current_lot_number)&&String(current.status)==='live'&&process.env.GALAXY_DIRECTION_BIDDING_ENABLED==='true';
+  return res.status(200).json({direction,enabled,timezone:session.timezone,local_start:session.local_start,startAt,serverNow:now.toISOString(),phase:enabled?session.phase:'waiting',phaseClock:clock,lotCount:queue.length,queue,currentLot:current,currentBid:enabled?session.current_bid:null,biddingAvailable});
  }catch(e){return res.status(503).json({error:'Auction session temporarily unavailable'});}
 },{nextStart});

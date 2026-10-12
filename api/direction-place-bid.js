@@ -25,7 +25,7 @@ module.exports=async(req,res)=>{
   const session=sessions[0],assignment=assignments[0],lot=lots[0];
   if(!session||!assignment||!lot||assignment.direction!==direction||!belongsToDirection(lot,direction))
    return res.status(409).json({error:'Lot does not belong to this auction'});
-  if(!sessionCanBid(session,lotNumber))return res.status(409).json({error:'Auction session is not accepting bids'});
+  if(lot.status!=='live'||!sessionCanBid(session,lotNumber))return res.status(409).json({error:'Auction session is not accepting bids'});
   const telegramId=verifyTelegram(req.body?.initData,process.env.TELEGRAM_BOT_TOKEN);
    if(!telegramId)return res.status(401).json({code:'TELEGRAM_AUTH_REQUIRED',error:'Valid Telegram login required'});
    const increment=Number(req.body?.increment);
@@ -38,6 +38,9 @@ module.exports=async(req,res)=>{
   });
   const result=await rpc.json();
   if(!rpc.ok)return res.status(409).json({code:'BID_REJECTED',error:'Bid was not accepted'});
-  return res.status(200).json({direction,lotNumber,bid:result?.[0]||null});
+  const bid=Array.isArray(result)?result[0]:null;
+  if(!bid||!Number.isSafeInteger(Number(bid.event_id))||Number(bid.event_id)<=0||!Number.isFinite(Number(bid.new_bid))||Number(bid.new_bid)<=0)
+   return res.status(503).json({code:'BID_CONFIRMATION_UNAVAILABLE',error:'Bid confirmation unavailable'});
+  return res.status(200).json({direction,lotNumber,bid});
  }catch(e){return res.status(503).json({error:'Auction validation unavailable'});}
 };

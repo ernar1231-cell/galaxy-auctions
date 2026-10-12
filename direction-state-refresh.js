@@ -1,41 +1,102 @@
 (function(){
 'use strict';
-// Read-only refresh of Dubai/transit preview. Does not interact with USA LIVE.
+// Isolated read-only Dubai/Transit screen refresh; never modifies USA LIVE.
 const screen=()=>document.getElementById('directionCatalogScreen');
-let activeDirection=null;
-let activeLot=null;
-let requestInFlight=false;
-let generation=0;
+let direction=null,lot=null,generation=0,busy=false,previousPhase='',previousLot=null;
+let bidAllowed=false,increment=100,bidBusy=false;
+const money=v=>Number.isFinite(Number(v))?'$'+Number(v).toLocaleString('en-US'):'—';
+async function read(url){const r=await fetch(url,{cache:'no-store'});if(!r.ok)throw Error('Unavailable');return r.json();}
+function area(panel,id){let el=panel.querySelector('#'+id);if(!el){el=document.createElement('section');el.id=id;el.className='directionLiveNotice';panel.querySelector('#directionCatalogItems')?.appendChild(el);}return el;}
+async function history(panel,d,lotNumber,token){
+ const data=await read('/api/direction-bid-history?direction='+encodeURIComponent(d)+'&lotNumber='+lotNumber);
+ if(token!==generation||lot!==lotNumber||!panel.classList.contains('open'))return;
+ const box=area(panel,'directionPublicHistory');if(!box)return;
+ box.replaceChildren();const heading=document.createElement('strong');heading.textContent='История ставок';box.appendChild(heading);
+ const events=Array.isArray(data.events)?data.events:[];
+ if(!events.length){const p=document.createElement('p');p.textContent='Ставок пока нет';box.appendChild(p);return;}
+ const list=document.createElement('ol');
+ for(const event of events.slice(0,10)){const li=document.createElement('li');li.textContent=money(event.amount);list.appendChild(li);}
+ box.appendChild(list);
+}
+async function result(panel,d,lotNumber,token){
+ const data=await read('/api/direction-result?direction='+encodeURIComponent(d)+'&lotNumber='+lotNumber);
+ if(token!==generation||!panel.classList.contains('open'))return;
+ const box=area(panel,'directionPublicResult');if(!box)return;
+ box.replaceChildren();
+ const heading=document.createElement('strong');heading.textContent='SOLD — результат';box.appendChild(heading);
+ const p=document.createElement('p');p.textContent=data.result?'Цена: '+money(data.result.amount)+' · Статус: '+String(data.result.status||'ожидает подтверждения'):'Результат пока не подтверждён';box.appendChild(p);
+}
 async function refresh(){
- const panel=screen();
- if(!panel||!panel.classList.contains('open')||!activeDirection||requestInFlight)return;
- const requestGeneration=generation;
- requestInFlight=true;
+ const panel=screen();if(!panel||!panel.classList.contains('open')||!direction||busy)return;
+ busy=true;const token=generation,d=direction;
  try{
-  const response=await fetch('/api/direction-live-state?direction='+encodeURIComponent(activeDirection)+'&t='+Date.now(),{cache:'no-store'});
-  if(!response.ok)return;
-  const state=await response.json();
-  if(requestGeneration!==generation||!panel.classList.contains('open'))return;
-  const current=state.currentLot;
-  const lotId=current?Number(current.lot_number):null;
-  if(lotId!==null&&lotId!==activeLot){
-   activeLot=lotId;
-   // Do not replace the selected lot's DOM here: the catalog owns the gallery and handlers.
-   const currentIndex=(state.queue||[]).findIndex(x=>Number(x.lot_number)===lotId);
-   const buttons=panel.querySelectorAll('[data-direction-index]');
-   if(currentIndex>=0&&buttons[currentIndex])buttons[currentIndex].click();
+  const state=await read('/api/direction-live-state?direction='+encodeURIComponent(d)+'&t='+Date.now());
+  if(token!==generation||!panel.classList.contains('open'))return;
+  const lotNumber=state.currentLot?Number(state.currentLot.lot_number):null;
+  if(lotNumber!==null&&lotNumber!==lot){
+   lot=lotNumber;
+   panel.dispatchEvent(new CustomEvent('galaxy-direction-current-lot',{detail:{lotNumber}}));
   }
   const label=panel.querySelector('#directionPhaseLabel');
   if(label)label.textContent=state.enabled?'Фаза: '+String(state.phase||'waiting'):'Ожидаем начало аукциона';
   const price=panel.querySelector('#directionCurrentBid');
-  if(price)price.textContent=state.enabled&&state.currentBid!=null?'Текущая ставка $'+Number(state.currentBid).toLocaleString('en-US'):'Ставки пока недоступны';
- }catch(error){console.warn('Direction state refresh unavailable',error);}
- finally{requestInFlight=false;}
+  if(price)price.textContent=state.enabled&&state.currentBid!=null?'Текущая ставка '+money(state.currentBid):'Ставки пока недоступны';
+  bidAllowed=state.biddingAvailable===true&&lotNumber!==null&&state.enabled===true;
+  for(const id of ['directionBidMinus','directionBidPlus','directionBidSubmit']){
+   const button=panel.querySelector('#'+id);
+   if(button)button.disabled=!bidAllowed||bidBusy;
+  }
+  const amount=panel.querySelector('#directionBidAmount');
+  if(amount)amount.textContent=bidAllowed?'Шаг ставки '+money(increment):'Ставки пока недоступны';
+  const phase=String(state.phase||'waiting').toLowerCase();
+  if(previousPhase==='sold'&&phase!=='sold'&&previousLot!==null){
+   await result(panel,d,previousLot,token).catch(()=>{});
+  }
+  if(previousPhase&&previousPhase!==phase){
+   panel.dispatchEvent(new CustomEvent('galaxy-direction-phase-change',{detail:{direction:d,phase,lotNumber}}));
+  }
+  previousPhase=phase;previousLot=lotNumber;
+  if(lotNumber!==null)await history(panel,d,lotNumber,token).catch(()=>{});
+  if(phase==='sold'&&lotNumber!==null)await result(panel,d,lotNumber,token).catch(()=>{});
+ }catch(error){console.warn('Direction refresh unavailable',error);}
+ finally{busy=false;}
 }
 document.addEventListener('click',event=>{
  const card=event.target.closest('#auctionDirectionDubai,#auctionDirectionTransfer');
- if(card){screen()?.dispatchEvent(new Event('galaxy-direction-close'));activeDirection=card.id==='auctionDirectionDubai'?'dubai':'transfer';activeLot=null;generation++;}
- if(event.target.closest('#modernBottomNav,#directionCatalogBack')){screen()?.dispatchEvent(new Event('galaxy-direction-close'));activeDirection=null;activeLot=null;generation++;}
+ if(card){direction=card.id==='auctionDirectionDubai'?'dubai':'transfer';lot=null;bidAllowed=false;increment=100;previousLot=null;previousPhase='';generation++;}
+ if(event.target.closest('#modernBottomNav,#directionCatalogBack')){direction=null;lot=null;bidAllowed=false;previousLot=null;previousPhase='';generation++;}
+});
+const increments=[100,1000,10000];
+document.addEventListener('click',async event=>{
+ const button=event.target.closest('#directionBidMinus,#directionBidPlus,#directionBidSubmit');
+ if(!button||!screen()?.classList.contains('open')||!bidAllowed||bidBusy||!direction||!lot)return;
+ if(button.id!=='directionBidSubmit'){
+  const index=increments.indexOf(increment);
+  increment=increments[Math.max(0,Math.min(increments.length-1,index+(button.id==='directionBidPlus'?1:-1)))];
+  const amount=screen()?.querySelector('#directionBidAmount');
+  if(amount)amount.textContent='Шаг ставки '+money(increment);
+  return;
+ }
+ const initData=window.Telegram?.WebApp?.initData;
+ if(!initData){window.alert('Для ставки откройте аукцион через Telegram.');return;}
+ const d=direction,lotNumber=lot,token=generation;
+ bidBusy=true;
+ for(const id of ['directionBidMinus','directionBidPlus','directionBidSubmit']){
+  const control=screen()?.querySelector('#'+id);if(control)control.disabled=true;
+ }
+ try{
+  const response=await fetch('/api/direction-place-bid',{
+   method:'POST',headers:{'Content-Type':'application/json'},cache:'no-store',
+   body:JSON.stringify({direction:d,lotNumber,increment,initData})
+  });
+  const result=await response.json();
+  if(!response.ok||!result.bid)throw Error('Ставка не принята сервером');
+  if(token===generation&&direction===d&&lot===lotNumber){
+   const amount=screen()?.querySelector('#directionBidAmount');
+   if(amount)amount.textContent='Ставка принята: '+money(result.bid.new_bid);
+  }
+ }catch(error){if(token===generation)window.alert(error.message||'Ошибка ставки');}
+ finally{bidBusy=false;bidAllowed=false;refresh();}
 });
 setInterval(refresh,3000);
 })();
