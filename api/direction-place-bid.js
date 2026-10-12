@@ -11,6 +11,7 @@ async function read(path){
 module.exports=async(req,res)=>{
  res.setHeader('Cache-Control','no-store');
  if(req.method!=='POST')return res.status(405).json({error:'Method not allowed'});
+ if(process.env.GALAXY_DIRECTION_BIDDING_ENABLED!=='true')return res.status(503).json({code:'BIDDING_NOT_READY',error:'Direction bidding not enabled'});
  let direction;try{direction=assertDirection(req.body?.direction)}catch{return res.status(400).json({error:'Invalid direction'});}
  if(direction==='usa')return res.status(400).json({error:'Use existing USA bidding API'});
  const lotNumber=Number(req.body?.lotNumber);

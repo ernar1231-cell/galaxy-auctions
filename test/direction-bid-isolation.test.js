@@ -17,7 +17,7 @@ async function run(direction,session,assignmentDirection='dubai',lotDirection='d
   else throw Error('Unexpected table');
   return {ok:true,json:async()=>data};
  };
- const sandbox={require:(name)=>{if(name==='./_multi-auction-core')return core;if(name==='./_direction-telegram-auth')return {verifyTelegram:()=>null};throw Error('Unexpected module '+name);},module:{exports:{}},process:{env:{SUPABASE_URL:'https://database.invalid',SUPABASE_SERVICE_ROLE_KEY:'test'}},fetch,URL};
+ const sandbox={require:(name)=>{if(name==='./_multi-auction-core')return core;if(name==='./_direction-telegram-auth')return {verifyTelegram:()=>null};throw Error('Unexpected module '+name);},module:{exports:{}},process:{env:{SUPABASE_URL:'https://database.invalid',SUPABASE_SERVICE_ROLE_KEY:'test',GALAXY_DIRECTION_BIDDING_ENABLED:'true'}},fetch,URL};
  vm.runInNewContext(source,sandbox);
  let status=0,body=null;
  const res={setHeader(){},status(n){status=n;return this;},json(data){body=JSON.parse(JSON.stringify(data));return this;}};
@@ -39,4 +39,13 @@ test('a lot assigned to a different auction cannot be bid on',async()=>{
 test('even enabled Dubai sessions fail closed until atomic bid RPC is ready',async()=>{
  const r=await run('dubai',{direction:'dubai',enabled:true,phase:'red',current_lot_number:69});
  assert.equal(r.status,401);assert.equal(r.body.code,'TELEGRAM_AUTH_REQUIRED');assert.ok(r.calls.every(c=>c.method==='GET'));
+});
+
+test('bid endpoint remains closed when server activation flag is missing',async()=>{
+ const src=fs.readFileSync(path.join(__dirname,'../api/direction-place-bid.js'),'utf8');
+ const sandbox={require:(name)=>{if(name==='./_multi-auction-core')return core;if(name==='./_direction-telegram-auth')return {verifyTelegram:()=>null};throw Error('Unexpected module');},module:{exports:{}},process:{env:{}},fetch:async()=>{throw Error('Unexpected database access');}};
+ vm.runInNewContext(src,sandbox);
+ let status,body;const res={setHeader(){},status(n){status=n;return this},json(x){body=x;return this}};
+ await sandbox.module.exports({method:'POST',body:{direction:'dubai',lotNumber:69}},res);
+ assert.equal(status,503);assert.equal(body.code,'BIDDING_NOT_READY');
 });
