@@ -15,6 +15,19 @@ module.exports=async(req,res)=>{
   return res.status(400).json({error:'Invalid proxy maximum or lot'});
  const telegramId=verifyTelegram(req.body?.initData,process.env.TELEGRAM_BOT_TOKEN);
  if(!telegramId)return res.status(401).json({error:'Telegram authentication required'});
- // Fail closed: maximum storage without atomic proxy-price execution must not accept money commitments.
- return res.status(503).json({code:'PROXY_EXECUTION_NOT_READY',error:'Atomic proxy competition not deployed'});
+ // Atomic competition must be explicitly enabled after the DB migration and rehearsal.
+ if(process.env.GALAXY_DIRECTION_PROXY_ATOMIC_READY!=='true')
+  return res.status(503).json({code:'PROXY_EXECUTION_NOT_READY',error:'Atomic proxy competition not deployed'});
+ const base=String(process.env.SUPABASE_URL||'').replace(/\\/$/,'');
+ const key=process.env.SUPABASE_SERVICE_ROLE_KEY;
+ if(!base||!key)return res.status(503).json({error:'Database unavailable'});
+ try{
+  const response=await fetch(base+'/rest/v1/rpc/galaxy_set_direction_proxy_max',{
+   method:'POST',cache:'no-store',
+   headers:{apikey:key,Authorization:'Bearer '+key,'Content-Type':'application/json'},
+   body:JSON.stringify({p_direction:direction,p_lot_number:lotNumber,p_user_telegram_id:telegramId,p_max_amount:maximum})
+  });
+  if(!response.ok)return res.status(409).json({error:'Proxy maximum rejected'});
+  return res.status(200).json({direction,lotNumber,accepted:true});
+ }catch{return res.status(503).json({error:'Proxy maximum temporarily unavailable'});}
 };
