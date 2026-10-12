@@ -5,7 +5,8 @@ module.exports=async(req,res)=>{
  res.setHeader('Cache-Control','no-store');
  if(req.method!=='POST')return res.status(405).json({error:'Method not allowed'});
  const token=process.env.GALAXY_SCHEDULER_SECRET;
- if(!token||req.headers?.authorization!=='Bearer '+token)return res.status(401).json({error:'Unauthorized scheduler'});
+ if(!token||token.length<32)return res.status(503).json({error:'Scheduler not configured'});
+ if(req.headers?.authorization!=='Bearer '+token)return res.status(401).json({error:'Unauthorized scheduler'});
  const key=process.env.SUPABASE_SERVICE_ROLE_KEY;
  if(!key||!base())return res.status(503).json({error:'Database not configured'});
  const headers={apikey:key,Authorization:'Bearer '+key,'Content-Type':'application/json'};
@@ -15,7 +16,7 @@ module.exports=async(req,res)=>{
   const sessions=await response.json(),results=[];
   for(const session of sessions){
    const transition=nextPhase(session);
-   if(!transition)continue;
+   if(!transition||!Number.isSafeInteger(transition.lotNumber)||transition.lotNumber<1)continue;
    const rpc=await fetch(base()+'/rest/v1/rpc/galaxy_advance_direction_phase',{
     method:'POST',headers,body:JSON.stringify({p_direction:transition.direction,p_expected_lot:transition.lotNumber,p_expected_phase:transition.from})
    });
