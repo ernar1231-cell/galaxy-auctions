@@ -8,6 +8,9 @@ test('SOLD migration has no literal escaped newlines that comment out safety che
  assert.doesNotMatch(sql,/\\n/);
  assert.match(sql,/IF NOT EXISTS \(SELECT 1 FROM public\.galaxy_auction_bid_events/);
  assert.match(sql,/Cannot complete lot without a recorded bid/);
+ assert.match(sql,/INSERT INTO public\\.galaxy_auction_results/);
+ assert.match(sql,/winner_event\\.user_telegram_id,winner_event\\.amount,winner_event\\.id/);
+ assert.match(sql,/Winning bid does not match authoritative session price/);
 });
 test('SOLD transition activates next lot and isolates direction',()=>{
  assert.match(sql,/IF p_direction NOT IN \('dubai','transfer'\)/);
