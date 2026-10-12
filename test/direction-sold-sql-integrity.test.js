@@ -7,7 +7,8 @@ const sql=fs.readFileSync(path.join(__dirname,'../migrations/20261012_direction_
 test('SOLD SQL records the authoritative winning bid in the isolated ledger',()=>{
  assert.equal(sql.includes(String.raw`\n`),false);
  assert.ok(sql.includes('FROM public.galaxy_auction_bid_events b'));
- assert.ok(sql.includes('Cannot complete lot without a recorded bid'));
+ assert.ok(sql.includes("SET status='draft',updated_at=now()"));
+ assert.ok(sql.includes('No bids: no winner, no sale result'));
  assert.ok(sql.includes('INSERT INTO public.galaxy_auction_results'));
  assert.ok(sql.includes('winner_event.user_telegram_id,winner_event.amount,winner_event.id'));
  assert.ok(sql.includes('Winning bid does not match authoritative session price'));
