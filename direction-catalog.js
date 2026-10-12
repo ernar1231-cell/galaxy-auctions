@@ -1,8 +1,16 @@
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-let directionSoundOn=false;let directionAudio=null;
-function stopDirectionAudio(){if(directionAudio){directionAudio.pause();directionAudio.currentTime=0;}}
+let directionSoundOn=false;let directionAudio=null;let directionEffect=null;
+function playDirectionEffect(phase){
+ if(!directionSoundOn)return;
+ // Use a distinct, existing project sound only when the file is known to be present.
+ const sounds={sold:'sold.mp3'};
+ if(!sounds[phase])return;
+ try{if(directionEffect){directionEffect.pause();directionEffect.currentTime=0;}directionEffect=new Audio(sounds[phase]);directionEffect.volume=.7;directionEffect.play().catch(()=>{});}catch(e){}
+}
+
+function stopDirectionAudio(){if(directionAudio){directionAudio.pause();directionAudio.currentTime=0;}if(directionEffect){directionEffect.pause();directionEffect.currentTime=0;}}
 function toggleDirectionSound(){directionSoundOn=!directionSoundOn;if(!directionAudio){directionAudio=new Audio('auction-background.mp3');directionAudio.loop=true;directionAudio.volume=.3;}if(directionSoundOn){directionAudio.play().catch(()=>{directionSoundOn=false;const b=$('directionSoundToggle');if(b){b.textContent='🔇 Включить звук';b.setAttribute('aria-pressed','false');}});}else stopDirectionAudio();const b=$('directionSoundToggle');if(b){b.textContent=directionSoundOn?'🔊 Звук включён':'🔇 Включить звук';b.setAttribute('aria-pressed',String(directionSoundOn));}}
 const labels={dubai:['🇦🇪 Аукцион Дубай','Автомобили Дубая · каталог лотов'],transfer:['🚢 Автомобили в пути','Автомобили в доставке · каталог']};
 function directionOf(l){const match=String(l.description||'').match(/\[GALAXY_DIRECTION:(\{[^\n]*?\})\]/);if(match){try{return JSON.parse(match[1]).direction||'usa'}catch(e){}}return 'usa'}
@@ -80,6 +88,7 @@ async function open(direction){
  }catch(e){root.textContent='Не удалось загрузить каталог. Попробуйте ещё раз.'}
 }
 window.galaxyOpenDirectionCatalog=open;
+$('directionCatalogScreen')?.addEventListener('galaxy-direction-phase-change',event=>playDirectionEffect(event.detail?.phase));
 function bindDirectionButtons(){
  document.querySelectorAll('#modernBottomNav button').forEach(b=>b.addEventListener('click',()=>{stopDirectionAudio();directionSoundOn=false;document.body.classList.remove('directionPreviewOpen');}));
  $('directionCatalogBack')?.addEventListener('click',back);
