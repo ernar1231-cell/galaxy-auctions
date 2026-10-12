@@ -21,6 +21,11 @@ module.exports=async(req,res)=>{
   const response=await fetch(base()+'/rest/v1/galaxy_auction_sessions?direction=in.(dubai,transfer)&select=direction,enabled,phase,current_lot_number,phase_started_at',{headers,cache:'no-store'});
   if(!response.ok)throw Error('Session read failed');
   const sessions=await response.json(),results=[];
+  if(!Array.isArray(sessions))throw Error('Invalid session response');
+  // Authenticated connectivity check: read-only, never calls a state-changing RPC.
+  if(req.body?.dryRun===true){
+   return res.status(200).json({dryRun:true,checked:sessions.length,sessions:sessions.map(s=>({direction:s.direction,enabled:s.enabled===true,phase:s.phase,transitionDue:nextPhase(s)!==null}))});
+  }
   const errors=[];
   for(const session of sessions){
    try{
