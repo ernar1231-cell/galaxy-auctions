@@ -45,6 +45,8 @@ async function refresh(){
   phaseName=String(state.phase||'waiting').toLowerCase();
   clockSkewMs=Number.isFinite(Date.parse(state.serverNow))?Date.parse(state.serverNow)-Date.now():0;
   phaseDeadline=state.enabled&&state.phaseClock?.secondsRemaining!=null&&Number.isFinite(remaining)?Date.now()+Math.max(0,remaining)*1000:0;
+  const status=panel.querySelector('.directionLiveStatus span');
+  if(status)status.textContent=state.enabled===true?'● LIVE AUCTION · '+phaseName.toUpperCase():'○ АУКЦИОН ОЖИДАЕТ ЗАПУСКА';
   const label=panel.querySelector('#directionPhaseLabel');
   if(label)label.textContent=state.enabled?'Фаза: '+String(state.phase||'waiting'):'Ожидаем начало аукциона';
   const price=panel.querySelector('#directionCurrentBid');
