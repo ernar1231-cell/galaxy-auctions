@@ -18,7 +18,7 @@ module.exports=async(req,res)=>{
  // Atomic competition must be explicitly enabled after the DB migration and rehearsal.
  if(process.env.GALAXY_DIRECTION_PROXY_ATOMIC_READY!=='true')
   return res.status(503).json({code:'PROXY_EXECUTION_NOT_READY',error:'Atomic proxy competition not deployed'});
- const base=String(process.env.SUPABASE_URL||'').replace(/\\/$/,'');
+ const base=String(process.env.SUPABASE_URL||'').replace(/\/$/,'');
  const key=process.env.SUPABASE_SERVICE_ROLE_KEY;
  if(!base||!key)return res.status(503).json({error:'Database unavailable'});
  try{
