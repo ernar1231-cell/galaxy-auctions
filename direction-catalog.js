@@ -2,16 +2,30 @@
 'use strict';
 const $=id=>document.getElementById(id);
 let directionSoundOn=false;let directionAudio=null;let directionEffect=null;
+let directionAudioContext=null;
 function playDirectionEffect(phase){
- if(!directionSoundOn)return;
- // Use a distinct, existing project sound only when the file is known to be present.
- const sounds={}; // No verified SOLD sound asset in this repository yet.
- if(!sounds[phase])return;
- try{if(directionEffect){directionEffect.pause();directionEffect.currentTime=0;}directionEffect=new Audio(sounds[phase]);directionEffect.volume=.7;directionEffect.play().catch(()=>{});}catch(e){}
+ if(!directionSoundOn||!['red','green','bonus','sold'].includes(phase))return;
+ try{
+  const AudioContextType=window.AudioContext||window.webkitAudioContext;
+  if(!AudioContextType)return;
+  if(!directionAudioContext)directionAudioContext=new AudioContextType();
+  if(directionAudioContext.state!=='running')return;
+  const ctx=directionAudioContext,now=ctx.currentTime;
+  const notes=phase==='sold'?[660,440,330]:phase==='bonus'?[660,880]:phase==='green'?[550]:[440];
+  notes.forEach((hz,i)=>{
+   const oscillator=ctx.createOscillator(),gain=ctx.createGain(),at=now+i*.13;
+   oscillator.type='sine';oscillator.frequency.value=hz;
+   gain.gain.setValueAtTime(0,at);
+   gain.gain.linearRampToValueAtTime(.09,at+.015);
+   gain.gain.exponentialRampToValueAtTime(.001,at+.12);
+   oscillator.connect(gain);gain.connect(ctx.destination);
+   oscillator.start(at);oscillator.stop(at+.13);
+  });
+ }catch(e){}
 }
 
 function stopDirectionAudio(){if(directionAudio){directionAudio.pause();directionAudio.currentTime=0;}if(directionEffect){directionEffect.pause();directionEffect.currentTime=0;}}
-function toggleDirectionSound(){directionSoundOn=!directionSoundOn;if(!directionAudio){directionAudio=new Audio('auction-background.mp3');directionAudio.loop=true;directionAudio.volume=.3;}if(directionSoundOn){directionAudio.play().catch(()=>{directionSoundOn=false;const b=$('directionSoundToggle');if(b){b.textContent='🔇 Включить звук';b.setAttribute('aria-pressed','false');}});}else stopDirectionAudio();const b=$('directionSoundToggle');if(b){b.textContent=directionSoundOn?'🔊 Звук включён':'🔇 Включить звук';b.setAttribute('aria-pressed',String(directionSoundOn));}}
+function toggleDirectionSound(){directionSoundOn=!directionSoundOn;if(!directionAudio){directionAudio=new Audio('auction-background.mp3');directionAudio.loop=true;directionAudio.volume=.3;}if(directionSoundOn){try{const AudioContextType=window.AudioContext||window.webkitAudioContext;if(AudioContextType){if(!directionAudioContext)directionAudioContext=new AudioContextType();directionAudioContext.resume().catch(()=>{});}}catch(e){}directionAudio.play().catch(()=>{directionSoundOn=false;const b=$('directionSoundToggle');if(b){b.textContent='🔇 Включить звук';b.setAttribute('aria-pressed','false');}});}else stopDirectionAudio();const b=$('directionSoundToggle');if(b){b.textContent=directionSoundOn?'🔊 Звук включён':'🔇 Включить звук';b.setAttribute('aria-pressed',String(directionSoundOn));}}
 const labels={dubai:['🇦🇪 Аукцион Дубай','Автомобили Дубая · каталог лотов'],transfer:['🚢 Автомобили в пути','Автомобили в доставке · каталог']};
 function directionOf(l){const match=String(l.description||'').match(/\[GALAXY_DIRECTION:(\{[^\n]*?\})\]/);if(match){try{return JSON.parse(match[1]).direction||'usa'}catch(e){}}return 'usa'}
 function safe(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
