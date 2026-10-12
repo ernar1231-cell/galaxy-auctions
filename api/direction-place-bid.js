@@ -33,9 +33,10 @@ module.exports=async(req,res)=>{
    if(![100,1000,10000].includes(increment))return res.status(400).json({error:'Invalid increment'});
   // Atomic database RPC owns account, deposit, bid limit and price locking.
   const k=key();if(!k||!base())throw Error('Database not configured');
-  const rpc=await fetch(base()+'/rest/v1/rpc/galaxy_place_direction_bid',{
+  const unified=process.env.GALAXY_DIRECTION_UNIFIED_BIDS_READY==='true';
+  const rpc=await fetch(base()+'/rest/v1/rpc/'+(unified?'galaxy_direction_submit_bid':'galaxy_place_direction_bid'),{
    method:'POST',headers:{apikey:k,Authorization:'Bearer '+k,'Content-Type':'application/json'},
-   body:JSON.stringify({p_direction:direction,p_lot_number:lotNumber,p_user_telegram_id:telegramId,p_increment:increment})
+   body:JSON.stringify(unified?{p_direction:direction,p_lot_number:lotNumber,p_user_telegram_id:telegramId,p_mode:'manual',p_amount:increment}:{p_direction:direction,p_lot_number:lotNumber,p_user_telegram_id:telegramId,p_increment:increment})
   });
   const result=await rpc.json();
   if(!rpc.ok)return res.status(409).json({code:'BID_REJECTED',error:'Bid was not accepted'});

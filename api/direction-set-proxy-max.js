@@ -15,7 +15,23 @@ module.exports=async(req,res)=>{
   return res.status(400).json({error:'Invalid proxy maximum or lot'});
  const telegramId=verifyTelegram(req.body?.initData,process.env.TELEGRAM_BOT_TOKEN);
  if(!telegramId)return res.status(401).json({error:'Telegram authentication required'});
- // Storage-only RPC does not atomically compete against manual bids or persist a winning event.
- // Never accept a financial commitment until one atomic DB operation performs all three.
- return res.status(503).json({code:'PROXY_EXECUTION_NOT_READY',error:'Proxy competition is not yet available'});
+ // Only the shared atomic RPC is permitted, never the storage-only maximum RPC.
+ if(process.env.GALAXY_DIRECTION_UNIFIED_BIDS_READY!=='true')
+  return res.status(503).json({code:'PROXY_EXECUTION_NOT_READY',error:'Proxy competition is not yet available'});
+ const base=String(process.env.SUPABASE_URL||'').replace(/\/$/,'');
+ const key=process.env.SUPABASE_SERVICE_ROLE_KEY;
+ if(!base||!key)return res.status(503).json({error:'Database unavailable'});
+ try{
+  const response=await fetch(base+'/rest/v1/rpc/galaxy_direction_submit_bid',{
+   method:'POST',cache:'no-store',
+   headers:{apikey:key,Authorization:'Bearer '+key,'Content-Type':'application/json'},
+   body:JSON.stringify({p_direction:direction,p_lot_number:lotNumber,p_user_telegram_id:telegramId,p_mode:'proxy',p_amount:maximum})
+  });
+  if(!response.ok)return res.status(409).json({code:'PROXY_REJECTED',error:'Proxy bid not accepted'});
+  const result=await response.json(),bid=Array.isArray(result)?result[0]:null;
+  if(!bid||!Number.isSafeInteger(Number(bid.event_id))||Number(bid.event_id)<=0||
+   !Number.isFinite(Number(bid.new_bid))||Number(bid.new_bid)<=0)
+   return res.status(503).json({code:'PROXY_CONFIRMATION_UNAVAILABLE',error:'Proxy confirmation unavailable'});
+  return res.status(200).json({direction,lotNumber,bid});
+ }catch{return res.status(503).json({error:'Proxy bidding temporarily unavailable'});}
 };
