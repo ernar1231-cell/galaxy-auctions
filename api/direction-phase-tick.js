@@ -1,6 +1,13 @@
 'use strict';
 const {nextPhase}=require('./_direction-phase-transition');
 const base=()=>String(process.env.SUPABASE_URL||'').replace(/\/$/,'');
+function appendRpcRows(results,payload,direction){
+ if(payload===null||payload===undefined)return;
+ const rows=Array.isArray(payload)?payload:[payload];
+ for(const row of rows){
+  if(row&&typeof row==='object')results.push({direction,...row});
+ }
+}
 module.exports=async(req,res)=>{
  res.setHeader('Cache-Control','no-store');
  if(req.method!=='POST')return res.status(405).json({error:'Method not allowed'});
@@ -20,7 +27,7 @@ module.exports=async(req,res)=>{
    if(session.enabled!==true&&session.phase==='waiting'){
     const start=await fetch(base()+'/rest/v1/rpc/galaxy_start_armed_direction',{method:'POST',headers,body:JSON.stringify({p_direction:session.direction})});
     if(!start.ok)throw Error('Direction start gate failed');
-    results.push(...(await start.json()));
+    appendRpcRows(results,await start.json(),session.direction);
     continue;
    }
    const transition=nextPhase(session);
@@ -30,7 +37,7 @@ module.exports=async(req,res)=>{
     method:'POST',headers,body:JSON.stringify(isSold?{p_direction:transition.direction,p_expected_lot:transition.lotNumber}:{p_direction:transition.direction,p_expected_lot:transition.lotNumber,p_expected_phase:transition.from})
    });
    if(!rpc.ok)throw Error('Phase transition failed');
-   results.push(...(await rpc.json()));
+   appendRpcRows(results,await rpc.json(),session.direction);
    }catch(error){errors.push({direction:session.direction,error:'Direction tick failed'});}
   }
   return res.status(errors.length?503:200).json({checked:sessions.length,transitions:results,errors});
