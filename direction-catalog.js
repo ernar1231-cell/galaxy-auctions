@@ -49,7 +49,7 @@ async function open(direction){
     '<div class="directionLiveInfo"><section><h3>'+safe(name)+'</h3>'+details.filter(x=>x[1]!=null&&x[1]!=='').map(x=>'<div class="directionLiveSpec"><span>'+safe(x[0])+'</span><b>'+safe(x[1])+'</b></div>').join('')+
     '<div class="directionLiveSpec"><span>Лот №</span><b>'+safe(currentIndex+1)+'</b></div></section>'+
     '<aside><small>Ожидаем начало аукциона</small><div class="directionLiveClock" id="directionLiveCountdown">18:00</div><small>Начало по времени Дубая</small><p>Стартовая цена</p><strong>'+safe(lot.starting_bid!=null?'$'+Number(lot.starting_bid).toLocaleString('en-US'):'Уточняется')+'</strong></aside></div>'+
-    '<div class="directionLiveBid"><button type="button" disabled>−</button><b>Ставки пока недоступны</b><button type="button" disabled>+</button><button type="button" disabled>СДЕЛАТЬ СТАВКУ</button></div>'+
+    '<div class="directionLiveBid"><button type="button" id="directionBidMinus" disabled>−</button><b id="directionBidAmount">Ставки пока недоступны</b><button type="button" id="directionBidPlus" disabled>+</button><button type="button" id="directionBidSubmit" disabled>СДЕЛАТЬ СТАВКУ</button></div>'+
     '<p class="directionLiveNotice">Аукцион готовится к запуску. Ставки откроются после подключения независимого LIVE.</p>';
   $('directionSoundToggle')?.addEventListener('click',toggleDirectionSound);
   $('directionLotListButton')?.addEventListener('click',()=>{
