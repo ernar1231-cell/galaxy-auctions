@@ -56,7 +56,27 @@ async function open(direction){
   const syncBidControls=()=>{
    const canBid=biddingAvailable&&['red','green','bonus'].includes(sessionPhase);
    const minus=$('directionBidMinus'),plus=$('directionBidPlus'),submit=$('directionBidSubmit'),amount=$('directionBidAmount');
-   if(amount)amount.textContent='
+   if(amount)amount.textContent='$'+selectedIncrement.toLocaleString('en-US');
+   if(minus)minus.disabled=!canBid;
+   if(plus)plus.disabled=!canBid;
+   if(submit)submit.disabled=!canBid;
+  };
+  $('directionBidMinus')?.addEventListener('click',()=>{selectedIncrement=increments[Math.max(0,increments.indexOf(selectedIncrement)-1)];syncBidControls();});
+  $('directionBidPlus')?.addEventListener('click',()=>{selectedIncrement=increments[Math.min(increments.length-1,increments.indexOf(selectedIncrement)+1)];syncBidControls();});
+  $('directionBidSubmit')?.addEventListener('click',async()=>{
+   if(!biddingAvailable||!['red','green','bonus'].includes(sessionPhase))return;
+   const initData=window.Telegram?.WebApp?.initData||'';
+   if(!initData){alert('Откройте аукцион через Telegram');return;}
+   const button=$('directionBidSubmit');if(button)button.disabled=true;
+   try{
+    const response=await fetch('/api/direction-place-bid',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({direction,lotNumber:lot.lot_number,increment:selectedIncrement,initData})});
+    const result=await response.json();if(!response.ok)throw Error(result.error||'Ставка не принята');
+    alert('Ставка принята');
+   }catch(error){alert(error.message||'Ошибка ставки');}
+   finally{syncBidControls();}
+  });
+  syncBidControls();
+  $('directionSoundToggle')?.addEventListener('click',toggleDirectionSound);
   $('directionLotListButton')?.addEventListener('click',()=>{
    const old=root.querySelector('#directionLotPicker');if(old){old.remove();return}
    const items=cars.map((x,i)=>'<button type="button" data-direction-index="'+i+'">'+safe([x.make,x.model,x.year].filter(Boolean).join(' '))+' · №'+safe(i+1)+'</button>').join('');
