@@ -36,7 +36,9 @@ BEGIN
  AND l.status IN ('upcoming','live') AND
  position('"direction":"'||p_direction||'"' in replace(coalesce(l.description,''),chr(92),''))>0)
  THEN RAISE EXCEPTION 'Lot not available for direction'; END IF;
- IF s.enabled=true AND s.current_lot_number=p_lot_number AND s.phase IN ('sold','waiting')
+ IF s.enabled=true AND s.current_lot_number=p_lot_number AND
+    (s.phase NOT IN ('red','green','bonus') OR s.phase_started_at IS NULL OR
+     now()>=s.phase_started_at+interval '15 seconds')
  THEN RAISE EXCEPTION 'Proxy bidding closed for lot'; END IF;
  SELECT * INTO u FROM public.auction_users x WHERE x.telegram_id=p_user_telegram_id;
  IF NOT FOUND OR lower(coalesce(u.account_status,''))<>'active' OR
