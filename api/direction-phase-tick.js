@@ -14,7 +14,9 @@ module.exports=async(req,res)=>{
   const response=await fetch(base()+'/rest/v1/galaxy_auction_sessions?direction=in.(dubai,transfer)&select=direction,enabled,phase,current_lot_number,phase_started_at',{headers,cache:'no-store'});
   if(!response.ok)throw Error('Session read failed');
   const sessions=await response.json(),results=[];
+  const errors=[];
   for(const session of sessions){
+   try{
    if(session.enabled!==true&&session.phase==='waiting'){
     const start=await fetch(base()+'/rest/v1/rpc/galaxy_start_armed_direction',{method:'POST',headers,body:JSON.stringify({p_direction:session.direction})});
     if(!start.ok)throw Error('Direction start gate failed');
@@ -29,7 +31,8 @@ module.exports=async(req,res)=>{
    });
    if(!rpc.ok)throw Error('Phase transition failed');
    results.push(...(await rpc.json()));
+   }catch(error){errors.push({direction:session.direction,error:'Direction tick failed'});}
   }
-  return res.status(200).json({checked:sessions.length,transitions:results});
+  return res.status(errors.length?503:200).json({checked:sessions.length,transitions:results,errors});
  }catch(e){return res.status(503).json({error:'Scheduler temporarily unavailable'});}
 };
