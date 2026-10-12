@@ -17,8 +17,9 @@ module.exports=async(req,res)=>{
   for(const session of sessions){
    const transition=nextPhase(session);
    if(!transition||!Number.isSafeInteger(transition.lotNumber)||transition.lotNumber<1)continue;
-   const rpc=await fetch(base()+'/rest/v1/rpc/galaxy_advance_direction_phase',{
-    method:'POST',headers,body:JSON.stringify({p_direction:transition.direction,p_expected_lot:transition.lotNumber,p_expected_phase:transition.from})
+   const isSold=transition.from==='sold';
+   const rpc=await fetch(base()+(isSold?'/rest/v1/rpc/galaxy_advance_direction_lot':'/rest/v1/rpc/galaxy_advance_direction_phase'),{
+    method:'POST',headers,body:JSON.stringify(isSold?{p_direction:transition.direction,p_expected_lot:transition.lotNumber}:{p_direction:transition.direction,p_expected_lot:transition.lotNumber,p_expected_phase:transition.from})
    });
    if(!rpc.ok)throw Error('Phase transition failed');
    results.push(...(await rpc.json()));
