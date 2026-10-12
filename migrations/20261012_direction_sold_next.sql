@@ -1,4 +1,5 @@
 -- Draft: atomic next-lot advance after SOLD. Not applied automatically.
+-- This function still requires transactional winner-result persistence before production use.
 -- No USA LIVE modifications. Requires service_role and explicit scheduler integration.
 BEGIN;
 CREATE OR REPLACE FUNCTION public.galaxy_advance_direction_lot(
@@ -31,13 +32,19 @@ BEGIN
    AND l.status='upcoming'
    AND position('"direction":"'||p_direction||'"' in replace(coalesce(l.description,''),chr(92),''))>0
  ORDER BY x.queue_position,x.lot_number LIMIT 1;
- -- Do not mark a sale as pending without a recorded winning bid.\n IF NOT EXISTS (SELECT 1 FROM public.galaxy_auction_bid_events b WHERE b.direction=p_direction AND b.lot_number=p_expected_lot) THEN\n  RAISE EXCEPTION 'Cannot complete lot without a recorded bid';\n END IF;\n -- Persist completed result and prevent the same vehicle from re-entering the upcoming queue.
+ -- Do not mark a sale as pending without a recorded winning bid.
+ IF NOT EXISTS (SELECT 1 FROM public.galaxy_auction_bid_events b WHERE b.direction=p_direction AND b.lot_number=p_expected_lot) THEN
+  RAISE EXCEPTION 'Cannot complete lot without a recorded bid';
+ END IF;
+ -- Persist completed result and prevent the same vehicle from re-entering the upcoming queue.
  UPDATE public.auction_lots l SET status='pending',updated_at=now() WHERE l.lot_number=p_expected_lot AND l.status='live';
  IF NOT FOUND THEN RAISE EXCEPTION 'Current lot must be live before completing sale'; END IF;
  IF next_number IS NULL THEN
   UPDATE public.galaxy_auction_sessions x SET enabled=false,phase='waiting',phase_started_at=NULL,updated_at=now() WHERE x.direction=p_direction;
   RETURN QUERY SELECT p_direction,p_expected_lot,'waiting'::text,true;RETURN;
  END IF;
+ UPDATE public.auction_lots l SET status='live',updated_at=now() WHERE l.lot_number=next_number AND l.status='upcoming';
+ IF NOT FOUND THEN RAISE EXCEPTION 'Next lot must be upcoming before activation'; END IF;
  UPDATE public.galaxy_auction_sessions x
  SET current_lot_number=next_number,current_bid=coalesce(next_price,0),
  phase='red',phase_started_at=now(),updated_at=now()
