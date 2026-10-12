@@ -3,7 +3,7 @@
 const $=id=>document.getElementById(id);
 let directionSoundOn=false;let directionAudio=null;
 function stopDirectionAudio(){if(directionAudio){directionAudio.pause();directionAudio.currentTime=0;}}
-function toggleDirectionSound(){directionSoundOn=!directionSoundOn;if(!directionAudio){directionAudio=new Audio('auction-background.mp3');directionAudio.loop=true;directionAudio.volume=.3;}if(directionSoundOn){directionAudio.play().catch(()=>{directionSoundOn=false;});}else stopDirectionAudio();const b=$('directionSoundToggle');if(b)b.textContent=directionSoundOn?'🔊 Звук включён':'🔇 Включить звук';}
+function toggleDirectionSound(){directionSoundOn=!directionSoundOn;if(!directionAudio){directionAudio=new Audio('auction-background.mp3');directionAudio.loop=true;directionAudio.volume=.3;}if(directionSoundOn){directionAudio.play().catch(()=>{directionSoundOn=false;const b=$('directionSoundToggle');if(b){b.textContent='🔇 Включить звук';b.setAttribute('aria-pressed','false');}});}else stopDirectionAudio();const b=$('directionSoundToggle');if(b){b.textContent=directionSoundOn?'🔊 Звук включён':'🔇 Включить звук';b.setAttribute('aria-pressed',String(directionSoundOn));}}
 const labels={dubai:['🇦🇪 Аукцион Дубай','Автомобили Дубая · каталог лотов'],transfer:['🚢 Автомобили в пути','Автомобили в доставке · каталог']};
 function directionOf(l){const match=String(l.description||'').match(/\[GALAXY_DIRECTION:(\{[^\n]*?\})\]/);if(match){try{return JSON.parse(match[1]).direction||'usa'}catch(e){}}return 'usa'}
 function safe(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
