@@ -5,6 +5,7 @@ const screen=()=>document.getElementById('directionCatalogScreen');
 let direction=null,lot=null,generation=0,busy=false,previousPhase='',previousLot=null;
 let bidAllowed=false,increment=100,bidBusy=false;
 let phaseDeadline=0,phaseName='waiting',clockSkewMs=0;
+let completedLot=null;
 const money=v=>Number.isFinite(Number(v))?'$'+Number(v).toLocaleString('en-US'):'—';
 async function read(url){const r=await fetch(url,{cache:'no-store'});if(!r.ok)throw Error('Unavailable');return r.json();}
 function area(panel,id){let el=panel.querySelector('#'+id);if(!el){el=document.createElement('section');el.id=id;el.className='directionLiveNotice';panel.querySelector('#directionCatalogItems')?.appendChild(el);}return el;}
@@ -35,6 +36,8 @@ async function refresh(){
   if(token!==generation||!panel.classList.contains('open'))return;
   const lotNumber=state.currentLot?Number(state.currentLot.lot_number):null;
   if(lotNumber!==null&&lotNumber!==lot){
+   panel.querySelector('#directionPublicHistory')?.remove();
+   panel.querySelector('#directionPublicResult')?.remove();
    lot=lotNumber;
    panel.dispatchEvent(new CustomEvent('galaxy-direction-current-lot',{detail:{lotNumber}}));
   }
@@ -55,7 +58,7 @@ async function refresh(){
   if(amount)amount.textContent=bidAllowed?'Шаг ставки '+money(increment):'Ставки пока недоступны';
   const phase=String(state.phase||'waiting').toLowerCase();
   if(previousPhase==='sold'&&phase!=='sold'&&previousLot!==null){
-   await result(panel,d,previousLot,token).catch(()=>{});
+   completedLot=previousLot;
   }
   if(previousPhase&&previousPhase!==phase){
    panel.dispatchEvent(new CustomEvent('galaxy-direction-phase-change',{detail:{direction:d,phase,lotNumber}}));
@@ -63,13 +66,14 @@ async function refresh(){
   previousPhase=phase;previousLot=lotNumber;
   if(lotNumber!==null)await history(panel,d,lotNumber,token).catch(()=>{});
   if(phase==='sold'&&lotNumber!==null)await result(panel,d,lotNumber,token).catch(()=>{});
+  else if(completedLot!==null&&completedLot===lotNumber)await result(panel,d,completedLot,token).catch(()=>{});
  }catch(error){console.warn('Direction refresh unavailable',error);}
  finally{busy=false;}
 }
 document.addEventListener('click',event=>{
  const card=event.target.closest('#auctionDirectionDubai,#auctionDirectionTransfer');
- if(card){direction=card.id==='auctionDirectionDubai'?'dubai':'transfer';lot=null;bidAllowed=false;increment=100;previousLot=null;previousPhase='';generation++;}
- if(event.target.closest('#modernBottomNav,#directionCatalogBack')){direction=null;lot=null;bidAllowed=false;previousLot=null;previousPhase='';generation++;}
+ if(card){direction=card.id==='auctionDirectionDubai'?'dubai':'transfer';lot=null;completedLot=null;bidAllowed=false;increment=100;previousLot=null;previousPhase='';generation++;}
+ if(event.target.closest('#modernBottomNav,#directionCatalogBack')){direction=null;lot=null;completedLot=null;bidAllowed=false;previousLot=null;previousPhase='';generation++;}
 });
 const increments=[100,1000,10000];
 document.addEventListener('click',async event=>{
