@@ -38,7 +38,7 @@ module.exports=Object.assign(async(req,res)=>{
    const {auction_lot_images,...fields}=lot;
    return {...fields,display_lot_number:index+1,images,primary_image:(images.find(x=>x.is_primary)||images[0])?.image_url||null};
   });
-  const current=queue.find(x=>Number(x.lot_number)===Number(session.current_lot_number))||queue[0]||null;
+  const current=queue.find(x=>Number(x.lot_number)===Number(session.current_lot_number))||(session.enabled===true?null:queue[0]||null);
   const enabled=session.enabled===true;
   const now=new Date();
   const startAt=nextStart(now,session.timezone,session.local_start);
