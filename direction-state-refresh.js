@@ -1,100 +1,63 @@
 (function(){
 'use strict';
-// Read-only refresh of Dubai/transit preview. Does not interact with USA LIVE.
+// Isolated read-only Dubai/Transit screen refresh; never modifies USA LIVE.
 const screen=()=>document.getElementById('directionCatalogScreen');
-let activeDirection=null;
-let activeLot=null;
-let requestInFlight=false;
-let generation=0;
-let historyKey='';
-function money(value){const n=Number(value);return Number.isFinite(n)?'
-async function refresh(){
- const panel=screen();
- if(!panel||!panel.classList.contains('open')||!activeDirection||requestInFlight)return;
- const requestGeneration=generation;
- requestInFlight=true;
- try{
-  const response=await fetch('/api/direction-live-state?direction='+encodeURIComponent(activeDirection)+'&t='+Date.now(),{cache:'no-store'});
-  if(!response.ok)return;
-  const state=await response.json();
-  if(requestGeneration!==generation||!panel.classList.contains('open'))return;
-  const current=state.currentLot;
-  const lotId=current?Number(current.lot_number):null;
-  if(lotId!==null&&lotId!==activeLot){
-   activeLot=lotId;
-   // Do not replace the selected lot's DOM here: the catalog owns the gallery and handlers.
-   const currentIndex=(state.queue||[]).findIndex(x=>Number(x.lot_number)===lotId);
-   const buttons=panel.querySelectorAll('[data-direction-index]');
-   if(currentIndex>=0&&buttons[currentIndex])buttons[currentIndex].click();
-   else panel.dispatchEvent(new CustomEvent('galaxy-direction-current-lot',{detail:{lotNumber:lotId}}));
-  }
-  if(lotId!==null)await refreshHistory(activeDirection,lotId,requestGeneration,panel);
-  if(requestGeneration!==generation||!panel.classList.contains('open'))return;
-  const label=panel.querySelector('#directionPhaseLabel');
-  if(label)label.textContent=state.enabled?'Фаза: '+String(state.phase||'waiting'):'Ожидаем начало аукциона';
-  const price=panel.querySelector('#directionCurrentBid');
-  if(price)price.textContent=state.enabled&&state.currentBid!=null?'Текущая ставка $'+Number(state.currentBid).toLocaleString('en-US'):'Ставки пока недоступны';
- }catch(error){console.warn('Direction state refresh unavailable',error);}
- finally{requestInFlight=false;}
-}
-document.addEventListener('click',event=>{
- const card=event.target.closest('#auctionDirectionDubai,#auctionDirectionTransfer');
- if(card){screen()?.dispatchEvent(new Event('galaxy-direction-close'));activeDirection=card.id==='auctionDirectionDubai'?'dubai':'transfer';activeLot=null;historyKey='';generation++;}
- if(event.target.closest('#modernBottomNav,#directionCatalogBack')){screen()?.dispatchEvent(new Event('galaxy-direction-close'));activeDirection=null;activeLot=null;generation++;}
-});
-setInterval(refresh,3000);
-})();
-+n.toLocaleString('en-US'):'—';}
-async function refreshHistory(direction,lotNumber,requestGeneration,panel){
- const key=direction+':'+lotNumber;
- if(historyKey!==key){historyKey=key;const old=panel.querySelector('#directionPublicHistory');if(old)old.remove();}
- const response=await fetch('/api/direction-bid-history?direction='+encodeURIComponent(direction)+'&lotNumber='+lotNumber,{cache:'no-store'});
- if(!response.ok)return;
- const data=await response.json();
- if(requestGeneration!==generation||!panel.classList.contains('open')||activeLot!==lotNumber)return;
+let direction=null,lot=null,generation=0,busy=false,previousPhase='',previousLot=null;
+const money=v=>Number.isFinite(Number(v))?'$'+Number(v).toLocaleString('en-US'):'—';
+async function read(url){const r=await fetch(url,{cache:'no-store'});if(!r.ok)throw Error('Unavailable');return r.json();}
+function area(panel,id){let el=panel.querySelector('#'+id);if(!el){el=document.createElement('section');el.id=id;el.className='directionLiveNotice';panel.querySelector('#directionCatalogItems')?.appendChild(el);}return el;}
+async function history(panel,d,lotNumber,token){
+ const data=await read('/api/direction-bid-history?direction='+encodeURIComponent(d)+'&lotNumber='+lotNumber);
+ if(token!==generation||lot!==lotNumber||!panel.classList.contains('open'))return;
+ const box=area(panel,'directionPublicHistory');if(!box)return;
+ box.replaceChildren();const heading=document.createElement('strong');heading.textContent='История ставок';box.appendChild(heading);
  const events=Array.isArray(data.events)?data.events:[];
- let box=panel.querySelector('#directionPublicHistory');
- if(!box){box=document.createElement('section');box.id='directionPublicHistory';box.className='directionLiveNotice';panel.querySelector('#directionCatalogItems')?.appendChild(box);}
- if(!box)return;
- box.replaceChildren();
- const title=document.createElement('strong');title.textContent='История ставок';box.appendChild(title);
+ if(!events.length){const p=document.createElement('p');p.textContent='Ставок пока нет';box.appendChild(p);return;}
  const list=document.createElement('ol');
- for(const event of events.slice(0,10)){
-  const li=document.createElement('li');li.textContent=money(event.amount);list.appendChild(li);
- }
- if(!events.length){const empty=document.createElement('p');empty.textContent='Ставок пока нет';box.appendChild(empty);}else box.appendChild(list);
+ for(const event of events.slice(0,10)){const li=document.createElement('li');li.textContent=money(event.amount);list.appendChild(li);}
+ box.appendChild(list);
 }
-
+async function result(panel,d,lotNumber,token){
+ const data=await read('/api/direction-result?direction='+encodeURIComponent(d)+'&lotNumber='+lotNumber);
+ if(token!==generation||!panel.classList.contains('open'))return;
+ const box=area(panel,'directionPublicResult');if(!box)return;
+ box.replaceChildren();
+ const heading=document.createElement('strong');heading.textContent='SOLD — результат';box.appendChild(heading);
+ const p=document.createElement('p');p.textContent=data.result?'Цена: '+money(data.result.amount)+' · Статус: '+String(data.result.status||'ожидает подтверждения'):'Результат пока не подтверждён';box.appendChild(p);
+}
 async function refresh(){
- const panel=screen();
- if(!panel||!panel.classList.contains('open')||!activeDirection||requestInFlight)return;
- const requestGeneration=generation;
- requestInFlight=true;
+ const panel=screen();if(!panel||!panel.classList.contains('open')||!direction||busy)return;
+ busy=true;const token=generation,d=direction;
  try{
-  const response=await fetch('/api/direction-live-state?direction='+encodeURIComponent(activeDirection)+'&t='+Date.now(),{cache:'no-store'});
-  if(!response.ok)return;
-  const state=await response.json();
-  if(requestGeneration!==generation||!panel.classList.contains('open'))return;
-  const current=state.currentLot;
-  const lotId=current?Number(current.lot_number):null;
-  if(lotId!==null&&lotId!==activeLot){
-   activeLot=lotId;
-   // Do not replace the selected lot's DOM here: the catalog owns the gallery and handlers.
-   const currentIndex=(state.queue||[]).findIndex(x=>Number(x.lot_number)===lotId);
-   const buttons=panel.querySelectorAll('[data-direction-index]');
-   if(currentIndex>=0&&buttons[currentIndex])buttons[currentIndex].click();
+  const state=await read('/api/direction-live-state?direction='+encodeURIComponent(d)+'&t='+Date.now());
+  if(token!==generation||!panel.classList.contains('open'))return;
+  const lotNumber=state.currentLot?Number(state.currentLot.lot_number):null;
+  if(lotNumber!==null&&lotNumber!==lot){
+   lot=lotNumber;
+   panel.dispatchEvent(new CustomEvent('galaxy-direction-current-lot',{detail:{lotNumber}}));
   }
   const label=panel.querySelector('#directionPhaseLabel');
   if(label)label.textContent=state.enabled?'Фаза: '+String(state.phase||'waiting'):'Ожидаем начало аукциона';
   const price=panel.querySelector('#directionCurrentBid');
-  if(price)price.textContent=state.enabled&&state.currentBid!=null?'Текущая ставка $'+Number(state.currentBid).toLocaleString('en-US'):'Ставки пока недоступны';
- }catch(error){console.warn('Direction state refresh unavailable',error);}
- finally{requestInFlight=false;}
+  if(price)price.textContent=state.enabled&&state.currentBid!=null?'Текущая ставка '+money(state.currentBid):'Ставки пока недоступны';
+  for(const id of ['directionBidMinus','directionBidPlus','directionBidSubmit']){
+   const button=panel.querySelector('#'+id);
+   if(button)button.disabled=state.biddingAvailable!==true;
+  }
+  const phase=String(state.phase||'waiting').toLowerCase();
+  if(previousPhase==='sold'&&phase!=='sold'&&previousLot!==null){
+   await result(panel,d,previousLot,token).catch(()=>{});
+  }
+  previousPhase=phase;previousLot=lotNumber;
+  if(lotNumber!==null)await history(panel,d,lotNumber,token).catch(()=>{});
+  if(phase==='sold'&&lotNumber!==null)await result(panel,d,lotNumber,token).catch(()=>{});
+ }catch(error){console.warn('Direction refresh unavailable',error);}
+ finally{busy=false;}
 }
 document.addEventListener('click',event=>{
  const card=event.target.closest('#auctionDirectionDubai,#auctionDirectionTransfer');
- if(card){screen()?.dispatchEvent(new Event('galaxy-direction-close'));activeDirection=card.id==='auctionDirectionDubai'?'dubai':'transfer';activeLot=null;generation++;}
- if(event.target.closest('#modernBottomNav,#directionCatalogBack')){screen()?.dispatchEvent(new Event('galaxy-direction-close'));activeDirection=null;activeLot=null;generation++;}
+ if(card){direction=card.id==='auctionDirectionDubai'?'dubai':'transfer';lot=null;previousLot=null;previousPhase='';generation++;}
+ if(event.target.closest('#modernBottomNav,#directionCatalogBack')){direction=null;lot=null;previousLot=null;previousPhase='';generation++;}
 });
 setInterval(refresh,3000);
 })();
