@@ -30,6 +30,7 @@ DECLARE runner_max numeric;
 DECLARE candidate numeric;
 DECLARE final_price numeric;
 DECLARE new_event bigint;
+DECLARE current_leader_max numeric;
 BEGIN
  IF p_direction NOT IN ('dubai','transfer') OR p_lot_number IS NULL
  OR nullif(p_user_telegram_id,'') IS NULL OR p_mode NOT IN ('manual','proxy')
@@ -85,6 +86,9 @@ BEGIN
   AND (p_mode<>'manual' OR p_user_telegram_id<>current_leader)
  ) contenders ORDER BY max_value DESC,priority ASC,user_id ASC LIMIT 1;
  IF winner_id IS NULL THEN RAISE EXCEPTION 'No bidder'; END IF;
+ -- A proxy bidder already leading must not be forced to bid against its own last event.
+ IF current_leader=winner_id AND p_mode='proxy' AND p_user_telegram_id=winner_id
+ THEN RAISE EXCEPTION 'Already leading'; END IF;
  SELECT max(contenders.max_value) INTO runner_max FROM (
   SELECT x.user_telegram_id AS user_id,x.max_amount AS max_value
   FROM public.galaxy_direction_proxy_maxima x WHERE x.direction=p_direction AND x.lot_number=p_lot_number
