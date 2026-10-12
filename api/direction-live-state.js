@@ -42,6 +42,7 @@ module.exports=Object.assign(async(req,res)=>{
   const enabled=session.enabled===true;
   const now=new Date();
   const startAt=nextStart(now,session.timezone,session.local_start);
-  return res.status(200).json({direction,enabled,timezone:session.timezone,local_start:session.local_start,startAt,serverNow:now.toISOString(),phase:enabled?session.phase:'waiting',phaseClock:phaseClock(session,now.getTime()),lotCount:queue.length,queue,currentLot:current,currentBid:enabled?session.current_bid:null,biddingAvailable:false});
+  const biddingAvailable=enabled&&['red','green','bonus'].includes(String(session.phase||'').toLowerCase())&&Boolean(current)&&Number(current.lot_number)===Number(session.current_lot_number)&&String(current.status)==='live'&&process.env.GALAXY_DIRECTION_BIDDING_ENABLED==='true';
+  return res.status(200).json({direction,enabled,timezone:session.timezone,local_start:session.local_start,startAt,serverNow:now.toISOString(),phase:enabled?session.phase:'waiting',phaseClock:phaseClock(session,now.getTime()),lotCount:queue.length,queue,currentLot:current,currentBid:enabled?session.current_bid:null,biddingAvailable});
  }catch(e){return res.status(503).json({error:'Auction session temporarily unavailable'});}
 },{nextStart});
