@@ -17,20 +17,28 @@ let stopped=false;
 process.once('SIGINT',()=>{stopped=true;controller.abort();});
 process.once('SIGTERM',()=>{stopped=true;controller.abort();});
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
-async function tick(){
+async function tick(dryRun=false){
  const timeout=AbortSignal.timeout(8000);
  const signal=AbortSignal.any([controller.signal,timeout]);
  const response=await fetch(endpoint,{
   method:'POST',
   headers:{authorization:'Bearer '+secret,'Content-Type':'application/json'},
-  body:'{}',
+  body:JSON.stringify(dryRun?{dryRun:true}:{}),
   cache:'no-store',
   signal
  });
  if(!response.ok)throw Error('Scheduler tick HTTP '+response.status);
+ if(dryRun){
+  const data=await response.json();
+  if(data?.dryRun!==true||!Array.isArray(data.sessions)||!['dubai','transfer'].every(d=>data.sessions.some(s=>s.direction===d)))
+   throw Error('Scheduler preflight response invalid');
+ }
+
 }
 (async()=>{
- console.log('Direction auction scheduler worker started');
+ // Refuse to begin state-changing ticks unless the authenticated read-only preflight succeeds.
+ await tick(true);
+ console.log('Direction auction scheduler worker started after safe preflight');
  while(!stopped){
   const started=Date.now();
   try{await tick();}catch(error){if(!stopped)console.error('Scheduler tick failed:',error.message);}
