@@ -9,7 +9,6 @@ DECLARE s public.galaxy_auction_sessions%ROWTYPE;
 DECLARE a public.galaxy_auction_lot_assignments%ROWTYPE;
 DECLARE next_number bigint;
 DECLARE next_price numeric;
-DECLARE last_bid_id bigint;
 BEGIN
  IF p_direction NOT IN ('dubai','transfer') OR p_expected_lot IS NULL THEN
   RAISE EXCEPTION 'Invalid direction or lot';
