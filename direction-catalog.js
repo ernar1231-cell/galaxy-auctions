@@ -68,6 +68,14 @@ async function open(direction){
   }
   screen.addEventListener('galaxy-direction-current-lot',event=>{if(!screen.classList.contains('open'))return;const n=cars.findIndex(x=>Number(x.lot_number)===Number(event.detail?.lotNumber));if(n>=0&&n!==currentIndex){currentIndex=n;renderSelectedLot();}},{signal:(()=>{const controller=new AbortController();screen.addEventListener('galaxy-direction-close',()=>controller.abort(),{once:true});return controller.signal;})()});
   renderSelectedLot();
+  if(!startAt){
+   // Fallback when the session API is unavailable: calculate Dubai's next 18:00.
+   // This is a display-only countdown and never starts bidding.
+   const now=new Date(Date.now()+4*3600000);
+   const dubaiHour=now.getUTCHours(),dubaiMinute=now.getUTCMinutes();
+   const next=new Date(Date.UTC(now.getUTCFullYear(),now.getUTCMonth(),now.getUTCDate()+(dubaiHour*60+dubaiMinute>=1080?1:0),14,0,0));
+   startAt=next.toISOString();
+  }
   if(startAt){const tick=()=>{if(!screen.classList.contains('open'))return;const el=$('directionLiveCountdown');if(!el)return;const remaining=Math.max(0,Math.floor((new Date(startAt).getTime()-(Date.now()+clockOffsetMs))/1000));const hh=String(Math.floor(remaining/3600)).padStart(2,'0'),mm=String(Math.floor(remaining%3600/60)).padStart(2,'0'),ss=String(remaining%60).padStart(2,'0');el.textContent=hh+':'+mm+':'+ss;};tick();clearInterval(window.galaxyDirectionCountdownTimer);window.galaxyDirectionCountdownTimer=setInterval(tick,1000);}
  }catch(e){root.textContent='Не удалось загрузить каталог. Попробуйте ещё раз.'}
 }
