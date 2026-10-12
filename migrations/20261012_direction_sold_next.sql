@@ -30,7 +30,7 @@ BEGIN
    AND l.status='upcoming'
    AND position('"direction":"'||p_direction||'"' in replace(coalesce(l.description,''),chr(92),''))>0
  ORDER BY x.queue_position,x.lot_number LIMIT 1;
- -- Persist completed result and prevent the same vehicle from re-entering the upcoming queue.
+ -- Do not mark a sale as pending without a recorded winning bid.\n IF NOT EXISTS (SELECT 1 FROM public.galaxy_auction_bid_events b WHERE b.direction=p_direction AND b.lot_number=p_expected_lot) THEN\n  RAISE EXCEPTION 'Cannot complete lot without a recorded bid';\n END IF;\n -- Persist completed result and prevent the same vehicle from re-entering the upcoming queue.
  UPDATE public.auction_lots l SET status='pending',updated_at=now() WHERE l.lot_number=p_expected_lot AND l.status='live';
  IF NOT FOUND THEN RAISE EXCEPTION 'Current lot must be live before completing sale'; END IF;
  IF next_number IS NULL THEN
