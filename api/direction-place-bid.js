@@ -1,5 +1,6 @@
 'use strict';
 const {verifyTelegram}=require('./_direction-telegram-auth');
+const {phaseClock}=require('./_direction-phase-clock');
 const {assertDirection,sessionCanBid,belongsToDirection}=require('./_multi-auction-core');
 const base=()=>String(process.env.SUPABASE_URL||'').replace(/\/$/,'');
 const key=()=>process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -25,7 +26,7 @@ module.exports=async(req,res)=>{
   const session=sessions[0],assignment=assignments[0],lot=lots[0];
   if(!session||!assignment||!lot||assignment.direction!==direction||!belongsToDirection(lot,direction))
    return res.status(409).json({error:'Lot does not belong to this auction'});
-  if(lot.status!=='live'||!sessionCanBid(session,lotNumber))return res.status(409).json({error:'Auction session is not accepting bids'});
+  if(lot.status!=='live'||!sessionCanBid(session,lotNumber)||!(phaseClock(session).secondsRemaining>0))return res.status(409).json({error:'Auction session is not accepting bids'});
   const telegramId=verifyTelegram(req.body?.initData,process.env.TELEGRAM_BOT_TOKEN);
    if(!telegramId)return res.status(401).json({code:'TELEGRAM_AUTH_REQUIRED',error:'Valid Telegram login required'});
    const increment=Number(req.body?.increment);
