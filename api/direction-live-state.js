@@ -1,6 +1,7 @@
 'use strict';
 const {assertDirection,selectDirectionQueue,AUCTION_TIMEZONE}=require('./_multi-auction-core');
 const {phaseClock}=require('./_direction-phase-clock');
+const {nextPhase}=require('./_direction-phase-transition');
 const base=()=>String(process.env.SUPABASE_URL||'').replace(/\/$/,'');
 const key=()=>process.env.SUPABASE_SERVICE_ROLE_KEY;
 async function read(path){
@@ -9,6 +10,23 @@ async function read(path){
  const data=await response.json();
  if(!response.ok)throw Error('Database query failed');
  return data;
+}
+// USA-style on-demand phase advancement for already-enabled Dubai/Transit sessions.
+// Never arms a waiting session. Database RPC enforces expected phase/lot atomically.
+async function advanceIfDue(session){
+ if(process.env.GALAXY_DIRECTION_ON_DEMAND_SYNC!=='true'||session.enabled!==true)return session;
+ const proposal=nextPhase(session);
+ if(!proposal||!Number.isSafeInteger(proposal.lotNumber)||proposal.lotNumber<1)return session;
+ const k=key(),sold=proposal.from==='sold';
+ const url=base()+'/rest/v1/rpc/'+(sold?'galaxy_advance_direction_lot':'galaxy_advance_direction_phase');
+ const body=sold?
+  {p_direction:session.direction,p_expected_lot:proposal.lotNumber}:
+  {p_direction:session.direction,p_expected_lot:proposal.lotNumber,p_expected_phase:proposal.from};
+ const response=await fetch(url,{method:'POST',headers:{apikey:k,Authorization:'Bearer '+k,'Content-Type':'application/json'},body:JSON.stringify(body),cache:'no-store'});
+ if(!response.ok)throw Error('Direction transition unavailable');
+ const sessions=await read('galaxy_auction_sessions?direction=eq.'+session.direction+'&select=*');
+ if(!sessions[0])throw Error('Direction session unavailable');
+ return sessions[0];
 }
 function nextStart(now,timezone,localStart){
  const parts=String(localStart||'18:00').split(':').map(Number);
@@ -27,12 +45,13 @@ module.exports=Object.assign(async(req,res)=>{
  try{direction=assertDirection(req.query?.direction)}catch{return res.status(400).json({error:'Invalid direction'});}
  if(direction==='usa')return res.status(400).json({error:'Use existing USA LIVE endpoint'});
  try{
-  const [sessions,assignments,lots]=await Promise.all([
+  const [sessions,assignments]=await Promise.all([
    read('galaxy_auction_sessions?direction=eq.'+direction+'&select=*'),
-   read('galaxy_auction_lot_assignments?direction=eq.'+direction+'&select=lot_number,direction,queue_position'),
-   read('auction_lots?status=in.(upcoming,live)&select=*,auction_lot_images(image_url,is_primary,sort_order)')
+   read('galaxy_auction_lot_assignments?direction=eq.'+direction+'&select=lot_number,direction,queue_position')
   ]);
-  const session=sessions[0];if(!session)return res.status(404).json({error:'Session not configured'});
+  let session=sessions[0];if(!session)return res.status(404).json({error:'Session not configured'});
+  session=await advanceIfDue(session);
+  const lots=await read('auction_lots?status=in.(upcoming,live)&select=*,auction_lot_images(image_url,is_primary,sort_order)');
   const queue=selectDirectionQueue(lots,assignments,direction).map((lot,index)=>{
    const images=(lot.auction_lot_images||[]).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0));
    const {auction_lot_images,...fields}=lot;
