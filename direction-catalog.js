@@ -5,7 +5,7 @@ let directionSoundOn=false;let directionAudio=null;let directionEffect=null;
 function playDirectionEffect(phase){
  if(!directionSoundOn)return;
  // Use a distinct, existing project sound only when the file is known to be present.
- const sounds={sold:'sold.mp3'};
+ const sounds={}; // No verified SOLD sound asset in this repository yet.
  if(!sounds[phase])return;
  try{if(directionEffect){directionEffect.pause();directionEffect.currentTime=0;}directionEffect=new Audio(sounds[phase]);directionEffect.volume=.7;directionEffect.play().catch(()=>{});}catch(e){}
 }
