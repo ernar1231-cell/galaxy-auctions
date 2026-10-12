@@ -30,7 +30,6 @@ DECLARE runner_max numeric;
 DECLARE candidate numeric;
 DECLARE final_price numeric;
 DECLARE new_event bigint;
-DECLARE current_leader_max numeric;
 BEGIN
  IF p_direction NOT IN ('dubai','transfer') OR p_lot_number IS NULL
  OR nullif(p_user_telegram_id,'') IS NULL OR p_mode NOT IN ('manual','proxy')
