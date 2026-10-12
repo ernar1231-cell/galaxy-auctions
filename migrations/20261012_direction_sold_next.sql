@@ -1,5 +1,5 @@
 -- Draft: atomic next-lot advance after SOLD. Not applied automatically.
--- This function still requires transactional winner-result persistence before production use.
+-- Requires the separate result-ledger migration and verified bid RPC before deployment.
 -- No USA LIVE modifications. Requires service_role and explicit scheduler integration.
 BEGIN;
 CREATE OR REPLACE FUNCTION public.galaxy_advance_direction_lot(
@@ -32,10 +32,21 @@ BEGIN
    AND l.status='upcoming'
    AND position('"direction":"'||p_direction||'"' in replace(coalesce(l.description,''),chr(92),''))>0
  ORDER BY x.queue_position,x.lot_number LIMIT 1;
- -- Do not mark a sale as pending without a recorded winning bid.
- IF NOT EXISTS (SELECT 1 FROM public.galaxy_auction_bid_events b WHERE b.direction=p_direction AND b.lot_number=p_expected_lot) THEN
-  RAISE EXCEPTION 'Cannot complete lot without a recorded bid';
+ -- Resolve the authoritative winning bid before completing this lot.
+ SELECT * INTO winner_event
+ FROM public.galaxy_auction_bid_events b
+ WHERE b.direction=p_direction AND b.lot_number=p_expected_lot
+ ORDER BY b.amount DESC,b.id ASC LIMIT 1;
+ IF NOT FOUND THEN RAISE EXCEPTION 'Cannot complete lot without a recorded bid'; END IF;
+ IF winner_event.amount IS DISTINCT FROM s.current_bid THEN
+  RAISE EXCEPTION 'Winning bid does not match authoritative session price';
  END IF;
+ INSERT INTO public.galaxy_auction_results
+  (direction,lot_number,winner_telegram_id,winning_amount,winning_bid_event_id)
+ VALUES
+  (p_direction,p_expected_lot,winner_event.user_telegram_id,winner_event.amount,winner_event.id)
+ ON CONFLICT (direction,lot_number) DO NOTHING;
+ IF NOT FOUND THEN RAISE EXCEPTION 'Sale result already recorded'; END IF;
  -- Persist completed result and prevent the same vehicle from re-entering the upcoming queue.
  UPDATE public.auction_lots l SET status='pending',updated_at=now() WHERE l.lot_number=p_expected_lot AND l.status='live';
  IF NOT FOUND THEN RAISE EXCEPTION 'Current lot must be live before completing sale'; END IF;
