@@ -19,6 +19,6 @@ function selectDirectionQueue(lots,assignments,direction){
   .sort((a,b)=>positions.get(Number(a.lot_number))-positions.get(Number(b.lot_number))||Number(a.lot_number)-Number(b.lot_number));
 }
 function sessionCanBid(session,lotNumber){
- return Boolean(session&&session.enabled===true&&session.phase!=='waiting'&&session.phase!=='sold'&&Number(session.current_lot_number)===Number(lotNumber));
+ return Boolean(session&&session.enabled===true&&['red','green','bonus'].includes(String(session.phase||'').toLowerCase())&&Number(session.current_lot_number)===Number(lotNumber));
 }
 module.exports={DIRECTIONS,SESSION_TABLE,ASSIGNMENT_TABLE,BID_EVENT_TABLE,AUCTION_TIMEZONE,assertDirection,belongsToDirection,selectDirectionQueue,sessionCanBid};
