@@ -3,6 +3,7 @@ on:
   pull_request:
     paths:
       - 'migrations/20261013_dubai_demo_isolated.sql'
+      - 'migrations/20261013_dubai_demo_allow_telegram_users.sql'
       - 'test/fixtures/direction-demo-postgres-assert.sql'
       - '.github/workflows/direction-demo-postgres.yml'
   workflow_dispatch:
@@ -38,3 +39,9 @@ jobs:
         run: psql -v ON_ERROR_STOP=1 -f migrations/20261013_dubai_demo_isolated.sql
       - name: Assert isolated demo bidding
         run: psql -v ON_ERROR_STOP=1 -f test/fixtures/direction-demo-postgres-assert.sql
+      - name: Enable any Telegram-authenticated demo user
+        run: psql -v ON_ERROR_STOP=1 -f migrations/20261013_dubai_demo_allow_telegram_users.sql
+      - name: Verify pending demo user can bid without affecting real auctions
+        run: |
+          psql -v ON_ERROR_STOP=1 -c "SELECT public.galaxy_demo_bid('103','manual',100);"
+          psql -v ON_ERROR_STOP=1 -c "DO \$\$ BEGIN IF (SELECT count(*) FROM public.galaxy_auction_bid_events)<>0 THEN RAISE EXCEPTION 'Real bids changed'; END IF; END \$\$;"

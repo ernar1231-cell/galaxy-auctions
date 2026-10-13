@@ -33,21 +33,27 @@ async function refreshDemo(panel,d,visibleLot){
  const demoPanel=panel.querySelector('#directionDemoPanel');
  if(!demoPanel)return;
  if(d!=='dubai'||visibleLot!=='69'){
-  demoAvailable=false;demoPanel.hidden=true;return;
+  demoAvailable=false;demoPanel.hidden=true;delete panel.dataset.demoMode;return;
  }
  try{
   const response=await fetch('/api/direction-demo-bid',{cache:'no-store'});
   if(!response.ok)throw Error('Demo unavailable');
   const data=await response.json();
   if(data.demo!==true||data.direction!=='dubai'||Number(data.lotNumber)!==69)throw Error('Wrong demo lot');
-  demoAvailable=true;demoPanel.hidden=false;
+  demoAvailable=true;demoPanel.hidden=false;panel.dataset.demoMode='true';
+  const clock=panel.querySelector('#directionLiveCountdown');
+  if(clock)clock.textContent='ТЕСТ '+money(data.currentBid);
+  const liveButton=panel.querySelector('#directionBidSubmit');
+  if(liveButton&&!bidAllowed){liveButton.disabled=false;liveButton.textContent='ТЕСТ +$100';}
   const price=panel.querySelector('#directionDemoPrice');
   if(price)price.textContent='Тестовая цена: '+money(data.currentBid);
   for(const id of ['directionDemoBid100','directionDemoMax','directionDemoProxy']){
    const control=panel.querySelector('#'+id);if(control)control.disabled=demoBusy;
   }
  }catch{
-  demoAvailable=false;demoPanel.hidden=true;
+  demoAvailable=false;demoPanel.hidden=true;delete panel.dataset.demoMode;
+  const liveButton=panel.querySelector('#directionBidSubmit');
+  if(liveButton&&!bidAllowed){liveButton.disabled=true;liveButton.textContent='СДЕЛАТЬ СТАВКУ';}
   for(const id of ['directionDemoBid100','directionDemoMax','directionDemoProxy']){
    const control=panel.querySelector('#'+id);if(control)control.disabled=true;
   }
@@ -77,6 +83,8 @@ document.addEventListener('click',async event=>{
   if(direction==='dubai'&&panel.dataset.visibleLotNumber==='69'){
    const price=panel.querySelector('#directionDemoPrice');
    if(price)price.textContent='Тестовая цена: '+money(data.currentBid);
+   const clock=panel.querySelector('#directionLiveCountdown');
+   if(clock)clock.textContent='ТЕСТ '+money(data.currentBid);
   }
  }catch(error){window.alert(error.message||'Тест недоступен');}
  finally{demoBusy=false;refreshDemo(panel,direction,panel.dataset.visibleLotNumber);}
@@ -139,6 +147,9 @@ document.addEventListener('click',event=>{
 const increments=[100,1000,10000];
 document.addEventListener('click',async event=>{
  const button=event.target.closest('#directionBidMinus,#directionBidPlus,#directionBidSubmit');
+ if(button?.id==='directionBidSubmit'&&demoAvailable&&direction==='dubai'&&screen()?.dataset.visibleLotNumber==='69'){
+  document.getElementById('directionDemoBid100')?.click();return;
+ }
  if(!button||!screen()?.classList.contains('open')||!bidAllowed||bidBusy||!direction||!lot||screen().dataset.visibleLotNumber!==String(lot))return;
  if(button.id!=='directionBidSubmit'){
   const index=increments.indexOf(increment);
@@ -197,7 +208,7 @@ setInterval(()=>{
  const panel=screen();if(!panel?.classList.contains('open')||!direction||!phaseDeadline)return;
  const remaining=Math.max(0,Math.ceil((phaseDeadline-Date.now())/1000));
  const clock=panel.querySelector('#directionLiveCountdown');
- if(clock)clock.textContent=phaseName.toUpperCase()+' '+String(remaining).padStart(2,'0')+'с';
+ if(clock&&panel.dataset.demoMode!=='true')clock.textContent=phaseName.toUpperCase()+' '+String(remaining).padStart(2,'0')+'с';
  if(remaining===0){
   bidAllowed=false;proxyAllowed=false;
   const proxyInput=panel.querySelector('#directionProxyMaximum');

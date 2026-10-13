@@ -29,7 +29,7 @@ function toggleDirectionSound(){directionSoundOn=!directionSoundOn;if(!direction
 const labels={dubai:['🇦🇪 Аукцион Дубай','Автомобили Дубая · каталог лотов'],transfer:['🚢 Автомобили в пути','Автомобили в доставке · каталог']};
 function directionOf(l){const match=String(l.description||'').match(/\[GALAXY_DIRECTION:(\{[^\n]*?\})\]/);if(match){try{return JSON.parse(match[1]).direction||'usa'}catch(e){}}return 'usa'}
 function safe(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function back(){const panel=$('directionCatalogScreen');if(panel)delete panel.dataset.visibleLotNumber;stopDirectionAudio();directionSoundOn=false;document.body.classList.remove('directionPreviewOpen');const screen=$('directionCatalogScreen');if(screen)screen.classList.remove('open');$('auctionDirectionScreen')?.classList.add('open')}
+function back(){const panel=$('directionCatalogScreen');if(panel){delete panel.dataset.visibleLotNumber;delete panel.dataset.demoMode;}stopDirectionAudio();directionSoundOn=false;document.body.classList.remove('directionPreviewOpen');const screen=$('directionCatalogScreen');if(screen)screen.classList.remove('open');$('auctionDirectionScreen')?.classList.add('open')}
 async function open(direction){
  const screen=$('directionCatalogScreen');if(!screen)return;
  document.querySelectorAll('.modernScreen').forEach(x=>x.classList.remove('open'));
@@ -63,6 +63,7 @@ async function open(direction){
   const image=photos[0]||'';
   const name=[lot.make,lot.model,lot.year].filter(Boolean).join(' ');
   screen.dataset.visibleLotNumber=String(lot.lot_number);
+  delete screen.dataset.demoMode;
   const details=[['Пробег',lot.mileage],['Двигатель',lot.engine],['Топливо',lot.fuel],['Трансмиссия',lot.transmission],['Привод',lot.drive],['Салон',lot.interior_color],['Цвет',lot.exterior_color],['VIN',lot.vin]];
   root.innerHTML='<div class="directionLiveBrand"><img src="assets/galaxy-auctions-logo.png" alt="Galaxy Auctions"><span aria-hidden="true">♧</span></div><div class="directionLiveStatus"><span>● LIVE AUCTION · Звук выключен</span></div>'+
     '<div class="directionLiveStrip"><b>18:00 · Дубай</b><small>Позиция '+(currentIndex+1)+' из '+cars.length+'</small><button type="button" id="directionLotListButton">Лоты ('+cars.length+') ›</button></div>'+
@@ -101,7 +102,7 @@ async function open(direction){
    const next=new Date(Date.UTC(now.getUTCFullYear(),now.getUTCMonth(),now.getUTCDate()+(dubaiHour*60+dubaiMinute>=1080?1:0),14,0,0));
    startAt=next.toISOString();
   }
-  if(startAt){const tick=()=>{if(!screen.classList.contains('open'))return;const el=$('directionLiveCountdown');if(!el)return;const remaining=Math.max(0,Math.floor((new Date(startAt).getTime()-(Date.now()+clockOffsetMs))/1000));const hh=String(Math.floor(remaining/3600)).padStart(2,'0'),mm=String(Math.floor(remaining%3600/60)).padStart(2,'0'),ss=String(remaining%60).padStart(2,'0');el.textContent=hh+':'+mm+':'+ss;};tick();clearInterval(window.galaxyDirectionCountdownTimer);window.galaxyDirectionCountdownTimer=setInterval(tick,1000);}
+  if(startAt){const tick=()=>{if(!screen.classList.contains('open'))return;const el=$('directionLiveCountdown');if(!el||screen.dataset.demoMode==='true')return;const remaining=Math.max(0,Math.floor((new Date(startAt).getTime()-(Date.now()+clockOffsetMs))/1000));const hh=String(Math.floor(remaining/3600)).padStart(2,'0'),mm=String(Math.floor(remaining%3600/60)).padStart(2,'0'),ss=String(remaining%60).padStart(2,'0');el.textContent=hh+':'+mm+':'+ss;};tick();clearInterval(window.galaxyDirectionCountdownTimer);window.galaxyDirectionCountdownTimer=setInterval(tick,1000);}
  }catch(e){root.textContent='Не удалось загрузить каталог. Попробуйте ещё раз.'}
 }
 window.galaxyOpenDirectionCatalog=open;
