@@ -35,7 +35,7 @@ async function refresh(){
   const state=await read('/api/direction-live-state?direction='+encodeURIComponent(d)+'&t='+Date.now());
   if(token!==generation||!panel.classList.contains('open'))return;
   const lotNumber=state.currentLot?Number(state.currentLot.lot_number):null;
-  if(lotNumber!==null&&lotNumber!==lot){
+  if(lotNumber!==lot){
    panel.querySelector('#directionPublicHistory')?.remove();
    panel.querySelector('#directionPublicResult')?.remove();
    lot=lotNumber;
@@ -51,7 +51,7 @@ async function refresh(){
   if(label)label.textContent=state.enabled?'Фаза: '+String(state.phase||'waiting'):'Ожидаем начало аукциона';
   const price=panel.querySelector('#directionCurrentBid');
   if(price)price.textContent=state.enabled&&state.currentBid!=null?'Текущая ставка '+money(state.currentBid):'Ставки пока недоступны';
-  bidAllowed=state.biddingAvailable===true&&lotNumber!==null&&state.enabled===true&&phaseDeadline>Date.now()&&Number(panel.dataset.visibleLotNumber)===lotNumber;
+  bidAllowed=state.biddingAvailable===true&&lotNumber!==null&&state.enabled===true&&phaseDeadline>Date.now()&&panel.dataset.visibleLotNumber===String(lotNumber);
   for(const id of ['directionBidMinus','directionBidPlus','directionBidSubmit']){
    const button=panel.querySelector('#'+id);
    if(button)button.disabled=!bidAllowed||bidBusy;
@@ -85,7 +85,7 @@ document.addEventListener('click',event=>{
 const increments=[100,1000,10000];
 document.addEventListener('click',async event=>{
  const button=event.target.closest('#directionBidMinus,#directionBidPlus,#directionBidSubmit');
- if(!button||!screen()?.classList.contains('open')||!bidAllowed||bidBusy||!direction||!lot||Number(screen().dataset.visibleLotNumber)!==lot)return;
+ if(!button||!screen()?.classList.contains('open')||!bidAllowed||bidBusy||!direction||!lot||screen().dataset.visibleLotNumber!==String(lot))return;
  if(button.id!=='directionBidSubmit'){
   const index=increments.indexOf(increment);
   increment=increments[Math.max(0,Math.min(increments.length-1,index+(button.id==='directionBidPlus'?1:-1)))];
@@ -118,7 +118,7 @@ document.addEventListener('click',async event=>{
  if(!event.target.closest('#directionProxySubmit'))return;
  const panel=screen();
  if(!panel?.classList.contains('open')||!direction||!lot||!proxyAllowed||bidBusy||
-    Number(panel.dataset.visibleLotNumber)!==lot)return;
+    panel.dataset.visibleLotNumber!==String(lot))return;
  const maximum=Number(panel.querySelector('#directionProxyMaximum')?.value);
  if(!Number.isSafeInteger(maximum)||maximum<=0){window.alert('Введите корректную максимальную сумму.');return;}
  const initData=window.Telegram?.WebApp?.initData;
