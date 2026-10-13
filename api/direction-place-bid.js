@@ -29,8 +29,8 @@ module.exports=async(req,res)=>{
   if(lot.status!=='live'||!sessionCanBid(session,lotNumber)||!(phaseClock(session).secondsRemaining>0))return res.status(409).json({error:'Auction session is not accepting bids'});
   const telegramId=verifyTelegram(req.body?.initData,process.env.TELEGRAM_BOT_TOKEN);
    if(!telegramId)return res.status(401).json({code:'TELEGRAM_AUTH_REQUIRED',error:'Valid Telegram login required'});
-   const increment=Number(req.body?.increment);
-   if(![100,1000,10000].includes(increment))return res.status(400).json({error:'Invalid increment'});
+   const increment=req.body?.increment;
+   if(![100,1000].includes(increment))return res.status(400).json({error:'Invalid increment'});
   // Atomic database RPC owns account, deposit, bid limit and price locking.
   const k=key();if(!k||!base())throw Error('Database not configured');
   const unified=process.env.GALAXY_DIRECTION_UNIFIED_BIDS_READY==='true';
