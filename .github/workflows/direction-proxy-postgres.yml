@@ -38,6 +38,8 @@ jobs:
         run: psql -v ON_ERROR_STOP=1 -f migrations/20261012_direction_atomic_proxy_draft.sql
       - name: Exercise proxy bid transaction scenarios
         run: psql -v ON_ERROR_STOP=1 -f test/fixtures/direction-proxy-postgres-assert.sql
+      - name: Exercise rejected proxy offers without writes
+        run: psql -v ON_ERROR_STOP=1 -f test/fixtures/direction-proxy-postgres-negative.sql
       - name: Assert lock wait does not permit expired bid
         shell: bash
         run: |
