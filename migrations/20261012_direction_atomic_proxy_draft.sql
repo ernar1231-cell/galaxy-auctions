@@ -40,7 +40,7 @@ BEGIN
  SELECT * INTO s FROM public.galaxy_auction_sessions x WHERE x.direction=p_direction FOR UPDATE;
  IF NOT FOUND OR s.enabled IS DISTINCT FROM true OR s.current_lot_number IS DISTINCT FROM p_lot_number
  OR s.phase NOT IN ('red','green','bonus') OR s.phase_started_at IS NULL
- OR now()>=s.phase_started_at+interval '15 seconds' THEN
+ OR clock_timestamp()>=s.phase_started_at+interval '15 seconds' THEN
   RAISE EXCEPTION 'Auction not accepting bids'; END IF;
  IF NOT EXISTS(SELECT 1 FROM public.galaxy_auction_lot_assignments a
  WHERE a.direction=p_direction AND a.lot_number=p_lot_number)
