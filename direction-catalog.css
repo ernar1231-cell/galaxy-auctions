@@ -39,3 +39,11 @@ body.directionPreviewOpen #modernBottomNav button{min-width:0!important;width:10
 
 body.directionPreviewOpen .directionLiveStatus{display:flex!important;justify-content:space-between!important;align-items:center!important;gap:8px!important}
 body.directionPreviewOpen #directionSoundToggle{font-size:11px!important;font-weight:700!important;border:1px solid #d5e2ef!important;border-radius:9px!important;background:#fff!important;color:#173452!important;padding:5px 9px!important;white-space:nowrap!important}
+
+/* USA LIVE visual parity: hide staging/proxy notices on Dubai and Transit only.
+   Keep nodes mounted for existing state handlers; server-side bid permissions are unchanged. */
+#directionCatalogScreen .directionLiveNotice,
+#directionCatalogScreen #directionDemoPanel,
+#directionCatalogScreen #directionProxyMaximum,
+#directionCatalogScreen #directionProxySubmit {display:none!important;}
+#directionCatalogScreen .directionLiveBid{margin-bottom:12px;}
