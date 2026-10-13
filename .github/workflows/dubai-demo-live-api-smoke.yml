@@ -1,4 +1,5 @@
 name: Dubai demo production API smoke
+# Retest public Mini App after configuring its own Vercel project
 on:
   pull_request:
     paths:
