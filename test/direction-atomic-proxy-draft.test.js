@@ -37,3 +37,11 @@ test('deadline is checked against wall clock after acquiring direction row lock'
  const deadline=sql.indexOf("clock_timestamp()>=s.phase_started_at+interval '15 seconds'");
  assert.ok(lock>=0&&deadline>lock);
 });
+
+test('manual self-bidding is rejected before competitor selection or session update',()=>{
+ const guard=sql.indexOf("IF p_mode='manual' AND current_leader=p_user_telegram_id THEN");
+ const select=sql.indexOf('SELECT contenders.user_id,contenders.max_value INTO winner_id');
+ const update=sql.indexOf('UPDATE public.galaxy_auction_sessions x SET current_bid=final_price');
+ assert.ok(guard>0&&guard<select&&select<update);
+ assert.match(sql,/Already leading; manual self-bidding is not permitted/);
+});
