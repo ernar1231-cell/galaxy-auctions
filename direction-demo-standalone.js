@@ -14,8 +14,6 @@ async function tick(){
  const panel=activePanel();
  if(!panel){available=false;lastPanel=null;revision++;return;}
  if(pollBusy||busy)return;
- pollBusy=true;
- const requestRevision=revision;
  let control=panel.querySelector('#dubaiDemoQuickBid');
  if(!control){
   const row=panel.querySelector('.directionLiveBid');
@@ -40,6 +38,8 @@ async function tick(){
   });
  }
  lastPanel=panel;
+ pollBusy=true;
+ const requestRevision=revision;
  try{
   const r=await fetch('/api/direction-demo-bid',{cache:'no-store'});
   if(!r.ok)throw Error('HTTP '+r.status);
