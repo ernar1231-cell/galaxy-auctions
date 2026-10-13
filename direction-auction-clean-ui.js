@@ -9,7 +9,7 @@ function update(){
  if(!panel.classList.contains('open')||!isDirection)return;
  for(const id of ['directionPublicHistory','directionPublicResult','directionDemoPanel']){
   const node=panel.querySelector('#'+id);
-  if(node)node.hidden=true;
+  if(node&&!node.hidden)node.hidden=true;
  }
  const demo=panel.querySelector('#galaxyDualDemo');
  if(demo){
