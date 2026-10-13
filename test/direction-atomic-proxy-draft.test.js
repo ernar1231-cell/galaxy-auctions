@@ -5,7 +5,7 @@ test('atomic manual and proxy operations lock direction and exclude USA',()=>{
  assert.match(sql,/p_mode NOT IN \('manual','proxy'\)/);
  assert.match(sql,/p_direction NOT IN \('dubai','transfer'\)/);
  assert.match(sql,/WHERE x.direction=p_direction FOR UPDATE/);
- assert.match(sql,/now\(\)>=s.phase_started_at\+interval '15 seconds'/);
+ assert.match(sql,/clock_timestamp\(\)>=s.phase_started_at\+interval '15 seconds'/);
 });
 test('winner event, price and phase update occur within one transaction',()=>{
  assert.match(sql,/BEGIN;/);
@@ -30,4 +30,10 @@ test('raising an already-leading proxy maximum preserves price and timer',()=>{
  assert.match(sql,/IF current_leader=winner_id AND p_mode='proxy' AND p_user_telegram_id=winner_id THEN/);
  assert.match(sql,/RETURN QUERY SELECT new_event,s\.current_bid;/);
  assert.ok(sql.indexOf('RETURN QUERY SELECT new_event,s.current_bid;')<sql.indexOf('UPDATE public.galaxy_auction_sessions x SET current_bid=final_price'));
+});
+
+test('deadline is checked against wall clock after acquiring direction row lock',()=>{
+ const lock=sql.indexOf('WHERE x.direction=p_direction FOR UPDATE');
+ const deadline=sql.indexOf("clock_timestamp()>=s.phase_started_at+interval '15 seconds'");
+ assert.ok(lock>=0&&deadline>lock);
 });
