@@ -1,6 +1,7 @@
 'use strict';
+const {databaseConfig}=require('./_direction-database-config');
 const {nextPhase}=require('./_direction-phase-transition');
-const base=()=>String(process.env.SUPABASE_URL||'').replace(/\/$/,'');
+const base=()=>databaseConfig().url;
 function appendRpcRows(results,payload,direction){
  if(payload===null||payload===undefined)return;
  const rows=Array.isArray(payload)?payload:[payload];
@@ -16,7 +17,7 @@ module.exports=async(req,res)=>{
  if(req.headers?.authorization!=='Bearer '+token)return res.status(401).json({error:'Unauthorized scheduler'});
  // GET is reserved for Vercel Cron and is strictly read-only unless the
  // session has been explicitly armed by the existing database start gate.
- const key=process.env.SUPABASE_SERVICE_ROLE_KEY;
+ const key=databaseConfig().key;
  if(!key||!base())return res.status(503).json({error:'Database not configured'});
  const headers={apikey:key,Authorization:'Bearer '+key,'Content-Type':'application/json'};
  try{
