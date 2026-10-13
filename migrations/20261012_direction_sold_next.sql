@@ -45,7 +45,7 @@ BEGIN
    (direction,lot_number,winner_telegram_id,winning_amount,winning_bid_event_id)
   VALUES
    (p_direction,p_expected_lot,winner_event.user_telegram_id,winner_event.amount,winner_event.id)
-  ON CONFLICT (direction,lot_number) DO NOTHING;
+  ON CONFLICT ON CONSTRAINT galaxy_auction_results_pkey DO NOTHING;
   IF NOT FOUND THEN RAISE EXCEPTION 'Sale result already recorded'; END IF;
   UPDATE public.auction_lots l SET status='pending',updated_at=now()
   WHERE l.lot_number=p_expected_lot AND l.status='live';
