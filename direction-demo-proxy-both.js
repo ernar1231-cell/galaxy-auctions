@@ -16,8 +16,10 @@ function context(){
 }
 function controls(ctx){
  let root=ctx.panel.querySelector('#galaxyDualDemo');
+ if(root && root.dataset.demoDirection !== ctx.direction){root.remove();root=null;}
  if(!root){
-  root=document.createElement('section');root.id='galaxyDualDemo';
+  root=document.createElement('section');
+  root.dataset.demoDirection=ctx.direction;root.id='galaxyDualDemo';
   root.style.cssText='margin:12px 14px;padding:12px;border:2px solid #166534;border-radius:12px;background:#ecfdf5;color:#14532d;';
   root.innerHTML='<strong>ТЕСТ — УСЛОВНЫЕ СТАВКИ, НЕ ПОКУПКА</strong><p id="dualDemoPrice">Загрузка…</p><div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" data-demo-mode="manual" data-amount="100">ТЕСТ +$100</button><button type="button" data-demo-mode="manual" data-amount="1000">ТЕСТ +$1000</button></div><div style="display:flex;gap:8px;margin-top:10px"><input id="dualDemoMaximum" type="number" min="1" step="100" placeholder="Proxy максимум, $" style="min-width:0;flex:1"><button type="button" data-demo-mode="proxy">ТЕСТ PROXY</button></div><p id="dualDemoMessage">Ожидаем сервер…</p>';
   const row=ctx.panel.querySelector('.directionLiveBid');
