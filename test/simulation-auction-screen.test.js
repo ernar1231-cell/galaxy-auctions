@@ -9,9 +9,9 @@ test('simulation has three directions and five-lot clock without modifying main 
  assert.doesNotMatch(js,/\/api\/(?:place-bid|direction-place-bid|direction-demo-bid|direction-set-proxy-max)/);
 });
 test('clear simulated status and no active bid buttons',()=>{
- assert.match(html,/СИМУЛЯЦИЯ · НЕТ РЕАЛЬНЫХ СТАВОК И ПОКУПОК/);
+ assert.match(html,/СИМУЛЯЦИЯ · БЕЗ ПОКУПКИ/);
  assert.match(html,/class="primary" disabled/);
- assert.match(html,/simulation-auction\.js\?v=277/);
+ assert.match(html,/simulation-auction\.js\?v=278/);
 });
 test('stale direction responses are ignored',()=>{
  assert.match(js,/mySeq!==seq\|\|d!==direction/);
