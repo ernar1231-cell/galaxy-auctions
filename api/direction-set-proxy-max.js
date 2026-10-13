@@ -1,5 +1,6 @@
 'use strict';
 // Dubai/Transit only. Disabled by default until atomic proxy execution is integrated.
+const {databaseConfig}=require('./_direction-database-config');
 const {verifyTelegram}=require('./_direction-telegram-auth');
 const {assertDirection}=require('./_multi-auction-core');
 module.exports=async(req,res)=>{
@@ -18,8 +19,7 @@ module.exports=async(req,res)=>{
  // Only the shared atomic RPC is permitted, never the storage-only maximum RPC.
  if(process.env.GALAXY_DIRECTION_UNIFIED_BIDS_READY!=='true')
   return res.status(503).json({code:'PROXY_EXECUTION_NOT_READY',error:'Proxy competition is not yet available'});
- const base=String(process.env.SUPABASE_URL||'').replace(/\/$/,'');
- const key=process.env.SUPABASE_SERVICE_ROLE_KEY;
+ const {url:base,key}=databaseConfig();
  if(!base||!key)return res.status(503).json({error:'Database unavailable'});
  try{
   const response=await fetch(base+'/rest/v1/rpc/galaxy_direction_submit_bid',{
