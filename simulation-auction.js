@@ -30,7 +30,7 @@ async function refresh(){
   const ms=Math.max(0,Date.parse(data.phaseEndsAt)-Date.now());
   const seconds=Math.ceil(ms/1000);
   $('timer').textContent=String(Math.floor(seconds/60)).padStart(2,'0')+':'+String(seconds%60).padStart(2,'0');
-  $('notice').textContent='Отдельный симуляционный контур. Цикл каждые 20 минут, 5 условных лотов. Ставки и SOLD отключены до отдельной проверки.';
+  $('notice').textContent='Отдельный симуляционный контур. Цикл каждые 10 минут, 5 условных лотов. Ставки и SOLD отключены до отдельной проверки.';
  }catch(err){
   if(mySeq!==seq)return;
   $('phase').textContent='Ожидание запуска';
