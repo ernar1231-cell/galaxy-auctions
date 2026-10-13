@@ -70,6 +70,10 @@ BEGIN
  FROM public.galaxy_auction_bid_events b
  WHERE b.direction=p_direction AND b.lot_number=p_lot_number
  ORDER BY b.id DESC LIMIT 1;
+ -- A bidder must not raise the public price by bidding against their own lead.
+ IF p_mode='manual' AND current_leader=p_user_telegram_id THEN
+  RAISE EXCEPTION 'Already leading this lot';
+ END IF;
  -- A manual bid is a competing offer at exactly candidate, not a proxy maximum.
  -- Proxy entries are ordered by maximum, then first creation, then ID.
  SELECT contenders.user_id,contenders.max_value INTO winner_id,winning_max FROM (
