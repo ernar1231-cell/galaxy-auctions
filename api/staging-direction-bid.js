@@ -12,6 +12,22 @@ module.exports=async(req,res)=>{
  if(!bidder)return res.status(401).json({code:'TELEGRAM_AUTH_REQUIRED'});
  let config;try{config=databaseConfig();}catch{return res.status(503).json({code:'STAGING_DB_NOT_CONFIGURED'});}
  try{
+  // Resolve current eligibility from production using a separately scoped READ-ONLY key.
+  // Never reuse the production service-role key in Preview.
+  const source=String(process.env.GALAXY_ACTIVE_SOURCE_URL||'');
+  const sourceKey=process.env.GALAXY_ACTIVE_SOURCE_READONLY_KEY;
+  if(!/^https:\/\/[a-z0-9-]+\.supabase\.co$/.test(source)||!sourceKey||source===config.url)
+   return res.status(503).json({code:'ACTIVE_SOURCE_NOT_CONFIGURED'});
+  const authHeaders={apikey:sourceKey,Authorization:'Bearer '+sourceKey};
+  const accountResponse=await fetch(source+'/rest/v1/auction_users?telegram_id=eq.'+encodeURIComponent(String(bidder))+'&select=account_status,deposit_amount,bid_limit&limit=1',{headers:authHeaders,cache:'no-store'});
+  if(!accountResponse.ok)return res.status(503).json({code:'ACTIVE_SOURCE_UNAVAILABLE'});
+  const account=(await accountResponse.json())[0];
+  const active=String(account?.account_status||'').toLowerCase()==='active';
+  const limit=Number(account?.bid_limit||0);
+  const allowed=active&&Number(account?.deposit_amount||0)>0&&Number.isFinite(limit)&&limit>0;
+  const update=await fetch(config.url+'/rest/v1/rpc/galaxy_staging_set_participant_eligibility',{method:'POST',cache:'no-store',headers:{apikey:config.key,Authorization:'Bearer '+config.key,'Content-Type':'application/json'},body:JSON.stringify({p_bidder_id:String(bidder),p_active:active,p_can_bid:allowed,p_bid_limit:Math.max(0,Number.isFinite(limit)?limit:0)})});
+  if(!update.ok)return res.status(503).json({code:'ACTIVE_SYNC_UNAVAILABLE'});
+  if(!allowed)return res.status(403).json({code:'ACTIVE_REQUIRED'});
   const r=await fetch(config.url+'/rest/v1/rpc/galaxy_staging_place_bid',{method:'POST',cache:'no-store',headers:{apikey:config.key,Authorization:'Bearer '+config.key,'Content-Type':'application/json'},body:JSON.stringify({p_direction:direction,p_position:position,p_bidder_id:String(bidder),p_mode:mode,p_amount:amount})});
   if(!r.ok)return res.status(409).json({code:'STAGING_BID_REJECTED'});
   const result=await r.json();const row=Array.isArray(result)?result[0]:null;
