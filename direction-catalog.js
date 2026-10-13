@@ -31,7 +31,7 @@ function directionOf(l){const match=String(l.description||'').match(/\[GALAXY_DI
 function safe(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function back(){const panel=$('directionCatalogScreen');if(panel){delete panel.dataset.visibleLotNumber;delete panel.dataset.demoMode;}stopDirectionAudio();directionSoundOn=false;document.body.classList.remove('directionPreviewOpen');const screen=$('directionCatalogScreen');if(screen)screen.classList.remove('open');$('auctionDirectionScreen')?.classList.add('open')}
 async function open(direction){
- const screen=$('directionCatalogScreen');if(!screen||!['dubai','transfer'].includes(direction))return;
+ const screen=$('directionCatalogScreen');if(!screen)return;
  document.querySelectorAll('.modernScreen').forEach(x=>x.classList.remove('open'));
  stopDirectionAudio();directionSoundOn=false;screen.classList.add('open');document.body.classList.add('directionPreviewOpen');$('directionCatalogTitle').textContent=labels[direction][0];$('directionCatalogSubtitle').textContent=labels[direction][1];
  const root=$('directionCatalogItems');root.textContent='Загрузка автомобилей…';
@@ -56,7 +56,7 @@ async function open(direction){
   if(!screen.classList.contains('open'))return;
   let currentIndex=0;
   function renderSelectedLot(){const lot=cars[currentIndex];
-  if(!lot){root.innerHTML='<div class="directionLiveBrand"><img src="assets/galaxy-auctions-logo.png" alt="Galaxy Auctions"></div><div class="directionLiveStrip"><b>'+safe(direction==='dubai'?'17:00 · Дубай':'21:00 · Транзит')+'</b><strong>Лоты (0)</strong></div><div class="directionCatalogEmpty">Лоты (0). Ожидаем добавления автомобилей через админку.</div>';return;}
+  if(!lot){root.innerHTML='<div class="directionLiveBrand"><img src="assets/galaxy-auctions-logo.png" alt="Galaxy Auctions"></div><div class="directionLiveStrip"><b>18:00 · Дубай</b><strong>Лоты (0)</strong></div><div class="directionCatalogEmpty">Лоты (0). Ожидаем добавления автомобилей через админку.</div>';return;}
   const photos=(lot.images||[]).map(x=>x.image_url).filter(Boolean);
   if(!photos.length&&lot.primary_image)photos.push(lot.primary_image);
   let imageIndex=0;
@@ -66,13 +66,13 @@ async function open(direction){
   delete screen.dataset.demoMode;
   const details=[['Пробег',lot.mileage],['Двигатель',lot.engine],['Топливо',lot.fuel],['Трансмиссия',lot.transmission],['Привод',lot.drive],['Салон',lot.interior_color],['Цвет',lot.exterior_color],['VIN',lot.vin]];
   root.innerHTML='<div class="directionLiveBrand"><img src="assets/galaxy-auctions-logo.png" alt="Galaxy Auctions"><span aria-hidden="true">♧</span></div><div class="directionLiveStatus"><span>● LIVE AUCTION · Звук выключен</span></div>'+
-    '<div class="directionLiveStrip"><b>'+safe(direction==='dubai'?'17:00 · Дубай':'21:00 · Транзит')+'</b><small>Позиция '+(currentIndex+1)+' из '+cars.length+'</small><button type="button" id="directionLotListButton">Лоты ('+cars.length+') ›</button></div>'+
+    '<div class="directionLiveStrip"><b>18:00 · Дубай</b><small>Позиция '+(currentIndex+1)+' из '+cars.length+'</small><button type="button" id="directionLotListButton">Лоты ('+cars.length+') ›</button></div>'+
     '<div class="directionLivePhoto">'+(image?'<img id="directionLiveImage" src="'+safe(image)+'" alt="'+safe(name)+'">':'<div class="directionCatalogNoImage">🚘</div>')+
     (photos.length>1?'<button type="button" class="directionPhotoPrev" id="directionPhotoPrev">‹</button><button type="button" class="directionPhotoNext" id="directionPhotoNext">›</button>':'')+
     '<span id="directionPhotoCount">'+(photos.length?'1/'+photos.length:'Нет фото')+'</span></div>'+
     '<div class="directionLiveInfo"><section><h3>'+safe(name)+'</h3>'+details.filter(x=>x[1]!=null&&x[1]!=='').map(x=>'<div class="directionLiveSpec"><span>'+safe(x[0])+'</span><b>'+safe(x[1])+'</b></div>').join('')+
     '<div class="directionLiveSpec"><span>Лот №</span><b>'+safe(currentIndex+1)+'</b></div></section>'+
-    '<aside><small>Ожидаем начало аукциона</small><div class="directionLiveClock" id="directionLiveCountdown">'+safe(direction==='dubai'?'17:00':'21:00')+'</div><small>Начало по времени Дубая</small><p>Стартовая цена</p><strong>'+safe(lot.starting_bid!=null?'$'+Number(lot.starting_bid).toLocaleString('en-US'):'Уточняется')+'</strong></aside></div>'+
+    '<aside><small>Ожидаем начало аукциона</small><div class="directionLiveClock" id="directionLiveCountdown">18:00</div><small>Начало по времени Дубая</small><p>Стартовая цена</p><strong>'+safe(lot.starting_bid!=null?'$'+Number(lot.starting_bid).toLocaleString('en-US'):'Уточняется')+'</strong></aside></div>'+
     '<div class="directionLiveBid"><button type="button" id="directionBidMinus" disabled>−</button><b id="directionBidAmount">Ставки пока недоступны</b><button type="button" id="directionBidPlus" disabled>+</button><button type="button" id="directionBidSubmit" disabled>СДЕЛАТЬ СТАВКУ</button></div>'+
     '<div class="directionLiveNotice"><strong>Автоматическая ставка (Proxy)</strong><p>Укажите максимальную сумму. До проверки серверной обработки отправка отключена.</p><input id="directionProxyMaximum" type="number" min="1" step="100" inputmode="numeric" placeholder="Максимум, $" disabled><button id="directionProxySubmit" type="button" disabled>УСТАНОВИТЬ МАКСИМУМ</button></div>'+
     '<div id="directionDemoPanel" class="directionLiveNotice" hidden><strong>🧪 ТЕСТ — НЕ НАСТОЯЩИЙ АУКЦИОН</strong><p id="directionDemoPrice">Тестовая цена загружается…</p><button id="directionDemoBid100" type="button" disabled>ТЕСТ +$100</button><input id="directionDemoMax" type="number" min="1" step="100" placeholder="Тестовый максимум, $" disabled><button id="directionDemoProxy" type="button" disabled>ТЕСТ PROXY</button><p>Условные ставки. Не создают SOLD и обязательств покупки.</p></div>'+
