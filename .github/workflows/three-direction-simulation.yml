@@ -1,0 +1,41 @@
+name: Three-direction simulation isolation
+on:
+  pull_request:
+    paths:
+      - 'migrations/20261013_three_direction_simulation_inventory.sql'
+      - 'test/fixtures/three-direction-simulation-inventory-assert.sql'
+      - '.github/workflows/three-direction-simulation.yml'
+  workflow_dispatch:
+jobs:
+  simulation-inventory:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: integration_test
+          POSTGRES_DB: sim_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: integration_test
+      PGDATABASE: sim_test
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - name: Create isolated service role
+        run: psql -v ON_ERROR_STOP=1 -c "CREATE ROLE service_role; CREATE ROLE anon; CREATE ROLE authenticated;"
+      - name: Create 15 isolated demo lots
+        run: psql -v ON_ERROR_STOP=1 -f migrations/20261013_three_direction_simulation_inventory.sql
+      - name: Repeat safely
+        run: psql -v ON_ERROR_STOP=1 -f migrations/20261013_three_direction_simulation_inventory.sql
+      - name: Verify isolated inventory
+        run: psql -v ON_ERROR_STOP=1 -f test/fixtures/three-direction-simulation-inventory-assert.sql
