@@ -5,7 +5,7 @@ const {nextPhase}=require('../api/_direction-phase-transition');
 const secret='s'.repeat(40);
 function response(){return {statusCode:200,body:null,setHeader(){},status(v){this.statusCode=v;return this;},json(v){this.body=v;return this;}};}
 function mockSession(direction,phase,lot){return {direction,enabled:true,phase,current_lot_number:lot,phase_started_at:new Date(Date.now()-120000).toISOString()};}
-test('scheduler independently advances Dubai and Transit through RED BONUS SOLD and next lot',async()=>{
+test('scheduler independently advances Dubai and Transit through RED GREEN BONUS SOLD and next lot',async()=>{
  const original=global.fetch,old={secret:process.env.GALAXY_SCHEDULER_SECRET,key:process.env.SUPABASE_SERVICE_ROLE_KEY,url:process.env.SUPABASE_URL};
  process.env.GALAXY_SCHEDULER_SECRET=secret;process.env.SUPABASE_SERVICE_ROLE_KEY='test';process.env.SUPABASE_URL='https://db.invalid';
  const sessions=[mockSession('dubai','red',69),mockSession('transfer','red',70)];
@@ -26,7 +26,7 @@ test('scheduler independently advances Dubai and Transit through RED BONUS SOLD 
   return {ok:true,json:async()=>[{changed:true}]};
  };
  try{
-  for(let i=0;i<3;i++){
+  for(let i=0;i<4;i++){
    const r=response();await handler({method:'GET',headers:{authorization:'Bearer '+secret}},r);
    assert.equal(r.statusCode,200);
    assert.equal(r.body.checked,2);
