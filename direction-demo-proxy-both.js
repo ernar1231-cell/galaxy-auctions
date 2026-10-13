@@ -74,6 +74,6 @@ async function poll(){
   root.querySelector('#dualDemoMessage').textContent='Тестовый API: '+String(err.message||err);
  }finally{pollBusy=false;}
 }
-setInterval(poll,2000);
+setInterval(poll,500);
 document.addEventListener('DOMContentLoaded',poll);
 })();
