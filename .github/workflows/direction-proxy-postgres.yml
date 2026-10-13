@@ -5,6 +5,7 @@ on:
       - 'migrations/20261012_direction_atomic_proxy_draft.sql'
       - 'test/fixtures/direction-proxy-postgres-*.sql'
       - 'test/fixtures/direction-proxy-both-directions-final.sql'
+      - 'test/fixtures/direction-eligibility-postgres.sql'
       - '.github/workflows/direction-proxy-postgres.yml'
   workflow_dispatch:
 jobs:
@@ -43,6 +44,8 @@ jobs:
         run: psql -v ON_ERROR_STOP=1 -f test/fixtures/direction-proxy-postgres-negative.sql
       - name: Verify manual and proxy bidding in both directions
         run: psql -v ON_ERROR_STOP=1 -f test/fixtures/direction-proxy-both-directions-final.sql
+      - name: Verify participant eligibility for both directions
+        run: psql -v ON_ERROR_STOP=1 -f test/fixtures/direction-eligibility-postgres.sql
       - name: Assert lock wait does not permit expired bid
         shell: bash
         run: |
