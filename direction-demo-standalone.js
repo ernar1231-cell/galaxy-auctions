@@ -19,7 +19,7 @@ async function tick(){
   if(!row)return;
   control=document.createElement('button');
   control.type='button';control.id='dubaiDemoQuickBid';control.disabled=true;
-  control.textContent='ТЕСТ +$100';control.style.cssText='width:100%;margin-top:10px;padding:14px;border-radius:12px;background:#166534;color:white;font-weight:700;';
+  control.textContent='ПРОВЕРКА ТЕСТА…';control.style.cssText='width:100%;margin-top:10px;padding:14px;border-radius:12px;background:#166534;color:white;font-weight:700;';
   row.insertAdjacentElement('afterend',control);
   control.addEventListener('click',async()=>{
    if(!available||busy||activePanel()!==panel)return;
@@ -38,12 +38,20 @@ async function tick(){
  lastPanel=panel;
  try{
   const r=await fetch('/api/direction-demo-bid',{cache:'no-store'});
-  if(!r.ok)throw Error('Unavailable');
+  if(!r.ok)throw Error('HTTP '+r.status);
   const data=await r.json();
   if(data.demo!==true||data.direction!=='dubai'||Number(data.lotNumber)!==69||!Number.isFinite(Number(data.currentBid)))throw Error('Invalid demo state');
-  available=true;control.disabled=busy;
+  available=true;control.disabled=busy;control.textContent='ТЕСТ +$100';
+  panel.querySelector('#dubaiDemoStatus')?.remove();
   show(panel,data.currentBid);
- }catch{available=false;control.disabled=true;control.textContent='ТЕСТ НЕДОСТУПЕН';}
+ }catch(error){
+  available=false;control.disabled=false;control.textContent='ПОВТОРИТЬ ПРОВЕРКУ ТЕСТА';
+  control.title=String(error?.message||'Ошибка загрузки');
+  let note=panel.querySelector('#dubaiDemoStatus');
+  if(!note){note=document.createElement('p');note.id='dubaiDemoStatus';control.insertAdjacentElement('afterend',note);}
+  note.textContent='Тестовый API: '+String(error?.message||'ошибка')+' · нажмите повторить';
+  control.onclick=()=>tick();
+ }
 }
 function show(panel,value){
  const clock=panel.querySelector('#directionLiveCountdown');
