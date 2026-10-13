@@ -19,8 +19,8 @@ async function invoke({method='POST',authorization,secret,dbKey,dbUrl,fetchImpl,
  await sandbox.module.exports({method,headers:{authorization}},res);
  return {status,body,calls};
 }
-test('scheduler rejects non-POST without network access',async()=>{
- const r=await invoke({method:'GET'});
+test('scheduler rejects unsupported methods without network access',async()=>{
+ const r=await invoke({method:'DELETE'});
  assert.equal(r.status,405);assert.equal(r.calls,0);
 });
 test('scheduler fails closed without configured secret',async()=>{
