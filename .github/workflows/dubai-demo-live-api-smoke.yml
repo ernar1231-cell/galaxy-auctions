@@ -1,0 +1,47 @@
+name: Dubai demo production API smoke
+# Retest public Mini App after configuring its own Vercel project
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/dubai-demo-live-api-smoke.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify-demo-get:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Verify demo on the public Mini App domain
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          import urllib.request
+          import urllib.error
+          url = 'https://galaxyauction.live/api/direction-demo-bid'
+          req = urllib.request.Request(url, headers={'Accept': 'application/json', 'Cache-Control': 'no-cache'})
+          try:
+              response = urllib.request.urlopen(req, timeout=20)
+          except urllib.error.HTTPError as error:
+              response = error
+          with response as resp:
+              status = resp.code
+              content_type = resp.headers.get('Content-Type', '')
+              raw = resp.read(4096)
+          print('Endpoint:', url)
+          print('HTTP:', status)
+          print('Content-Type:', content_type)
+          if 'application/json' not in content_type.lower():
+              raise AssertionError('Expected public JSON, received non-JSON response')
+          data = json.loads(raw)
+          safe = {key: data[key] for key in ('demo', 'direction', 'lotNumber', 'currentBid', 'code', 'error') if key in data}
+          print('API result:', json.dumps(safe, ensure_ascii=False))
+          assert status == 200, status
+          assert data.get('demo') is True, safe
+          assert data.get('direction') == 'dubai', safe
+          assert data.get('lotNumber') == 69, safe
+          assert isinstance(data.get('currentBid'), (int, float, str)) and float(data['currentBid']) >= 12500, safe
+          print('PASS: public Dubai demo state reachable without a Vercel login; no bids placed')
+          PY
