@@ -30,6 +30,11 @@ async function result(panel,d,lotNumber,token){
  const p=document.createElement('p');p.textContent=data.result?'Цена: '+money(data.result.amount)+' · Статус: '+String(data.result.status||'ожидает подтверждения'):'Результат пока не подтверждён';box.appendChild(p);
 }
 async function refreshDemo(panel,d,visibleLot){
+ // Legacy demo controls are retired from the standard auction interface.
+ demoAvailable=false;
+ const old=panel.querySelector('#directionDemoPanel');if(old)old.hidden=true;
+ delete panel.dataset.demoMode;
+ return;
  if(window.GalaxyDualDemoActive)return;
  const demoPanel=panel.querySelector('#directionDemoPanel');
  if(!demoPanel)return;
