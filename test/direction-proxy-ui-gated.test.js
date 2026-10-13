@@ -7,7 +7,7 @@ test('proxy controls require active bids and both server readiness gates',()=>{
  assert.match(refresh,/proxyAllowed=bidAllowed&&state\.proxyAvailable===true/);
 });
 test('proxy maximum is submitted only for currently visible lot with Telegram initData',()=>{
- assert.match(refresh,/Number\(panel\.dataset\.visibleLotNumber\)!==lot/);
+ assert.match(refresh,/panel\.dataset\.visibleLotNumber!==String\(lot\)/);
  assert.match(refresh,/window\.Telegram\?\.WebApp\?\.initData/);
  assert.match(refresh,/direction:d,lotNumber,maximum,initData/);
 });
