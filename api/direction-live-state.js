@@ -1,9 +1,10 @@
 'use strict';
+const {databaseConfig}=require('./_direction-database-config');
 const {assertDirection,selectDirectionQueue,AUCTION_TIMEZONE}=require('./_multi-auction-core');
 const {phaseClock}=require('./_direction-phase-clock');
 const {nextPhase}=require('./_direction-phase-transition');
-const base=()=>String(process.env.SUPABASE_URL||'').replace(/\/$/,'');
-const key=()=>process.env.SUPABASE_SERVICE_ROLE_KEY;
+const base=()=>databaseConfig().url;
+const key=()=>databaseConfig().key;
 async function read(path){
  const k=key();if(!k||!base())throw new Error('Database not configured');
  const response=await fetch(base()+'/rest/v1/'+path,{headers:{apikey:k,Authorization:'Bearer '+k},cache:'no-store'});
