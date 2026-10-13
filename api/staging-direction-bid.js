@@ -6,12 +6,17 @@ module.exports=async(req,res)=>{
  if(req.method!=='POST')return res.status(405).json({code:'METHOD_NOT_ALLOWED'});
  if(process.env.GALAXY_STAGING_MODE!=='true')return res.status(404).json({code:'STAGING_ONLY'});
  if(process.env.GALAXY_STAGING_BIDDING_ENABLED!=='true')return res.status(503).json({code:'STAGING_BIDDING_DISABLED'});
- const {direction,position,mode,amount,initData}=req.body||{};
- if(!['dubai','transfer'].includes(direction)||!Number.isSafeInteger(position)||position<1||position>10||!['manual','proxy'].includes(mode)||!Number.isSafeInteger(amount)||amount<=0||mode==='manual'&&![100,1000].includes(amount))return res.status(400).json({code:'INVALID_BID'});
+ const {direction,lotNumber,mode,amount,initData}=req.body||{};
+ if(!['dubai','transfer'].includes(direction)||!Number.isSafeInteger(lotNumber)||lotNumber<=0||!['manual','proxy'].includes(mode)||!Number.isSafeInteger(amount)||amount<=0||mode==='manual'&&![100,1000].includes(amount))return res.status(400).json({code:'INVALID_BID'});
  const bidder=verifyTelegram(initData,process.env.TELEGRAM_BOT_TOKEN);
  if(!bidder)return res.status(401).json({code:'TELEGRAM_AUTH_REQUIRED'});
  let config;try{config=databaseConfig();}catch{return res.status(503).json({code:'STAGING_DB_NOT_CONFIGURED'});}
  try{
+  const mapResponse=await fetch(config.url+'/rest/v1/galaxy_staging_lot_mapping?direction=eq.'+encodeURIComponent(direction)+'&lot_number=eq.'+encodeURIComponent(String(lotNumber))+'&select=position&limit=2',{headers:{apikey:config.key,Authorization:'Bearer '+config.key},cache:'no-store'});
+  if(!mapResponse.ok)return res.status(503).json({code:'STAGING_MAPPING_UNAVAILABLE'});
+  const mapped=await mapResponse.json();
+  if(mapped.length!==1||!Number.isSafeInteger(mapped[0].position))return res.status(409).json({code:'STAGING_LOT_NOT_MAPPED'});
+  const position=mapped[0].position;
   // Production gateway verifies signed Telegram initData and returns only eligibility.
   const gateway=String(process.env.GALAXY_ACTIVE_GATEWAY_URL||'');
   if(!/^https:\/\/[a-z0-9-]+\.supabase\.co\/functions\/v1\/galaxy-active-eligibility$/.test(gateway))
