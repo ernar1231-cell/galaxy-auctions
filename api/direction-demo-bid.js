@@ -28,7 +28,11 @@ module.exports=async(req,res)=>{
   const response=await fetch(base()+'/rest/v1/rpc/galaxy_demo_bid',{
    method:'POST',headers:{apikey:k,Authorization:'Bearer '+k,'Content-Type':'application/json'},
    body:JSON.stringify({p_user_telegram_id:id,p_mode:mode,p_amount:amount}),cache:'no-store'});
-  if(!response.ok)return res.status(409).json({error:'Demo bid rejected'});
+  if(!response.ok){
+   const raw=await response.json().catch(()=>({}));
+   const reason=String(raw?.message||raw?.code||'').slice(0,120);
+   return res.status(409).json({error:'Demo bid rejected',code:reason==='Already leading'?'ALREADY_LEADING':'DEMO_BID_REJECTED'});
+  }
   const price=Number(await response.json());
   if(!Number.isFinite(price))return res.status(503).json({error:'Demo confirmation unavailable'});
   return res.status(200).json({demo:true,direction:'dubai',lotNumber:69,currentBid:price});

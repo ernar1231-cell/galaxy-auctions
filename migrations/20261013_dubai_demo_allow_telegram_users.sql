@@ -17,7 +17,11 @@ BEGIN
  WHERE e.direction='dubai' AND e.lot_number=69 ORDER BY e.id DESC LIMIT 1;
  candidate:=CASE WHEN p_mode='manual' THEN st.current_bid+p_amount ELSE p_amount END;
  IF candidate<=st.current_bid THEN RAISE EXCEPTION 'Bid must exceed current price'; END IF;
- IF p_mode='manual' AND current_leader=p_user_telegram_id THEN RAISE EXCEPTION 'Already leading'; END IF;
+ IF p_mode='manual' AND current_leader=p_user_telegram_id THEN
+  UPDATE public.galaxy_demo_lot_state SET current_bid=candidate,updated_at=clock_timestamp() WHERE direction='dubai';
+  INSERT INTO public.galaxy_demo_bid_events(direction,lot_number,user_telegram_id,amount) VALUES('dubai',69,p_user_telegram_id,candidate);
+  RETURN candidate;
+ END IF;
  IF p_mode='proxy' THEN
   SELECT maximum INTO old_max FROM public.galaxy_demo_proxy_maxima
   WHERE direction='dubai' AND lot_number=69 AND user_telegram_id=p_user_telegram_id;
