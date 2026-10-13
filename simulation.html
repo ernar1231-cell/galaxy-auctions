@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Galaxy Auctions — Симуляция</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#19324f;background:#f4f6fa}
+*{box-sizing:border-box}body{margin:0}.shell{max-width:850px;margin:auto;background:#fff;min-height:100dvh;padding-bottom:85px}
+header{padding:22px 18px 14px;text-align:center;border-bottom:1px solid #e5eaf1}header h1{margin:0;font-size:24px;letter-spacing:.04em}
+.ribbon{background:#fff1cf;color:#684900;text-align:center;font-size:14px;font-weight:800;padding:12px 15px}
+nav{display:flex;gap:6px;padding:12px}nav button{flex:1;border:1px solid #d5dfec;background:#f4f7fc;border-radius:10px;padding:13px 3px;font-weight:700;color:#19324f}nav button[aria-pressed=true]{background:#193f76;color:white}
+.meta{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 16px;font-size:13px;color:#5d6c80}
+.car{margin:8px 14px;border-radius:16px;background:linear-gradient(130deg,#dce5ef,#aabbd0);height:220px;display:grid;place-items:center;color:#355170;font-size:18px;font-weight:700;text-align:center}
+.details{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:10px;margin:14px}
+h2{font-size:21px;line-height:1.2;margin:0 0 16px}.spec{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #e7eaf0;font-size:14px}
+.panel{border:1px solid #d9e1eb;border-radius:16px;padding:12px;text-align:center}.phase{font-size:14px;color:#738095}.circle{border:9px solid #f2d7dd;border-radius:50%;width:150px;height:150px;margin:10px auto;display:flex;align-items:center;justify-content:center;flex-direction:column;font-size:25px;font-weight:800}.circle small{font-size:13px}.price{font-size:29px;font-weight:800}
+.bid{display:flex;gap:8px;margin:18px 14px}.bid button{padding:15px 10px;flex:1;border-radius:12px;background:#e8eef5;color:#4a5c71;border:0;font-weight:700}.bid button.primary{background:#214979;color:white}.bid button:disabled{opacity:.5}
+.notice{margin:14px;padding:14px;border:1px solid #dfc17b;background:#fff8e9;border-radius:12px;color:#6d530e;font-size:14px}
+footer{position:fixed;bottom:0;left:0;right:0;background:white;border-top:1px solid #dfe5ee;padding:12px;text-align:center;font-size:12px;color:#687991}
+@media(max-width:400px){.circle{width:125px;height:125px;font-size:20px}.details{gap:7px}h2{font-size:18px}.price{font-size:24px}}
+</style></head><body><div class="shell">
+<header><h1>GALAXY AUCTIONS</h1><div style="color:#68788a;font-size:13px">Аукцион — отдельная симуляция</div></header>
+<div class="ribbon">СИМУЛЯЦИЯ · НЕТ РЕАЛЬНЫХ СТАВОК И ПОКУПОК</div>
+<nav aria-label="Направление"><button type="button" data-direction="usa" aria-pressed="true">USA</button><button type="button" data-direction="dubai" aria-pressed="false">Dubai</button><button type="button" data-direction="transfer" aria-pressed="false">Transit</button></nav>
+<div class="meta"><strong id="session">20-минутный цикл · ожидание</strong><span id="position">Лот — из 5</span></div>
+<div class="car" role="img" aria-label="Тестовый автомобиль без фотографии">🚙<div>Условный автомобиль<br>DEMO ONLY</div></div>
+<section class="details"><div><h2 id="vehicle">Подключение к симуляции…</h2><div class="spec"><span>Направление</span><strong id="directionName">USA</strong></div><div class="spec"><span>Лот</span><strong id="lotNumber">—</strong></div><div class="spec"><span>Режим</span><strong>Условный</strong></div></div>
+<div class="panel"><div class="phase" id="phase">Ожидаем данные</div><div class="circle"><span id="timer">--:--</span><small>до этапа</small></div><div class="phase">Начальная цена</div><div class="price" id="price">—</div></div></section>
+<div class="bid"><button disabled>−</button><button disabled>+$100</button><button disabled>+</button><button class="primary" disabled>СДЕЛАТЬ СТАВКУ</button></div>
+<div class="notice" id="notice" role="status">Это безопасный просмотр. Условные ставки, Proxy и SOLD станут доступны после проверки отдельного симуляционного движка.</div>
+</div><footer>SIMULATION ONLY · USA LIVE не изменяется</footer>
+<script src="simulation-auction.js?v=277" defer></script>
+</body></html>
