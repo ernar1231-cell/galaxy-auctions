@@ -17,3 +17,11 @@ test('stale direction responses are ignored',()=>{
  assert.match(js,/mySeq!==seq\|\|d!==direction/);
  assert.match(js,/data\.direction!==d/);
 });
+
+test('simulation phase audio requires explicit user gesture',()=>{
+ assert.match(html,/id="simulationSoundToggle"/);
+ assert.match(js,/addEventListener\('click',toggleSound\)/);
+ assert.match(js,/audioContext\.resume\(\)/);
+ assert.match(js,/if\(!soundOn\)return/);
+ assert.match(js,/lastPhaseKey!==phaseKey/);
+});
