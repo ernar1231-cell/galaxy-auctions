@@ -54,8 +54,6 @@ BEGIN
  candidate:=CASE WHEN p_mode='manual' THEN s.current_bid+p_amount ELSE p_amount END;
  IF candidate<=s.current_bid OR candidate>u.bid_limit THEN
   RAISE EXCEPTION 'Maximum below price or limit exceeded'; END IF;
- IF p_mode='manual' AND current_setting('transaction_isolation') NOT IN ('read committed','repeatable read','serializable') THEN
-  RAISE EXCEPTION 'Unsupported transaction isolation'; END IF;
  IF p_mode='proxy' THEN
   SELECT x.max_amount INTO old_max FROM public.galaxy_direction_proxy_maxima x
   WHERE x.direction=p_direction AND x.lot_number=p_lot_number
