@@ -11,5 +11,5 @@ test('live state refresh does not re-disable demo button',()=>{
  assert.match(src,/button\.textContent='ТЕСТ \+\$100'/);
 });
 test('Telegram cache version incremented',()=>{
- assert.match(html,/direction-state-refresh\.js\?v=260/);
+ assert.match(html,/direction-state-refresh\.js\?v=261/);
 });

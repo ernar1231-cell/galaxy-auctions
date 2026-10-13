@@ -221,7 +221,7 @@ setInterval(()=>{
  const panel=screen();if(!panel?.classList.contains('open')||!direction||!phaseDeadline)return;
  const remaining=Math.max(0,Math.ceil((phaseDeadline-Date.now())/1000));
  const clock=panel.querySelector('#directionLiveCountdown');
- if(clock&&panel.dataset.demoMode!=='true')clock.textContent=phaseName.toUpperCase()+' '+String(remaining).padStart(2,'0')+'с';
+ if(clock&&panel.dataset.demoMode!=='true'&&clock.dataset.demoPrice!=='true')clock.textContent=phaseName.toUpperCase()+' '+String(remaining).padStart(2,'0')+'с';
  if(remaining===0){
   bidAllowed=false;proxyAllowed=false;
   const proxyInput=panel.querySelector('#directionProxyMaximum');
