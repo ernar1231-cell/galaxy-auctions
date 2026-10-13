@@ -6,6 +6,7 @@ let direction=null,lot=null,generation=0,busy=false,previousPhase='',previousLot
 let bidAllowed=false,proxyAllowed=false,increment=100,bidBusy=false;
 let phaseDeadline=0,phaseName='waiting',clockSkewMs=0;
 let completedLot=null;
+let demoAvailable=false,demoBusy=false;
 const money=v=>Number.isFinite(Number(v))?'$'+Number(v).toLocaleString('en-US'):'—';
 async function read(url){const r=await fetch(url,{cache:'no-store'});if(!r.ok)throw Error('Unavailable');return r.json();}
 function area(panel,id){let el=panel.querySelector('#'+id);if(!el){el=document.createElement('section');el.id=id;el.className='directionLiveNotice';panel.querySelector('#directionCatalogItems')?.appendChild(el);}return el;}
@@ -28,6 +29,58 @@ async function result(panel,d,lotNumber,token){
  const heading=document.createElement('strong');heading.textContent='SOLD — результат';box.appendChild(heading);
  const p=document.createElement('p');p.textContent=data.result?'Цена: '+money(data.result.amount)+' · Статус: '+String(data.result.status||'ожидает подтверждения'):'Результат пока не подтверждён';box.appendChild(p);
 }
+async function refreshDemo(panel,d,visibleLot){
+ const demoPanel=panel.querySelector('#directionDemoPanel');
+ if(!demoPanel)return;
+ if(d!=='dubai'||visibleLot!=='69'){
+  demoAvailable=false;demoPanel.hidden=true;return;
+ }
+ try{
+  const response=await fetch('/api/direction-demo-bid',{cache:'no-store'});
+  if(!response.ok)throw Error('Demo unavailable');
+  const data=await response.json();
+  if(data.demo!==true||data.direction!=='dubai'||Number(data.lotNumber)!==69)throw Error('Wrong demo lot');
+  demoAvailable=true;demoPanel.hidden=false;
+  const price=panel.querySelector('#directionDemoPrice');
+  if(price)price.textContent='Тестовая цена: '+money(data.currentBid);
+  for(const id of ['directionDemoBid100','directionDemoMax','directionDemoProxy']){
+   const control=panel.querySelector('#'+id);if(control)control.disabled=demoBusy;
+  }
+ }catch{
+  demoAvailable=false;demoPanel.hidden=true;
+  for(const id of ['directionDemoBid100','directionDemoMax','directionDemoProxy']){
+   const control=panel.querySelector('#'+id);if(control)control.disabled=true;
+  }
+ }
+}
+document.addEventListener('click',async event=>{
+ const button=event.target.closest('#directionDemoBid100,#directionDemoProxy');
+ if(!button)return;
+ const panel=screen();
+ if(!panel?.classList.contains('open')||direction!=='dubai'||panel.dataset.visibleLotNumber!=='69'||!demoAvailable||demoBusy)return;
+ const initData=window.Telegram?.WebApp?.initData;
+ if(!initData){window.alert('Откройте тест в Telegram.');return;}
+ const mode=button.id==='directionDemoProxy'?'proxy':'manual';
+ const amount=mode==='manual'?100:Number(panel.querySelector('#directionDemoMax')?.value);
+ if(!Number.isSafeInteger(amount)||amount<=0){window.alert('Укажите тестовый максимум.');return;}
+ demoBusy=true;
+ for(const id of ['directionDemoBid100','directionDemoMax','directionDemoProxy']){
+  const control=panel.querySelector('#'+id);if(control)control.disabled=true;
+ }
+ try{
+  const response=await fetch('/api/direction-demo-bid',{
+   method:'POST',headers:{'Content-Type':'application/json'},cache:'no-store',
+   body:JSON.stringify({direction:'dubai',lotNumber:69,mode,amount,initData})
+  });
+  const data=await response.json();
+  if(!response.ok||data.demo!==true)throw Error('Тестовая ставка отклонена. Проверьте статус Active.');
+  if(direction==='dubai'&&panel.dataset.visibleLotNumber==='69'){
+   const price=panel.querySelector('#directionDemoPrice');
+   if(price)price.textContent='Тестовая цена: '+money(data.currentBid);
+  }
+ }catch(error){window.alert(error.message||'Тест недоступен');}
+ finally{demoBusy=false;refreshDemo(panel,direction,panel.dataset.visibleLotNumber);}
+});
 async function refresh(){
  const panel=screen();if(!panel||!panel.classList.contains('open')||!direction||busy)return;
  busy=true;const token=generation,d=direction;
@@ -71,6 +124,7 @@ async function refresh(){
    panel.dispatchEvent(new CustomEvent('galaxy-direction-phase-change',{detail:{direction:d,phase,lotNumber}}));
   }
   previousPhase=phase;previousLot=lotNumber;
+  await refreshDemo(panel,d,panel.dataset.visibleLotNumber);
   if(lotNumber!==null)await history(panel,d,lotNumber,token).catch(()=>{});
   if(phase==='sold'&&lotNumber!==null)await result(panel,d,lotNumber,token).catch(()=>{});
   else if(completedLot!==null&&completedLot===lotNumber)await result(panel,d,completedLot,token).catch(()=>{});
@@ -79,8 +133,8 @@ async function refresh(){
 }
 document.addEventListener('click',event=>{
  const card=event.target.closest('#auctionDirectionDubai,#auctionDirectionTransfer');
- if(card){direction=card.id==='auctionDirectionDubai'?'dubai':'transfer';lot=null;completedLot=null;bidAllowed=false;proxyAllowed=false;increment=100;previousLot=null;previousPhase='';generation++;}
- if(event.target.closest('#modernBottomNav,#directionCatalogBack')){direction=null;lot=null;completedLot=null;bidAllowed=false;proxyAllowed=false;previousLot=null;previousPhase='';generation++;}
+ if(card){direction=card.id==='auctionDirectionDubai'?'dubai':'transfer';lot=null;completedLot=null;bidAllowed=false;proxyAllowed=false;demoAvailable=false;increment=100;previousLot=null;previousPhase='';generation++;}
+ if(event.target.closest('#modernBottomNav,#directionCatalogBack')){direction=null;lot=null;completedLot=null;bidAllowed=false;proxyAllowed=false;demoAvailable=false;previousLot=null;previousPhase='';generation++;}
 });
 const increments=[100,1000,10000];
 document.addEventListener('click',async event=>{
