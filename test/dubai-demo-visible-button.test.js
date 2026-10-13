@@ -6,8 +6,8 @@ const refresh=fs.readFileSync(path.join(root,'direction-state-refresh.js'),'utf8
 const catalog=fs.readFileSync(path.join(root,'direction-catalog.js'),'utf8');
 const sql=fs.readFileSync(path.join(root,'migrations/20261013_dubai_demo_allow_telegram_users.sql'),'utf8');
 test('Telegram webview fetches fresh demo scripts',()=>{
- assert.match(index,/direction-catalog\.js\?v=259/);
- assert.match(index,/direction-state-refresh\.js\?v=259/);
+ assert.match(index,/direction-catalog\.js\?v=260/);
+ assert.match(index,/direction-state-refresh\.js\?v=260/);
 });
 test('main bid button is labeled as demo and routes only to demo endpoint',()=>{
  assert.match(refresh,/liveButton\.textContent='ТЕСТ \+\$100'/);

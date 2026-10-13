@@ -90,6 +90,15 @@ document.addEventListener('click',async event=>{
  finally{demoBusy=false;refreshDemo(panel,direction,panel.dataset.visibleLotNumber);}
 });
 async function refresh(){
+ const initialPanel=screen();
+ if(initialPanel?.classList.contains('open')&&!direction){
+  const title=document.getElementById('directionCatalogTitle')?.textContent||'';
+  if(title.includes('Дубай')){direction='dubai';generation++;}
+  else if(title.includes('пути')){direction='transfer';generation++;}
+ }
+ if(initialPanel?.classList.contains('open')&&direction==='dubai'&&initialPanel.dataset.visibleLotNumber==='69'){
+  await refreshDemo(initialPanel,'dubai','69');
+ }
  const panel=screen();if(!panel||!panel.classList.contains('open')||!direction||busy)return;
  busy=true;const token=generation,d=direction;
  try{
@@ -116,6 +125,10 @@ async function refresh(){
   for(const id of ['directionBidMinus','directionBidPlus','directionBidSubmit']){
    const button=panel.querySelector('#'+id);
    if(button)button.disabled=!bidAllowed||bidBusy;
+  }
+  if(demoAvailable&&d==='dubai'&&panel.dataset.visibleLotNumber==='69'){
+   const button=panel.querySelector('#directionBidSubmit');
+   if(button){button.disabled=demoBusy;button.textContent='ТЕСТ +$100';}
   }
   proxyAllowed=bidAllowed&&state.proxyAvailable===true;
   const proxyInput=panel.querySelector('#directionProxyMaximum');
