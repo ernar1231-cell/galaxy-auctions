@@ -17,5 +17,11 @@
       "destination": "https://t.me/GalaxyAuctionbot",
       "permanent": false
     }
+  ],
+  "crons": [
+    {
+      "path": "/api/direction-cron",
+      "schedule": "* * * * *"
+    }
   ]
 }
