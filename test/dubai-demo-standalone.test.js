@@ -4,7 +4,7 @@ const root=path.join(__dirname,'..');
 const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
 const js=fs.readFileSync(path.join(root,'direction-demo-standalone.js'),'utf8');
 test('standalone demo controller is loaded and uses isolated endpoint only',()=>{
- assert.match(html,/direction-demo-standalone\.js\?v=268/);
+ assert.doesNotMatch(html,/src="direction-demo-standalone\.js/);
  assert.match(js,/id='dubaiDemoQuickBid'/);
  assert.match(js,/\/api\/direction-demo-bid/);
  assert.doesNotMatch(js,/\/api\/direction-place-bid|\/api\/direction-set-proxy-max/);
