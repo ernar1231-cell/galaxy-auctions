@@ -18,3 +18,9 @@ test('Telegram demo buttons support manual and proxy in both directions',()=>{
  assert.doesNotMatch(ui,/\/api\/direction-place-bid|\/api\/direction-set-proxy-max/);
  assert.match(html,/direction-demo-proxy-both\.js\?v=268/);
 });
+
+test('cross-direction stale demo responses are rejected',()=>{
+ assert.match(ui,/root\.dataset\.demoDirection/);
+ assert.match(ui,/data\.direction!==requestDirection/);
+ assert.match(ui,/context\(\)\?\.lot!==ctx\.lot/);
+});
