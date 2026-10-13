@@ -41,6 +41,8 @@ async function refreshDemo(panel,d,visibleLot){
   const data=await response.json();
   if(data.demo!==true||data.direction!=='dubai'||Number(data.lotNumber)!==69)throw Error('Wrong demo lot');
   demoAvailable=true;demoPanel.hidden=false;
+  const liveButton=panel.querySelector('#directionBidSubmit');
+  if(liveButton&&!bidAllowed){liveButton.disabled=false;liveButton.textContent='ТЕСТ +$100';}
   const price=panel.querySelector('#directionDemoPrice');
   if(price)price.textContent='Тестовая цена: '+money(data.currentBid);
   for(const id of ['directionDemoBid100','directionDemoMax','directionDemoProxy']){
@@ -48,6 +50,8 @@ async function refreshDemo(panel,d,visibleLot){
   }
  }catch{
   demoAvailable=false;demoPanel.hidden=true;
+  const liveButton=panel.querySelector('#directionBidSubmit');
+  if(liveButton&&!bidAllowed){liveButton.disabled=true;liveButton.textContent='СДЕЛАТЬ СТАВКУ';}
   for(const id of ['directionDemoBid100','directionDemoMax','directionDemoProxy']){
    const control=panel.querySelector('#'+id);if(control)control.disabled=true;
   }
@@ -139,6 +143,9 @@ document.addEventListener('click',event=>{
 const increments=[100,1000,10000];
 document.addEventListener('click',async event=>{
  const button=event.target.closest('#directionBidMinus,#directionBidPlus,#directionBidSubmit');
+ if(button?.id==='directionBidSubmit'&&demoAvailable&&direction==='dubai'&&screen()?.dataset.visibleLotNumber==='69'){
+  document.getElementById('directionDemoBid100')?.click();return;
+ }
  if(!button||!screen()?.classList.contains('open')||!bidAllowed||bidBusy||!direction||!lot||screen().dataset.visibleLotNumber!==String(lot))return;
  if(button.id!=='directionBidSubmit'){
   const index=increments.indexOf(increment);
