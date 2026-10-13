@@ -37,3 +37,11 @@ test('deadline is checked against wall clock after acquiring direction row lock'
  const deadline=sql.indexOf("clock_timestamp()>=s.phase_started_at+interval '15 seconds'");
  assert.ok(lock>=0&&deadline>lock);
 });
+
+test('a manual bidder cannot bid against their own current leading event',()=>{
+ const leaderRead=sql.indexOf('SELECT b.user_telegram_id INTO current_leader');
+ const selfGuard=sql.indexOf("IF p_mode='manual' AND current_leader=p_user_telegram_id THEN");
+ const priceUpdate=sql.indexOf('UPDATE public.galaxy_auction_sessions x SET current_bid=final_price');
+ assert.ok(leaderRead>=0&&selfGuard>leaderRead&&priceUpdate>selfGuard);
+ assert.match(sql,/RAISE EXCEPTION 'Already leading this lot'/);
+});
