@@ -10,10 +10,12 @@ function appendRpcRows(results,payload,direction){
 }
 module.exports=async(req,res)=>{
  res.setHeader('Cache-Control','no-store');
- if(req.method!=='POST')return res.status(405).json({error:'Method not allowed'});
+ if(req.method!=='POST'&&req.method!=='GET')return res.status(405).json({error:'Method not allowed'});
  const token=process.env.GALAXY_SCHEDULER_SECRET;
  if(!token||token.length<32)return res.status(503).json({error:'Scheduler not configured'});
  if(req.headers?.authorization!=='Bearer '+token)return res.status(401).json({error:'Unauthorized scheduler'});
+ // GET is reserved for Vercel Cron and is strictly read-only unless the
+ // session has been explicitly armed by the existing database start gate.
  const key=process.env.SUPABASE_SERVICE_ROLE_KEY;
  if(!key||!base())return res.status(503).json({error:'Database not configured'});
  const headers={apikey:key,Authorization:'Bearer '+key,'Content-Type':'application/json'};
@@ -23,7 +25,7 @@ module.exports=async(req,res)=>{
   const sessions=await response.json(),results=[];
   if(!Array.isArray(sessions))throw Error('Invalid session response');
   // Authenticated connectivity check: read-only, never calls a state-changing RPC.
-  if(req.body?.dryRun===true){
+  if(req.body?.dryRun===true||req.query?.dryRun==='true'){
    return res.status(200).json({dryRun:true,checked:sessions.length,sessions:sessions.map(s=>({direction:s.direction,enabled:s.enabled===true,phase:s.phase,transitionDue:nextPhase(s)!==null}))});
   }
   const errors=[];
