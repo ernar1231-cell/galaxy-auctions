@@ -30,6 +30,7 @@ async function result(panel,d,lotNumber,token){
  const p=document.createElement('p');p.textContent=data.result?'Цена: '+money(data.result.amount)+' · Статус: '+String(data.result.status||'ожидает подтверждения'):'Результат пока не подтверждён';box.appendChild(p);
 }
 async function refreshDemo(panel,d,visibleLot){
+ if(window.GalaxyDualDemoActive)return;
  const demoPanel=panel.querySelector('#directionDemoPanel');
  if(!demoPanel)return;
  if(d!=='dubai'||visibleLot!=='69'){
