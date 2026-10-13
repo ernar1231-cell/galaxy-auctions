@@ -11,6 +11,7 @@ function activePanel(){
  return panel;
 }
 async function tick(){
+ if(window.GalaxyDualDemoActive)return;
  const panel=activePanel();
  if(!panel){available=false;lastPanel=null;revision++;return;}
  if(pollBusy||busy)return;

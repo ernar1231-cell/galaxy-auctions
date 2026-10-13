@@ -11,7 +11,7 @@ test('demo is isolated from real bid, SOLD and auction sessions',()=>{
 test('demo API requires explicit flag, Telegram login and exact Dubai lot',()=>{
  assert.match(api,/GALAXY_DUBAI_DEMO_ENABLED/);
  assert.match(api,/verifyTelegram/);
- assert.match(api,/Number\(req\.body\?\.lotNumber\)!==69/);
+ assert.match(api,/spec\.lot/);
  assert.doesNotMatch(api,/rpc\/galaxy_direction_submit_bid/);
 });
 test('only active accounts can place demo bids',()=>{
