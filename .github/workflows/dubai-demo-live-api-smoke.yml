@@ -1,0 +1,27 @@
+name: Dubai demo production API smoke
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/dubai-demo-live-api-smoke.yml'
+  workflow_dispatch:
+jobs:
+  verify-demo-get:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify canonical demo endpoint and price
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json,urllib.request
+          url='https://galaxy-auctions-final-93-all-old-lots-kasym1.vercel.app/api/direction-demo-bid'
+          req=urllib.request.Request(url,headers={'Cache-Control':'no-cache'})
+          with urllib.request.urlopen(req,timeout=20) as resp:
+              assert resp.status==200,resp.status
+              data=json.load(resp)
+          assert data.get('demo') is True,data
+          assert data.get('direction')=='dubai',data
+          assert data.get('lotNumber')==69,data
+          assert float(data.get('currentBid'))>=12500,data
+          print('Dubai demo GET reachable and isolated state valid')
+          PY
