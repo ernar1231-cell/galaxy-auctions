@@ -4,7 +4,10 @@ const picker=$('directionLotsOverlay'),list=$('directionLotsListOverlay');
 if(!picker||!list)return;
 const show=el=>el.classList.add('open'),hide=el=>el.classList.remove('open');
 const original=$('lotsBtn');
-if(original){original.addEventListener('click',e=>{e.stopImmediatePropagation();e.preventDefault();hide($('catalogOverlay'));show(picker);refreshClocks();refreshCounts();},true);}
+function openPicker(){hide($('catalogOverlay'));hide(list);show(picker);refreshClocks();refreshCounts();}
+if(original){original.onclick=null;original.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();openPicker();},true);}
+// Capture before any legacy target/bubble handler, including cached app.js callbacks.
+document.addEventListener('click',e=>{if(e.target?.closest?.('#lotsBtn')){e.preventDefault();e.stopImmediatePropagation();openPicker();}},true);
 $('closeDirectionLots')?.addEventListener('click',()=>hide(picker));
 $('closeDirectionLotsList')?.addEventListener('click',()=>{hide(list);show(picker)});
 for(const el of [picker,list])el.addEventListener('click',e=>{if(e.target===el)hide(el)});
