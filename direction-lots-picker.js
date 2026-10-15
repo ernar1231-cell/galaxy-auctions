@@ -45,7 +45,7 @@ function openReadOnlyLot(car,index){
  thumbs.replaceChildren();photos.forEach((url,i)=>{const img=document.createElement('img');img.src=url;img.alt='Фото '+(i+1);img.className=i===0?'active':'';img.onclick=()=>{hero.src=url;thumbs.querySelectorAll('img').forEach(x=>x.classList.toggle('active',x===img))};thumbs.appendChild(img)});
  sheet.querySelector('.detailTitle').textContent=title;
  sheet.querySelector('.detailLot').textContent='Лот № '+(car.lot_number||index+1);
- sheet.querySelector('.detailChips').textContent=car.starting_bid==null?'Стартовая цена: —':'Стартовая цена: 
+ sheet.querySelector('.detailChips').textContent=car.starting_bid==null?'Стартовая цена: —':'Стартовая цена:
  hide(picker);show(list);
  const names={usa:'🇺🇸 АМЕРИКА',dubai:'🇦🇪 ДУБАЙ',transfer:'🚢 ТРАНЗИТ'};
  $('directionLotsListTitle').textContent=names[direction]||'ЛОТЫ';
