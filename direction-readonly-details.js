@@ -61,7 +61,13 @@ list.addEventListener('click',async e=>{
   const data=await response.json();
   if(!list.classList.contains('open'))return;
   const car=Array.isArray(data.queue)?data.queue[index]:null;
-  if(car)open(car,index);
+  if(car){
+   let full=car;
+   if(car.id){
+    try{const details=await fetch('/api/public-lot?id='+encodeURIComponent(car.id),{cache:'no-store'});if(details.ok){const payload=await details.json();if(payload.lot)full={...car,...payload.lot};}}catch(err){console.warn('Full lot lookup unavailable',err)}
+   }
+   open(full,index);
+  }
  }catch(err){console.warn('Unable to open direction lot',err);}
 });
 })();+Number(car.starting_bid).toLocaleString('en-US'))+' · '+String(car.status||'UPCOMING').toUpperCase();const fav=document.createElement('button');fav.type='button';fav.className='directionFavorite';const favId=String(car.vin||car.lot_number||title);const key='lot:'+favId;fav.textContent=favorites()[key]?'★ В избранном':'☆ В избранное';fav.onclick=()=>toggleFavorite(key,fav);chips.append(price,fav);
