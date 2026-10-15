@@ -4,10 +4,23 @@ const picker=$('directionLotsOverlay'),list=$('directionLotsListOverlay');
 if(!picker||!list)return;
 const show=el=>el.classList.add('open'),hide=el=>el.classList.remove('open');
 const original=$('lotsBtn');
-if(original){original.addEventListener('click',e=>{e.stopImmediatePropagation();e.preventDefault();hide($('catalogOverlay'));show(picker);},true);}
+if(original){original.addEventListener('click',e=>{e.stopImmediatePropagation();e.preventDefault();hide($('catalogOverlay'));show(picker);refreshClocks();refreshCounts();},true);}
 $('closeDirectionLots')?.addEventListener('click',()=>hide(picker));
 $('closeDirectionLotsList')?.addEventListener('click',()=>{hide(list);show(picker)});
 for(const el of [picker,list])el.addEventListener('click',e=>{if(e.target===el)hide(el)});
+const startHours={usa:13,dubai:17,transfer:21};
+const pad=n=>String(n).padStart(2,'0');
+function dubaiClock(now){const parts=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Dubai',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'}).formatToParts(now);const v={};for(const x of parts)if(x.type!=='literal')v[x.type]=Number(x.value);return v.hour*3600+v.minute*60+v.second;}
+function countdown(direction,now=new Date()){
+ const seconds=dubaiClock(now),start=startHours[direction]*3600,end=(start+4*3600)%86400;
+ const live=end>start?seconds>=start&&seconds<end:seconds>=start||seconds<end;
+ if(live)return 'LIVE';
+ const remaining=(start-seconds+86400)%86400;
+ return [Math.floor(remaining/3600),Math.floor(remaining%3600/60),remaining%60].map(pad).join(':');
+}
+function refreshClocks(){for(const direction of Object.keys(startHours)){const el=picker.querySelector('[data-lots-clock="'+direction+'"]');if(el)el.textContent=countdown(direction);}}
+refreshClocks();const clockInterval=setInterval(()=>{if(picker.classList.contains('open'))refreshClocks()},1000);
+async function refreshCounts(){for(const direction of ['dubai','transfer']){try{const r=await fetch('/api/direction-queue?direction='+direction,{cache:'no-store'});if(!r.ok)continue;const data=await r.json();const el=picker.querySelector('[data-lots-count="'+direction+'"]');if(el&&Array.isArray(data.queue))el.textContent='Лоты: '+data.queue.length;}catch{}}}
 const safe=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 async function openDirection(direction){
  hide(picker);show(list);
