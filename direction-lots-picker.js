@@ -41,9 +41,28 @@ async function openDirection(direction){
   root.innerHTML=cars.length?cars.map((car,i)=>{
    const title=safe([car.make,car.model,car.year].filter(Boolean).join(' '));
    const photo=car.primary_image||car.images?.[0]?.image_url;
-   return '<div class="directionLotsItem">'+(photo?'<img src="'+safe(photo)+'" alt="'+title+'">':'')+'<div><strong>№'+(i+1)+' · '+title+'</strong><small>VIN: '+safe(car.vin||'—')+'</small><small>Стартовая цена: '+(car.starting_bid==null?'—':'$'+Number(car.starting_bid).toLocaleString('en-US'))+'</small></div></div>';
+   return '<button type="button" class="directionLotsItem" data-direction-car="'+i+'">'+(photo?'<img src="'+safe(photo)+'" alt="'+title+'">':'')+'<div><strong>№'+(i+1)+' · '+title+'</strong><small>VIN: '+safe(car.vin||'—')+'</small><small>Стартовая цена: '+(car.starting_bid==null?'—':'$'+Number(car.starting_bid).toLocaleString('en-US'))+'</small></div></div>';
   }).join(''):'<p style="padding:18px">Автомобили пока не назначены в очередь.</p>';
+  root.querySelectorAll('[data-direction-car]').forEach(btn=>btn.onclick=()=>{const i=Number(btn.dataset.directionCar);if(cars[i])showCar(cars[i],i)});
  }catch{root.textContent='Не удалось загрузить лоты. Попробуйте позже.';}
+}
+// Public, read-only navigation for home direction cards.
+window.galaxyOpenDirectionLots=function(direction){if(direction==='dubai'||direction==='transfer')openDirection(direction);};
+// Lightweight lot detail, isolated from all USA LIVE bidding handlers.
+const detail=document.createElement('div');detail.className='catalogOverlay';detail.id='directionCarDetail';detail.innerHTML='<div class="catalogSheet"><div class="sheetHead"><b>АВТОМОБИЛЬ</b><button type="button" class="sheetClose" id="directionCarDetailClose">×</button></div><div id="directionCarDetailBody"></div></div>';
+document.body.appendChild(detail);
+detail.querySelector('#directionCarDetailClose').onclick=()=>hide(detail);
+detail.onclick=e=>{if(e.target===detail)hide(detail)};
+function showCar(car,position){
+ const title=[car.make,car.model,car.year].filter(Boolean).join(' ');
+ const photos=(car.images||[]).map(x=>x.image_url).filter(Boolean);if(!photos.length&&car.primary_image)photos.push(car.primary_image);
+ const specs=[['Пробег',car.mileage],['Двигатель',car.engine],['Топливо',car.fuel],['Трансмиссия',car.transmission],['Привод',car.drive],['Салон',car.interior_color],['Цвет',car.exterior_color],['VIN',car.vin]];
+ const body=detail.querySelector('#directionCarDetailBody');
+ body.innerHTML='<div class="directionCarHero">'+(photos[0]?'<img id="directionCarHeroPhoto" src="'+safe(photos[0])+'" alt="'+safe(title)+'">':'<p>Фото отсутствует</p>')+'</div><div class="directionCarThumbs">'+photos.map((p,i)=>'<button type="button" data-photo="'+i+'"><img src="'+safe(p)+'" alt="Фото '+(i+1)+'"></button>').join('')+'</div><h2>'+safe(title)+'</h2><section class="directionCarInfo"><h3>Описание автомобиля</h3><div class="directionCarSpecs">'+specs.filter(x=>x[1]!=null&&x[1]!=='').map(x=>'<div><span>'+safe(x[0])+'</span><strong>'+safe(x[1])+'</strong></div>').join('')+'<div><span>Лот №</span><strong>'+safe(position+1)+'</strong></div></div></section><section class="directionCarPrice"><small>Стартовая цена</small><strong>'+(car.starting_bid==null?'—':'.forEach(b=>b.addEventListener('click',()=>openDirection(b.dataset.lotsDirection)));
+})();
++Number(car.starting_bid).toLocaleString('en-US'))+'</strong><p>Просмотр автомобиля · ставки пока недоступны</p></section>';
+ body.querySelectorAll('[data-photo]').forEach(b=>b.onclick=()=>{const img=body.querySelector('#directionCarHeroPhoto');if(img)img.src=photos[Number(b.dataset.photo)]});
+ show(detail);
 }
 picker.querySelectorAll('[data-lots-direction]').forEach(b=>b.addEventListener('click',()=>openDirection(b.dataset.lotsDirection)));
 })();
