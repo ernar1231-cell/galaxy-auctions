@@ -555,7 +555,7 @@ function toggleAuctionSound(){ctx();soundOn=!soundOn;whiteSyncSound();$("soundSt
 const incs=[100,1000,10000];
 $("minus").onclick=()=>{let k=Math.max(0,incs.indexOf(inc)-1);inc=incs[k];update()};
 $("plus").onclick=()=>{let k=Math.min(incs.length-1,incs.indexOf(inc)+1);inc=incs[k];update()};
-$("lotsBtn").onclick=()=>{renderCatalog();$("catalogOverlay").classList.add("open")};
+$("lotsBtn").onclick=()=>{if(typeof window.galaxyOpenLotDirectionPicker==="function"){window.galaxyOpenLotDirectionPicker();return;}renderCatalog();$("catalogOverlay").classList.add("open")};
 $("closeQueue").onclick=()=>$("queueOverlay").classList.remove("open");
 $("queueOverlay").onclick=e=>{if(e.target===$("queueOverlay"))$("queueOverlay").classList.remove("open")};
 $("closeCatalog").onclick=()=>$("catalogOverlay").classList.remove("open");
