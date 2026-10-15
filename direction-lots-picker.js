@@ -17,8 +17,7 @@ document.addEventListener('click',event=>{
 // When leaving the existing USA catalog, return to the three-direction list.
 const closeUSA=$('closeCatalog');
 if(closeUSA)closeUSA.addEventListener('click',()=>{
- if($('catalogOverlay')?.classList.contains('open'))return;
- openPicker();
+ queueMicrotask(()=>openPicker());
 });
 $('closeDirectionLots')?.addEventListener('click',()=>hide(picker));
 $('closeDirectionLotsList')?.addEventListener('click',()=>{hide(list);show(picker)});
