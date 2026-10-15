@@ -6,6 +6,10 @@ const show=el=>{el.classList.add('open');el.style.display='flex';el.style.zIndex
 const hide=el=>{if(!el)return;el.classList.remove('open');if(el===picker||el===list)el.style.display='none';};
 function openPicker(){hide($('catalogOverlay'));hide(list);show(picker);refreshClocks();refreshCounts();}
 window.galaxyOpenLotDirectionPicker=openPicker;
+// Bind directly after app.js: the three-direction picker is the only entry from Lots.
+const lotsButton=$('lotsBtn');
+if(lotsButton){lotsButton.onclick=function(event){event?.preventDefault();openPicker();return false;};}
+
 // Ensure the first Lots tap always opens the three-direction picker, even if
 // another legacy click listener is registered on the live button.
 document.addEventListener('click',event=>{
