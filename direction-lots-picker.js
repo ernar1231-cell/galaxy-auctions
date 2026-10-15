@@ -6,6 +6,20 @@ const show=el=>{el.classList.add('open');el.style.display='flex';el.style.zIndex
 const hide=el=>{if(!el)return;el.classList.remove('open');if(el===picker||el===list)el.style.display='none';};
 function openPicker(){hide($('catalogOverlay'));hide(list);show(picker);refreshClocks();refreshCounts();}
 window.galaxyOpenLotDirectionPicker=openPicker;
+// Ensure the first Lots tap always opens the three-direction picker, even if
+// another legacy click listener is registered on the live button.
+document.addEventListener('click',event=>{
+ const target=event.target;
+ if(target&&target.closest&&target.closest('#lotsBtn')){
+  event.preventDefault();event.stopImmediatePropagation();openPicker();
+ }
+},true);
+// When leaving the existing USA catalog, return to the three-direction list.
+const closeUSA=$('closeCatalog');
+if(closeUSA)closeUSA.addEventListener('click',()=>{
+ if($('catalogOverlay')?.classList.contains('open'))return;
+ openPicker();
+});
 $('closeDirectionLots')?.addEventListener('click',()=>hide(picker));
 $('closeDirectionLotsList')?.addEventListener('click',()=>{hide(list);show(picker)});
 for(const el of [picker,list])el.addEventListener('click',e=>{if(e.target===el)hide(el)});
