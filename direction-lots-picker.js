@@ -2,7 +2,8 @@
 const $=id=>document.getElementById(id);
 const picker=$('directionLotsOverlay'),list=$('directionLotsListOverlay');
 if(!picker||!list)return;
-const show=el=>el.classList.add('open'),hide=el=>el.classList.remove('open');
+const show=el=>{el.classList.add('open');el.style.display='flex';el.style.zIndex='9998';};
+const hide=el=>{if(!el)return;el.classList.remove('open');if(el===picker||el===list)el.style.display='none';};
 function openPicker(){hide($('catalogOverlay'));hide(list);show(picker);refreshClocks();refreshCounts();}
 window.galaxyOpenLotDirectionPicker=openPicker;
 $('closeDirectionLots')?.addEventListener('click',()=>hide(picker));
