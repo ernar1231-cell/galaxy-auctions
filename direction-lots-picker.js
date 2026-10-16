@@ -10,18 +10,32 @@ $('closeDirectionLots')?.addEventListener('click',()=>hide(picker));
 $('closeDirectionLotsList')?.addEventListener('click',()=>{hide(list);show(picker)});
 for(const el of [picker,list])el.addEventListener('click',e=>{if(e.target===el)hide(el)});
 const startHours={usa:13,dubai:17,transfer:21};
+let sharedCounts={usa:0,dubai:0,transfer:0};
 const pad=n=>String(n).padStart(2,'0');
 function dubaiClock(now){const parts=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Dubai',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'}).formatToParts(now);const v={};for(const x of parts)if(x.type!=='literal')v[x.type]=Number(x.value);return v.hour*3600+v.minute*60+v.second;}
 function countdown(direction,now=new Date()){
  const seconds=dubaiClock(now),start=startHours[direction]*3600,end=(start+4*3600)%86400;
  const live=end>start?seconds>=start&&seconds<end:seconds>=start||seconds<end;
- if(live)return 'LIVE';
+ if(live&&sharedCounts[direction]>0)return 'LIVE';
  const remaining=(start-seconds+86400)%86400;
  return [Math.floor(remaining/3600),Math.floor(remaining%3600/60),remaining%60].map(pad).join(':');
 }
 function refreshClocks(){for(const direction of Object.keys(startHours)){const el=picker.querySelector('[data-lots-clock="'+direction+'"]');if(el)el.textContent=countdown(direction);}}
-refreshClocks();const clockInterval=setInterval(()=>{if(picker.classList.contains('open'))refreshClocks()},1000);
-async function refreshCounts(){const usa=picker.querySelector('[data-lots-count="usa"]');const match=($('lotsBtn')?.textContent||'').match(/\((\d+)\)/);if(usa&&match)usa.textContent='Лоты: '+match[1];for(const direction of ['dubai','transfer']){try{const r=await fetch('/api/direction-queue?direction='+direction,{cache:'no-store'});if(!r.ok)continue;const data=await r.json();const el=picker.querySelector('[data-lots-count="'+direction+'"]');if(el&&Array.isArray(data.queue))el.textContent='Лоты: '+data.queue.length;}catch{}}}
+refreshClocks();const clockInterval=setInterval(()=>{if(picker.classList.contains('open')){refreshClocks();if(Date.now()%15000<1100)refreshCounts()}},1000);
+async function refreshCounts(){
+ try{
+  const r=await fetch('/api/one-auction-counts?t='+Date.now(),{cache:'no-store'});
+  if(!r.ok)throw Error('Counts unavailable');
+  const data=await r.json();
+  if(!data.counts)throw Error('Invalid counts');
+  sharedCounts=data.counts;
+  for(const direction of Object.keys(startHours)){
+   const el=picker.querySelector('[data-lots-count="'+direction+'"]');
+   if(el)el.textContent='Лоты: '+Number(sharedCounts[direction]||0);
+  }
+  refreshClocks();
+ }catch(error){console.warn('Shared inventory counts unavailable',error);}
+}
 const safe=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 async function openDirection(direction){
  hide(picker);show(list);
