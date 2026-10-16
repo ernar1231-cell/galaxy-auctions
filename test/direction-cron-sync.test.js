@@ -1,5 +1,7 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
+// Legacy-specific contract tests explicitly enable the retired session engine.
+process.env.GALAXY_LEGACY_DIRECTION_SESSIONS='true';
 const handler=require('../api/direction-phase-tick');
 const config=JSON.parse(fs.readFileSync(path.join(__dirname,'../vercel.json'),'utf8'));
 function res(){return {statusCode:200,body:null,setHeader(){},status(n){this.statusCode=n;return this;},json(data){this.body=data;return this;}};}
