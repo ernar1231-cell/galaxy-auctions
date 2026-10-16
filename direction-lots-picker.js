@@ -11,12 +11,13 @@ $('closeDirectionLotsList')?.addEventListener('click',()=>{hide(list);show(picke
 for(const el of [picker,list])el.addEventListener('click',e=>{if(e.target===el)hide(el)});
 const startHours={usa:13,dubai:17,transfer:21};
 let sharedCounts={usa:0,dubai:0,transfer:0};
+let activeLiveDirection=null;
 const pad=n=>String(n).padStart(2,'0');
 function dubaiClock(now){const parts=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Dubai',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'}).formatToParts(now);const v={};for(const x of parts)if(x.type!=='literal')v[x.type]=Number(x.value);return v.hour*3600+v.minute*60+v.second;}
 function countdown(direction,now=new Date()){
  const seconds=dubaiClock(now),start=startHours[direction]*3600,end=(start+4*3600)%86400;
  const live=end>start?seconds>=start&&seconds<end:seconds>=start||seconds<end;
- if(live&&sharedCounts[direction]>0)return 'LIVE';
+ if(live&&activeLiveDirection===direction)return 'LIVE';
  const remaining=(start-seconds+86400)%86400;
  return [Math.floor(remaining/3600),Math.floor(remaining%3600/60),remaining%60].map(pad).join(':');
 }
@@ -29,6 +30,7 @@ async function refreshCounts(){
   const data=await r.json();
   if(!data.counts)throw Error('Invalid counts');
   sharedCounts=data.counts;
+  activeLiveDirection=['usa','dubai','transfer'].includes(data.liveDirection)?data.liveDirection:null;
   for(const direction of Object.keys(startHours)){
    const el=picker.querySelector('[data-lots-count="'+direction+'"]');
    if(el)el.textContent='Лоты: '+Number(sharedCounts[direction]||0);
