@@ -14,6 +14,9 @@ module.exports=async(req,res)=>{
  const token=process.env.GALAXY_SCHEDULER_SECRET;
  if(!token||token.length<32)return res.status(503).json({error:'Scheduler not configured'});
  if(req.headers?.authorization!=='Bearer '+token)return res.status(401).json({error:'Unauthorized scheduler'});
+ if(process.env.GALAXY_LEGACY_DIRECTION_SESSIONS!=='true'){
+  return res.status(200).json({unified:true,checked:0,transitions:[],message:'Independent direction auctions disabled; shared LIVE auction is authoritative'});
+ }
  // GET is reserved for Vercel Cron and is strictly read-only unless the
  // session has been explicitly armed by the existing database start gate.
  const key=process.env.SUPABASE_SERVICE_ROLE_KEY;
