@@ -83,12 +83,15 @@ async function openDirection(direction){
    const car=cars[Number(row.dataset.directionIndex)];
    if(!car)return;
    // A catalog tap may open details; only the real shared LIVE screen accepts bids.
-   if(window.galaxyOpenLotDetailByNumber?.(car.lot_number))return;
    const live=await fetch('/api/one-auction-counts?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).catch(()=>null);
    if(live?.liveDirection===direction){
     hide(list);
     document.getElementById('auctionDirectionUSA')?.click();
-   }else alert('Лот доступен для просмотра. Ставки откроются во время LIVE.');
+    return;
+   }
+   hide(list);
+   if(!window.galaxyOpenLotDetailByNumber?.(car.lot_number))
+    alert('Лот доступен для просмотра. Ставки откроются во время LIVE.');
   }));
   root.querySelectorAll('[data-direction-star]').forEach(button=>button.addEventListener('click',event=>{
    event.stopPropagation();const car=cars[Number(button.dataset.directionStar)];if(!car)return;
