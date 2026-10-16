@@ -42,7 +42,11 @@ module.exports=async(req,res)=>{if(req.method!=='GET'&&req.method!=='POST')retur
  const canStart=state.status==='waiting'&&Boolean(direction)&&!slotAlreadyFinished&&direction===slot.direction&&nowMs>=slot.startAt.getTime();
  const currentNo=Number(state.lot_id||0), currentSelected=queue.find(x=>Number(x.lot_number)===currentNo);let patch=null;
  // The full upcoming queue is available for preview, then starts on the next hour.
- if(state.status==='waiting'&&!canStart){const first=queue[0];if(first&&currentNo!==Number(first.lot_number))patch={lot_id:Number(first.lot_number),current_bid:await proxyStart(first,nowIso),phase:'wait',status:'waiting'};}
+ if(state.status==='waiting'&&!canStart){
+  // Preview the next direction without writing its lot or bids into the
+  // authoritative auction state before the scheduled start.
+  patch=null;
+ }
  else if(!currentSelected){all=await activeLots(activeDirection);queue=all.slice();const first=queue[0];if(first&&canStart){await setLotStatus(first.lot_number,'live',nowIso);patch={lot_id:Number(first.lot_number),current_bid:await proxyStart(first,nowIso),phase:'red',phase_started_at:nowIso,status:'live'};}else if(state.status!=='waiting')patch={phase:'wait',phase_started_at:nowIso,status:'waiting'};}
  else if(state.status==='waiting'&&canStart){await setLotStatus(currentSelected.lot_number,'live',nowIso);patch={lot_id:Number(currentSelected.lot_number),current_bid:await proxyStart(currentSelected,nowIso),phase:'red',phase_started_at:nowIso,status:'live'};}
  else if(state.status==='live'&&phase==='sold'&&age>=SOLD_SECONDS){let br=await sfetch(`auction_bids?lot_id=eq.${currentNo}&select=id&limit=1`),hasBid=br.ok&&((await br.json())||[]).length>0;if(hasBid){await setLotStatus(currentNo,'pending',nowIso);}else{await setLotStatus(currentNo,'draft',nowIso);}all=await activeLots(activeDirection);queue=all.filter(x=>Number(x.lot_number)!==currentNo).slice();const next=queue[0];if(next){await setLotStatus(next.lot_number,'live',nowIso);patch={lot_id:Number(next.lot_number),current_bid:await proxyStart(next,nowIso),phase:'red',phase_started_at:nowIso,status:'live'};}else patch={phase:'wait',phase_started_at:nowIso,status:'waiting'};}
