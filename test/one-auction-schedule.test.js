@@ -23,11 +23,11 @@ test('unlimited direction queues preserve order and exclude other directions',()
 });
 
 test('one-day meeting starts and next-day automatic restore',()=>{
- assert.equal(sessionStart('usa','2026-10-16T17:15:00Z').toISOString(),'2026-10-16T17:30:00.000Z');
- assert.equal(sessionStart('dubai','2026-10-16T17:15:00Z').toISOString(),'2026-10-16T17:40:00.000Z');
- assert.equal(sessionStart('transfer','2026-10-16T17:15:00Z').toISOString(),'2026-10-16T17:50:00.000Z');
- assert.equal(currentSlot('2026-10-16T17:35:00Z').direction,'usa');
- assert.equal(currentSlot('2026-10-16T17:45:00Z').direction,'dubai');
- assert.equal(currentSlot('2026-10-16T17:55:00Z').direction,'transfer');
+ assert.equal(sessionStart('usa','2026-10-16T17:15:00Z').toISOString(),'2026-10-16T17:40:00.000Z');
+ assert.equal(sessionStart('dubai','2026-10-16T17:15:00Z').toISOString(),'2026-10-16T17:50:00.000Z');
+ assert.equal(sessionStart('transfer','2026-10-16T17:15:00Z').toISOString(),'2026-10-16T18:00:00.000Z');
+ assert.equal(currentSlot('2026-10-16T17:45:00Z').direction,'usa');
+ assert.equal(currentSlot('2026-10-16T17:55:00Z').direction,'dubai');
+ assert.equal(currentSlot('2026-10-16T18:05:00Z').direction,'transfer');
  assert.equal(nextSlot('2026-10-16T18:00:00Z').startAt.toISOString(),'2026-10-17T09:00:00.000Z');
 });
