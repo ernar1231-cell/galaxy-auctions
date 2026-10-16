@@ -1,4 +1,5 @@
 'use strict';
+const {requireActiveDirection}=require('./_single-line-bid-guard');
 // Dubai/Transit only. Disabled by default until atomic proxy execution is integrated.
 const {verifyTelegram}=require('./_direction-telegram-auth');
 const {assertDirection}=require('./_multi-auction-core');
@@ -22,6 +23,7 @@ module.exports=async(req,res)=>{
  const key=process.env.SUPABASE_SERVICE_ROLE_KEY;
  if(!base||!key)return res.status(503).json({error:'Database unavailable'});
  try{
+  await requireActiveDirection(direction,base,key);
   const response=await fetch(base+'/rest/v1/rpc/galaxy_direction_submit_bid',{
    method:'POST',cache:'no-store',
    headers:{apikey:key,Authorization:'Bearer '+key,'Content-Type':'application/json'},
