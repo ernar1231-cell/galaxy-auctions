@@ -62,8 +62,14 @@ async function openDirection(direction){
   }));
   root.querySelectorAll('[data-direction-share]').forEach(button=>button.addEventListener('click',async event=>{
    event.stopPropagation();const car=cars[Number(button.dataset.directionShare)];if(!car)return;
-   const text=[car.make,car.model,car.year].filter(Boolean).join(' ')+' · VIN: '+String(car.vin||'—');
-   try{if(navigator.share)await navigator.share({title:'Galaxy Auctions',text,url:location.origin});else if(navigator.clipboard)await navigator.clipboard.writeText(text+' '+location.origin)}catch{}
+   const title=[car.make,car.model,car.year].filter(Boolean).join(' ');
+   if(!car.id){alert('Ссылка на автомобиль пока недоступна');return;}
+   const url=new URL('/api/share',location.origin);url.searchParams.set('id',String(car.id));
+   try{
+    if(navigator.share)await navigator.share({title:title+' · Galaxy Auctions',text:title+' · Galaxy Auctions',url:url.toString()});
+    else if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(url.toString());alert('Ссылка на автомобиль скопирована');}
+    else window.prompt('Скопируйте ссылку на автомобиль',url.toString());
+   }catch(error){if(error?.name!=='AbortError')console.error('Share failed',error);}
   }));
  }catch{root.textContent='Не удалось загрузить лоты. Попробуйте позже.';}
 }
