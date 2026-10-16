@@ -30,6 +30,7 @@ BEGIN
  FROM public.galaxy_auction_lot_assignments a
  JOIN public.auction_lots l ON l.lot_number=a.lot_number
  WHERE a.direction=c.next_direction AND l.status='upcoming'
+   AND position('"direction":"'||c.next_direction||'"' in replace(coalesce(l.description,''),chr(92),''))>0
  ORDER BY a.queue_position,a.lot_number LIMIT 1 FOR UPDATE OF l;
  IF next_lot IS NULL THEN
   -- No empty auction starts; a later explicit operator decision is required.
