@@ -35,6 +35,6 @@ module.exports=async(req,res)=>{
   const images=(current.auction_lot_images||[]).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0));
   const {auction_lot_images,...fields}=current;
   const {phaseClock}=require('./_direction-phase-clock');
-  return res.status(200).json({phase:'live',direction:cycle.direction,serverNow:now.toISOString(),sessionPhase:session.phase,phaseClock:phaseClock(session,now.getTime()),lot:{...fields,images,primary_image:(images.find(x=>x.is_primary)||images[0])?.image_url||null},currentBid:session.current_bid});
+  return res.status(200).json({phase:'live',direction:cycle.direction,serverNow:now.toISOString(),sessionPhase:session.phase,phaseClock:phaseClock(session,now.getTime()),lot:{...fields,images,primary_image:(images.find(x=>x.is_primary)||images[0])?.image_url||null},currentBid:session.current_bid,biddingAvailable:false,readOnly:true});
  }catch{return res.status(503).json({error:'Unified LIVE state unavailable'});}
 };
