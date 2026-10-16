@@ -37,7 +37,10 @@ module.exports=async(req,res)=>{
    const cycle=(await cr.json())?.[0];
    if(!cycle)return res.status(503).json({error:'Cycle not initialized'});
    if(cycle.phase==='break'){
-    if(Date.parse(cycle.break_ends_at)>Date.now())return res.status(200).json({checked:sessions.length,phase:'break',transitions:[],errors});
+    const breakDeadline=Date.parse(cycle.break_ends_at||'');
+    if(!Number.isFinite(breakDeadline)||!['dubai','transfer'].includes(cycle.next_direction))
+     return res.status(503).json({error:'Invalid break state'});
+    if(breakDeadline>Date.now())return res.status(200).json({checked:sessions.length,phase:'break',transitions:[],errors});
     const start=await fetch(base()+'/rest/v1/rpc/galaxy_cycle_start_next',{method:'POST',headers,body:'{}'});
     if(!start.ok)return res.status(503).json({error:'Atomic cycle start failed'});
     appendRpcRows(results,await start.json(),cycle.next_direction);
@@ -49,6 +52,8 @@ module.exports=async(req,res)=>{
    if(cycle.direction==='usa')return res.status(200).json({checked:sessions.length,phase:'usa',transitions:[],errors});
    const selected=sessions.find(s=>s.direction===cycle.direction);
    if(!selected)return res.status(503).json({error:'Active session missing'});
+   if(selected.enabled!==true&&selected.phase!=='waiting')
+    return res.status(503).json({error:'Active direction session inconsistent'});
    if(selected.enabled!==true&&selected.phase==='waiting'){
     const done=await fetch(base()+'/rest/v1/rpc/galaxy_cycle_finish_direction',{method:'POST',headers,body:JSON.stringify({p_direction:cycle.direction})});
     if(!done.ok)return res.status(503).json({error:'Cycle completion failed'});
