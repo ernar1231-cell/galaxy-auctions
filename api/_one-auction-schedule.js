@@ -6,7 +6,7 @@ const START_HOURS=Object.freeze({usa:13,dubai:17,transfer:21});
 const DUBAI_UTC_OFFSET_HOURS=4;
 // One-day meeting schedule; automatically expires after 2026-10-16 Dubai time.
 const DEMO_DAY='2026-10-16';
-const DEMO_MINUTES=Object.freeze({usa:21*60+30,dubai:21*60+40,transfer:21*60+50});
+const DEMO_MINUTES=Object.freeze({usa:21*60+40,dubai:21*60+50,transfer:22*60});
 function scheduleMinutes(day){
  const local=new Date(day+4*3600000);
  const ymd=local.toISOString().slice(0,10);
