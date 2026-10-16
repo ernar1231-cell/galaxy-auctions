@@ -1577,3 +1577,66 @@ body.directionPreviewOpen .directionLiveBrand img{max-height:40px!important}
 
 body.directionPreviewOpen .directionLiveStatus{display:flex;align-items:center;justify-content:space-between;gap:8px}
 body.directionPreviewOpen #directionSoundToggle{border:1px solid #cddcec;border-radius:9px;background:#fff;color:#173351;padding:7px 10px;font-size:11px;font-weight:800}
+
+
+/* Unified auction list typography and alignment (USA / Dubai / Transit only).
+   No changes to auction state, bids, modal navigation or direction routing. */
+body.mk-white #catalogList .catalogItem,
+body.mk-white #directionLotsListItems .catalogItem {
+  display:grid!important;
+  grid-template-columns:82px minmax(0,1fr) 76px!important;
+  gap:10px!important;
+  align-items:center!important;
+  width:100%!important;
+  min-width:0!important;
+  box-sizing:border-box!important;
+  padding:14px 12px!important;
+  margin:0!important;
+  border:0!important;
+  border-bottom:1px solid #dce6f1!important;
+  border-radius:0!important;
+  background:#fff!important;
+}
+body.mk-white #catalogList .catalogItem > img,
+body.mk-white #directionLotsListItems .catalogItem > img {
+  width:82px!important;height:82px!important;object-fit:cover!important;
+  border-radius:12px!important;
+}
+body.mk-white #catalogList .catalogItem > div:nth-child(2),
+body.mk-white #directionLotsListItems .directionLotsInfo {
+  min-width:0!important;overflow-wrap:anywhere!important;
+}
+body.mk-white #catalogList .catalogItem > div:nth-child(2) > b,
+body.mk-white #directionLotsListItems .directionLotsInfo > b {
+  display:block!important;font-size:14px!important;line-height:1.3!important;
+  font-weight:800!important;color:#1688f8!important;margin-bottom:5px!important;
+}
+body.mk-white #catalogList .catalogItem small,
+body.mk-white #directionLotsListItems .catalogItem small {
+  display:block!important;font-size:13px!important;line-height:1.45!important;
+  color:#657b96!important;margin:3px 0!important;white-space:normal!important;
+}
+body.mk-white #catalogList .catalogItem small strong,
+body.mk-white #directionLotsListItems .catalogItem small strong {
+  font-size:12px!important;font-weight:800!important;
+}
+body.mk-white #catalogList .catalogActions,
+body.mk-white #directionLotsListItems .catalogActions {
+  display:flex!important;flex-direction:row!important;align-items:center!important;
+  justify-content:flex-end!important;gap:5px!important;min-width:0!important;
+}
+body.mk-white #catalogList .catalogActions button,
+body.mk-white #directionLotsListItems .catalogActions button {
+  width:35px!important;height:38px!important;min-width:35px!important;
+  border-radius:12px!important;font-size:19px!important;
+}
+@media(max-width:375px){
+ body.mk-white #catalogList .catalogItem,
+ body.mk-white #directionLotsListItems .catalogItem{
+  grid-template-columns:70px minmax(0,1fr) 68px!important;gap:7px!important;padding:12px 8px!important;
+ }
+ body.mk-white #catalogList .catalogItem > img,
+ body.mk-white #directionLotsListItems .catalogItem > img{width:70px!important;height:76px!important}
+ body.mk-white #catalogList .catalogActions button,
+ body.mk-white #directionLotsListItems .catalogActions button{width:31px!important;min-width:31px!important;height:35px!important}
+}
