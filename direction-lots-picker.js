@@ -69,7 +69,8 @@ async function openDirection(direction){
    const miles=car.mileage==null?'—':Number(car.mileage).toLocaleString('ru-RU')+' миль';
    const fuel=safe(car.fuel||'—');
    const status=safe(String(car.status||'upcoming').toUpperCase());
-   const start=safe((data.local_start|| (direction==='dubai'?'17:00':'21:00')).slice(0,5));
+   const rawStart=String(data.local_start||'');
+   const start=safe(/^\\d{4}-/.test(rawStart)?new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Dubai',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date(rawStart)):(rawStart.slice(0,5)||({usa:'13:00',dubai:'17:00',transfer:'21:00'})[direction]));
    const label=schedule+' · '+start;
    const key=direction+':'+String(car.vin||car.lot_number||i);
    const favorite=(()=>{try{return JSON.parse(localStorage.getItem('galaxy-direction-favorites-v1')||'{}')['lot:'+String(car.vin||car.lot_number||title)]===true}catch{return false}})();
