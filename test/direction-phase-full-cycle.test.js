@@ -1,5 +1,6 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict');
+process.env.GALAXY_LEGACY_DIRECTION_SESSIONS='true';
 const handler=require('../api/direction-phase-tick');
 const {nextPhase}=require('../api/_direction-phase-transition');
 const secret='s'.repeat(40);

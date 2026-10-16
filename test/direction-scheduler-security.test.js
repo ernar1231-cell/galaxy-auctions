@@ -10,7 +10,7 @@ async function invoke({method='POST',authorization,secret,dbKey,dbUrl,fetchImpl,
  const sandbox={
   require(name){if(name==='./_direction-phase-transition')return {nextPhase};throw Error('Unexpected require '+name);},
   module:{exports:{}},
-  process:{env:{GALAXY_SCHEDULER_SECRET:secret,SUPABASE_SERVICE_ROLE_KEY:dbKey,SUPABASE_URL:dbUrl}},
+  process:{env:{GALAXY_LEGACY_DIRECTION_SESSIONS:'true',GALAXY_SCHEDULER_SECRET:secret,SUPABASE_SERVICE_ROLE_KEY:dbKey,SUPABASE_URL:dbUrl}},
   fetch:async(...args)=>{calls++;if(!fetchImpl)throw Error('Unexpected network access');return fetchImpl(...args);}
  };
  vm.runInNewContext(source,sandbox);

@@ -12,7 +12,7 @@ async function run(payload){
   if(url.includes('galaxy_auction_sessions?'))return {ok:true,json:async()=>[{direction:'dubai',enabled:false,phase:'waiting'},{direction:'transfer',enabled:false,phase:'waiting'}]};
   return {ok:true,json:async()=>payload};
  };
- const sandbox={require:(id)=>id==='./_direction-phase-transition'?{nextPhase:()=>null}:(()=>{throw Error(id)})(),module:{exports:{}},process:{env:{GALAXY_SCHEDULER_SECRET:'x'.repeat(40),SUPABASE_SERVICE_ROLE_KEY:'test',SUPABASE_URL:'https://db.invalid'}},fetch};
+ const sandbox={require:(id)=>id==='./_direction-phase-transition'?{nextPhase:()=>null}:(()=>{throw Error(id)})(),module:{exports:{}},process:{env:{GALAXY_LEGACY_DIRECTION_SESSIONS:'true',GALAXY_SCHEDULER_SECRET:'x'.repeat(40),SUPABASE_SERVICE_ROLE_KEY:'test',SUPABASE_URL:'https://db.invalid'}},fetch};
  vm.runInNewContext(source,sandbox);
  let status,body;
  const res={setHeader(){},status(code){status=code;return this},json(data){body=JSON.parse(JSON.stringify(data));return this}};
