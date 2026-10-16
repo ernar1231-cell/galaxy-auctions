@@ -37,6 +37,7 @@ async function open(direction){
  const root=$('directionCatalogItems');root.textContent='Загрузка автомобилей…';
  try{
   let cars=[],startAt=null,clockOffsetMs=0;
+  const displayTime=({usa:'13:00',dubai:'17:00',transfer:'21:00'})[direction]||'13:00';
   try{
    const r=await fetch('/api/direction-live-state?direction='+encodeURIComponent(direction)+'&t='+Date.now(),{cache:'no-store'});
    if(!r.ok)throw Error('Direction LIVE state unavailable');
@@ -56,7 +57,7 @@ async function open(direction){
   if(!screen.classList.contains('open'))return;
   let currentIndex=0;
   function renderSelectedLot(){const lot=cars[currentIndex];
-  if(!lot){root.innerHTML='<div class="directionLiveBrand"><img src="assets/galaxy-auctions-logo.png" alt="Galaxy Auctions"></div><div class="directionLiveStrip"><b>18:00 · Дубай</b><strong>Лоты (0)</strong></div><div class="directionCatalogEmpty">Лоты (0). Ожидаем добавления автомобилей через админку.</div>';return;}
+  if(!lot){root.innerHTML='<div class="directionLiveBrand"><img src="assets/galaxy-auctions-logo.png" alt="Galaxy Auctions"></div><div class="directionLiveStrip"><b>'+displayTime+' · '+labels[direction][0]+'</b><strong>Лоты (0)</strong></div><div class="directionCatalogEmpty">Лоты (0). Ожидаем добавления автомобилей через админку.</div>';return;}
   const photos=(lot.images||[]).map(x=>x.image_url).filter(Boolean);
   if(!photos.length&&lot.primary_image)photos.push(lot.primary_image);
   let imageIndex=0;
@@ -66,7 +67,7 @@ async function open(direction){
   delete screen.dataset.demoMode;
   const details=[['Пробег',lot.mileage],['Двигатель',lot.engine],['Топливо',lot.fuel],['Трансмиссия',lot.transmission],['Привод',lot.drive],['Салон',lot.interior_color],['Цвет',lot.exterior_color],['VIN',lot.vin]];
   root.innerHTML='<div class="directionLiveBrand"><img src="assets/galaxy-auctions-logo.png" alt="Galaxy Auctions"><span aria-hidden="true">♧</span></div><div class="directionLiveStatus"><span>● LIVE AUCTION · Звук выключен</span></div>'+
-    '<div class="directionLiveStrip"><b>18:00 · Дубай</b><small>Позиция '+(currentIndex+1)+' из '+cars.length+'</small><button type="button" id="directionLotListButton">Лоты ('+cars.length+') ›</button></div>'+
+    '<div class="directionLiveStrip"><b>'+displayTime+' · '+labels[direction][0]+'</b><small>Позиция '+(currentIndex+1)+' из '+cars.length+'</small><button type="button" id="directionLotListButton">Лоты ('+cars.length+') ›</button></div>'+
     '<div class="directionLivePhoto">'+(image?'<img id="directionLiveImage" src="'+safe(image)+'" alt="'+safe(name)+'">':'<div class="directionCatalogNoImage">🚘</div>')+
     (photos.length>1?'<button type="button" class="directionPhotoPrev" id="directionPhotoPrev">‹</button><button type="button" class="directionPhotoNext" id="directionPhotoNext">›</button>':'')+
     '<span id="directionPhotoCount">'+(photos.length?'1/'+photos.length:'Нет фото')+'</span></div>'+
