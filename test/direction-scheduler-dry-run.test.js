@@ -6,7 +6,7 @@ test('authenticated scheduler dry-run reads sessions without executing RPC',asyn
  const sandbox={
   require:id=>id==='./_direction-phase-transition'?{nextPhase:()=>null}:(()=>{throw Error(id)})(),
   module:{exports:{}},
-  process:{env:{GALAXY_SCHEDULER_SECRET:'s'.repeat(40),SUPABASE_URL:'https://database.invalid',SUPABASE_SERVICE_ROLE_KEY:'service-test'}},
+  process:{env:{GALAXY_LEGACY_DIRECTION_SESSIONS:'true',GALAXY_SCHEDULER_SECRET:'s'.repeat(40),SUPABASE_URL:'https://database.invalid',SUPABASE_SERVICE_ROLE_KEY:'service-test'}},
   fetch:async url=>{urls.push(url);return {ok:true,json:async()=>[{direction:'dubai',enabled:false,phase:'waiting'},{direction:'transfer',enabled:false,phase:'waiting'}]};}
  };
  vm.runInNewContext(source,sandbox);
