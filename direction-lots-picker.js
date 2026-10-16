@@ -90,8 +90,8 @@ async function openDirection(direction){
     return;
    }
    hide(list);
-   if(!window.galaxyOpenLotDetailByNumber?.(car.lot_number))
-    alert('Лот доступен для просмотра. Ставки откроются во время LIVE.');
+   const opened=await window.galaxyOpenLotDetailByNumber?.(car.lot_number,car.id);
+   if(!opened)alert('Не удалось открыть автомобиль. Повторите попытку.');
   }));
   root.querySelectorAll('[data-direction-star]').forEach(button=>button.addEventListener('click',event=>{
    event.stopPropagation();const car=cars[Number(button.dataset.directionStar)];if(!car)return;
