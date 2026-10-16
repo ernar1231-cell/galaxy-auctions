@@ -60,6 +60,13 @@ module.exports=async(req,res)=>{if(req.method!=='GET'&&req.method!=='POST')retur
   // Never show a previous direction's stale vehicle while awaiting the next slot.
   state={...state,lot_id:preview?Number(preview.lot_number):0,
    current_bid:preview?Number(preview.starting_bid||0):0};
+  if(preview&&Number(lot?.lot_number)!==Number(preview.lot_number)){
+   const pr=await sfetch('auction_lots?lot_number=eq.'+Number(preview.lot_number)+'&select=*,auction_lot_images(id,image_url,is_primary,sort_order)');
+   if(!pr.ok)throw Error('Next lot preview unavailable');
+   lot=(await pr.json())?.[0]||null;
+   if(lot){const images=(lot.auction_lot_images||[]).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0));delete lot.auction_lot_images;lot.images=images;lot.primary_image=(images.find(x=>x.is_primary)||images[0])?.image_url||null;}
+  }
+  if(!preview)lot=null;
  }else startAt=slot.startAt;
  res.setHeader('Cache-Control','no-store, max-age=0');res.status(200).json({serverNow:nowIso,todayQueue:queue.map(x=>Number(x.lot_number)),startAt:startAt.toISOString(),canBid:state.status==='live',state,bids:Array.isArray(bids)?bids:[],lot,lotStatuses,direction:activeDirection||next.direction,nextDirection:next.direction});
  }catch(e){res.status(500).json({error:e.message});}}
