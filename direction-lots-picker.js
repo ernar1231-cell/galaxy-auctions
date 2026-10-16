@@ -78,6 +78,46 @@ async function openDirection(direction){
    '<div class="directionLotsInfo"><b>'+safe(label)+'</b><small>'+title+'</small><small>Позиция '+(i+1)+' из '+cars.length+' • '+safe(miles)+' • '+fuel+' • <strong>'+status+'</strong></small></div>'+
    '<div class="catalogActions"><button type="button" class="starBtn'+(favorite?' on':'')+'" data-direction-star="'+i+'" aria-label="Избранное">'+(favorite?'★':'☆')+'</button><button type="button" class="catalogShareBtn" data-direction-share="'+i+'" aria-label="Поделиться">⇧</button></div></div>';
   }).join(''):'<p style="padding:18px">Автомобили пока не назначены в очередь.</p>';
+  if(direction==='transfer'){
+   const norm=v=>String(v||'').trim().replace(/\\s+/g,' ').toLocaleLowerCase('ru-RU');
+   const ports=new Map();
+   for(const car of cars){
+    const name=String(car.destination||'').trim()||'Другие';
+    const key=norm(name);
+    const prev=ports.get(key);
+    if(prev)prev.count++;
+    else ports.set(key,{name,count:1});
+   }
+   const bar=document.createElement('div');
+   bar.setAttribute('aria-label','Фильтр по пункту назначения');
+   bar.style.cssText='display:flex;gap:8px;overflow-x:auto;padding:10px 12px 14px;white-space:nowrap;';
+   const button=(name,count,key)=>{
+    const b=document.createElement('button');
+    b.type='button';b.textContent=name+' ('+count+')';
+    b.dataset.port=key;
+    b.style.cssText='flex:0 0 auto;border:1px solid #d5e3f3;border-radius:13px;background:#eef5fc;color:#17365b;padding:10px 13px;font-weight:700;';
+    return b;
+   };
+   bar.append(button('Все',cars.length,'__all__'));
+   for(const [key,entry] of ports)bar.append(button(entry.name,entry.count,key));
+   root.prepend(bar);
+   const rows=[...root.querySelectorAll('[data-direction-index]')];
+   const apply=key=>{
+    rows.forEach(row=>{
+     const car=cars[Number(row.dataset.directionIndex)];
+     row.hidden=key!=='__all__'&&norm(car?.destination||'Другие')!==key;
+     row.style.display=row.hidden?'none':'';
+    });
+    bar.querySelectorAll('button').forEach(b=>{
+     const active=b.dataset.port===key;
+     b.style.background=active?'#1676d2':'#eef5fc';
+     b.style.color=active?'white':'#17365b';
+     b.setAttribute('aria-pressed',String(active));
+    });
+   };
+   bar.addEventListener('click',event=>{const b=event.target.closest('button[data-port]');if(b)apply(b.dataset.port);});
+   apply('__all__');
+  }
   root.querySelectorAll('[data-direction-index]').forEach(row=>row.addEventListener('click',async event=>{
    if(event.target.closest('button'))return;
    const car=cars[Number(row.dataset.directionIndex)];

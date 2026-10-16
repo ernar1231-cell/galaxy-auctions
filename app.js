@@ -839,6 +839,10 @@ function openAdminLotManage(l){
   $("adminLotManageMeta").innerHTML=`<span>${l.year||'—'} год</span><span>VIN: ${whiteEscape(l.vin||'—')}</span><span>Lot ID: ${whiteEscape(l.lot_number??l.id??'—')}</span>`;
   $("adminLotManageStatus").textContent=stLabel;$("adminLotManageStatus").className=`adminLotManageStatus ${l.status||"draft"}`;const pd=$("adminPendingDecision");if(pd){const isPending=stNow==="pending";pd.style.display=isPending?"block":"none";if(isPending){$("adminPendingWinner").textContent="🏆 Победитель: "+(l.winner_username||l.winner_user_id||"—");$("adminPendingAmount").textContent="Финальная ставка: "+adminMoney(l.winning_bid||0);}}
   $("manageMake").value=l.make||'';$("manageModel").value=l.model||'';$("manageYear").value=l.year||'';$("manageMileage").value=l.mileage??'';$("manageVin").value=l.vin||'';$("manageStarting").value=Number(l.starting_bid||0);$("manageDescription").value=l.description||'';$("manageDirection").value=adminDirectionOf(l);
+  let shipping={};try{const marker=String(l.description||'').match(/\\[GALAXY_DIRECTION:(\\{[^\\n]*\\})\\]/);shipping=marker?JSON.parse(marker[1]):{};}catch{}
+  $("manageTransitToField").hidden=adminDirectionOf(l)!=='transfer';
+  $("manageTransitTo").value=shipping.to||'';
+  if(adminDirectionOf(l)==='transfer')refreshTransitDestinationOptions();
   const hasBids=Number(l.bid_count||0)>0, sold=stNow==='sold';$("adminLotDelete").disabled=hasBids||sold;$("adminLotQuickDelete").disabled=hasBids||sold;$("adminLotDelete").title=hasBids||sold?'Лот со ставками/SOLD нельзя удалить':'';
   $("adminLotManageMsg").textContent="";
   if($("adminLotSchedule")){ $("adminLotSchedule").style.display=stNow==="draft"?"block":"none"; $("adminLotSchedule").textContent="＋ ДОБАВИТЬ НА ЛОТ"; }
@@ -846,7 +850,7 @@ function openAdminLotManage(l){
   if($("adminLotArchive")) $("adminLotArchive").style.display="none";
   $("adminLotManageOverlay").classList.add("open");
 }
-async function saveManagedLot(){if(!adminManagedLot)return;const msg=$("adminLotManageMsg"),btn=$("adminLotSaveChanges");btn.disabled=true;msg.textContent='Сохраняю…';try{const out=await adminApi('/api/admin-update-lot',{lotId:adminManagedLot.id,make:$("manageMake").value.trim(),model:$("manageModel").value.trim(),year:$("manageYear").value?Number($("manageYear").value):null,mileage:$("manageMileage").value?Number($("manageMileage").value):null,vin:$("manageVin").value.trim()||null,startingBid:Number($("manageStarting").value||0),description:$("manageDescription").value.trim()||null,direction:$("manageDirection").value});adminManagedLot={...adminManagedLot,...out.lot,description:$("manageDescription").value.trim()||null};msg.textContent='✅ Изменения сохранены';msg.className='adminSaveMsg ok';await loadAdminLots();const fresh=adminLots.find(x=>String(x.id)===String(adminManagedLot.id));if(fresh)openAdminLotManage(fresh)}catch(e){msg.textContent='Ошибка: '+e.message;msg.className='adminSaveMsg error'}finally{btn.disabled=false}}
+async function saveManagedLot(){if(!adminManagedLot)return;const msg=$("adminLotManageMsg"),btn=$("adminLotSaveChanges");btn.disabled=true;msg.textContent='Сохраняю…';try{const out=await adminApi('/api/admin-update-lot',{lotId:adminManagedLot.id,make:$("manageMake").value.trim(),model:$("manageModel").value.trim(),year:$("manageYear").value?Number($("manageYear").value):null,mileage:$("manageMileage").value?Number($("manageMileage").value):null,vin:$("manageVin").value.trim()||null,startingBid:Number($("manageStarting").value||0),description:$("manageDescription").value.trim()||null,direction:$("manageDirection").value,transit:$("manageDirection").value==='transfer'?{to:$("manageTransitTo").value.trim()}:null});adminManagedLot={...adminManagedLot,...out.lot,description:$("manageDescription").value.trim()||null};msg.textContent='✅ Изменения сохранены';msg.className='adminSaveMsg ok';await loadAdminLots();const fresh=adminLots.find(x=>String(x.id)===String(adminManagedLot.id));if(fresh)openAdminLotManage(fresh)}catch(e){msg.textContent='Ошибка: '+e.message;msg.className='adminSaveMsg error'}finally{btn.disabled=false}}
 async function adminPendingAction(decision){if(!adminManagedLot||String(adminManagedLot.status).toLowerCase()!=='pending')return;const msg=$("adminLotManageMsg");try{const payload={lotId:adminManagedLot.id,decision};if(decision==='counteroffer')payload.amount=Number($("adminCounterofferAmount").value||0);const out=await adminApi('/api/admin-pending-action',payload);msg.textContent=decision==='approve'?'✅ Продажа подтверждена':'↩️ Автомобиль возвращён в «Все»';msg.className='adminSaveMsg ok';await loadAdminLots();if(decision==='approve')await refreshHomeSales();const fresh=adminLots.find(x=>String(x.id)===String(adminManagedLot.id));if(fresh)openAdminLotManage(fresh);}catch(e){msg.textContent='Ошибка: '+e.message;msg.className='adminSaveMsg error'}}
 async function archiveManagedLot(){if(!adminManagedLot)return;if(!confirm(`Архивировать ${adminManagedLot.make||""} ${adminManagedLot.model||""}? История сохранится.`))return;await adminLotAction('archive')}
 async function deleteManagedLot(){if(!adminManagedLot)return;if(!confirm(`Удалить ${adminManagedLot.make||""} ${adminManagedLot.model||""} навсегда?`))return;const msg=$("adminLotManageMsg");try{await adminApi('/api/admin-delete-lot',{lotId:adminManagedLot.id});msg.textContent='✅ Лот удалён';msg.className='adminSaveMsg ok';await loadAdminLots();setTimeout(()=>$("adminLotManageOverlay").classList.remove('open'),500)}catch(e){msg.textContent='Ошибка: '+e.message;msg.className='adminSaveMsg error'}}
@@ -863,7 +867,18 @@ function resetLotForm(){
   ["lotYear","lotMake","lotModel","lotMileage","lotVin","lotSpecs","lotEngine","lotFuel","lotTransmission","lotDrive","lotSeats","lotExterior","lotInterior","lotStartingBid","lotReserve","lotDescription"].forEach(id=>$(id).value="");
   $("lotSellerApproval").checked=false;$("lotImages").value="";adminLotFiles=[];renderLotPhotoPreview();$("adminLotMsg").textContent="";
 }
-function openAddLot(){resetLotForm();$("lotDirection").value=adminSelectedDirection;$("lotTransitFields").hidden=adminSelectedDirection!=="transfer";$("adminLotOverlay").classList.add("open")}
+async function refreshTransitDestinationOptions(){
+ try{
+  const response=await fetch('/api/direction-queue?direction=transfer',{cache:'no-store'});
+  if(!response.ok)return;
+  const data=await response.json();
+  const options=$("transitDestinationOptions");
+  if(!options)return;
+  const destinations=[...new Set((data.queue||[]).map(x=>String(x.destination||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ru'));
+  options.replaceChildren(...destinations.map(name=>{const o=document.createElement('option');o.value=name;return o;}));
+ }catch(error){console.warn('Destination suggestions unavailable',error);}
+}
+function openAddLot(){resetLotForm();$("lotDirection").value=adminSelectedDirection;$("lotTransitFields").hidden=adminSelectedDirection!=="transfer";$("adminLotOverlay").classList.add("open");if(adminSelectedDirection==="transfer")refreshTransitDestinationOptions()}
 let adminVinVehicle=null;
 function openVinImport(){adminVinVehicle=null;$("adminVinInput").value="";$("adminVinMsg").textContent="";$("adminVinPreview").style.display="none";$("adminVinOverlay").classList.add("open");setTimeout(()=>$("adminVinInput").focus(),120)}
 function closeVinImport(){$("adminVinOverlay").classList.remove("open")}
