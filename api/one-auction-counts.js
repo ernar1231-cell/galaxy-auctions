@@ -22,6 +22,9 @@ module.exports=Object.assign(async(req,res)=>{
   const state=(await stateResponse.json())?.[0];
   const activeLot=state?.status==='live'?lots.find(l=>Number(l.lot_number)===Number(state.lot_id)&&l.status==='live'):null;
   const liveDirection=activeLot?directionOf(activeLot):null;
-  return res.status(200).json({counts:counts(lots),liveDirection,total:lots.length,serverNow:new Date().toISOString(),source:'auction_lots'});
+  const {sessionStart}=require('./_one-auction-schedule');
+  const now=new Date();
+  const starts=Object.fromEntries(DIRECTIONS.map(d=>[d,sessionStart(d,now).toISOString()]));
+  return res.status(200).json({counts:counts(lots),liveDirection,starts,total:lots.length,serverNow:now.toISOString(),source:'auction_lots'});
  }catch{return res.status(503).json({error:'Inventory unavailable'});}
 },{counts});
