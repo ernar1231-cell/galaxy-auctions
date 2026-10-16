@@ -44,8 +44,17 @@ module.exports=async(req,res)=>{if(req.method!=='GET'&&req.method!=='POST')retur
  const lotId=Number(state.lot_id||0);r=await sfetch(`auction_bids?lot_id=eq.${lotId}&country=neq.PB&select=user_id,username,country,amount,created_at,id&order=id.desc&limit=20`);let bids=await r.json();if(!Array.isArray(bids))bids=[];const statePrice=Number(state.current_bid||0);const exact=bids.find(b=>Number(b.amount)===statePrice);if(exact)bids=[exact,...bids.filter(b=>b!==exact)].slice(0,4);else bids=bids.slice(0,4);if(state.status==='waiting'&&lotId){const pr=await sfetch(`auction_bids?lot_id=eq.${lotId}&country=eq.PB&select=id,user_id,username,amount&order=id.desc`),rows=pr.ok?await pr.json():[],latest=new Map();for(const pb of rows||[]){const k=String(pb.user_id);if(!latest.has(k))latest.set(k,pb)}const proxy=[...latest.values()].map(x=>({...x,amount:Number(x.amount||0)})).sort((a,b)=>b.amount-a.amount||Number(b.id)-Number(a.id)),leader=proxy[0]||null,second=proxy[1]||null;if(leader){const base=Number((queue.find(x=>Number(x.lot_number)===lotId)||{}).starting_bid||state.current_bid||0),visible=Math.max(base,leader.amount);state={...state,current_bid:visible};bids=[{user_id:leader.user_id,username:leader.username,country:'',amount:visible,id:leader.id},...bids.filter(x=>String(x.user_id)!==String(leader.user_id))].slice(0,4)}}
  bids=await bidderCountries(bids);
  let lot=null;if(lotId){const lr=await sfetch(`auction_lots?lot_number=eq.${lotId}&select=*,auction_lot_images(id,image_url,is_primary,sort_order)`);const rows=await lr.json();if(lr.ok&&rows?.[0]){lot=rows[0];const images=(lot.auction_lot_images||[]).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0));delete lot.auction_lot_images;lot.images=images;lot.primary_image=(images.find(x=>x.is_primary)||images[0])?.image_url||null;}}
+ // Optional single-line cycle metadata. The legacy LIVE endpoint remains operational
+ // until the cycle migration and atomic scheduler are fully activated.
+ let unifiedCycle=null;
+ if(process.env.GALAXY_SINGLE_LINE_CYCLE_ENABLED==='true'){
+  const cr=await sfetch('galaxy_single_line_cycle?id=eq.1&select=phase,direction,next_direction,break_ends_at,completed_at');
+  if(!cr.ok)throw new Error('Single-line cycle state unavailable');
+  unifiedCycle=(await cr.json())?.[0]||null;
+  if(!unifiedCycle)throw new Error('Single-line cycle not initialized');
+ }
  const sr=await sfetch('auction_lots?select=lot_number,status');const statusRows=sr.ok?await sr.json():[];const lotStatuses=Object.fromEntries((statusRows||[]).map(x=>[String(x.lot_number),x.status]));
  all=await activeLots();queue=orderedQueue(all,state).slice(0,200);startAt=state.status==='waiting'?scheduledStart(state,nowIso):new Date(new Date(state.phase_started_at||nowIso).setUTCMinutes(0,0,0));
- res.setHeader('Cache-Control','no-store, max-age=0');res.status(200).json({serverNow:nowIso,todayQueue:queue.map(x=>Number(x.lot_number)),startAt:startAt.toISOString(),canBid:state.status==='live',state,bids:Array.isArray(bids)?bids:[],lot,lotStatuses});
+ res.setHeader('Cache-Control','no-store, max-age=0');res.status(200).json({serverNow:nowIso,todayQueue:queue.map(x=>Number(x.lot_number)),startAt:startAt.toISOString(),canBid:state.status==='live',state,bids:Array.isArray(bids)?bids:[],lot,lotStatuses,unifiedCycle});
  }catch(e){res.status(500).json({error:e.message});}}
 module.exports.orderedQueue=orderedQueue;
