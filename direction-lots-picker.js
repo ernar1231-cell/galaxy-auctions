@@ -42,10 +42,7 @@ async function openDirection(direction){
  const names={usa:'🇺🇸 АМЕРИКА',dubai:'🇦🇪 ДУБАЙ',transfer:'🚢 ТРАНЗИТ'};
  $('directionLotsListTitle').textContent=names[direction]||'ЛОТЫ';
  const root=$('directionLotsListItems');root.textContent='Загрузка автомобилей…';
- if(direction==='usa'){
-  // Keep the authoritative USA LIVE catalog and its existing click handlers intact.
-  hide(list);$('catalogOverlay')?.classList.add('open');return;
- }
+ // All three direction lists use the same direction-filtered inventory.
  try{
   const response=await fetch('/api/direction-queue?direction='+encodeURIComponent(direction),{cache:'no-store'});
   if(!response.ok)throw Error('UNAVAILABLE');
