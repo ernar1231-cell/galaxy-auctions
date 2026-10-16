@@ -1,6 +1,6 @@
 'use strict';
 const {DIRECTIONS,directionOf}=require('./_auction-direction');
-function destinationOf(lot){try{const m=String(lot.description||'').match(/\\[GALAXY_DIRECTION:(\\{[^\\n]*\\})\\]/);const v=m?JSON.parse(m[1]):{};return String(v.to||'').trim().slice(0,120);}catch{return '';}}\nconst base=()=>String(process.env.SUPABASE_URL||'').replace(/\/$/,'');
+function destinationOf(lot){try{const m=String(lot.description||'').match(/\[GALAXY_DIRECTION:(\{[^\n]*\})\]/);const v=m?JSON.parse(m[1]):{};return String(v.to||'').trim().slice(0,120);}catch{return '';}}\nconst base=()=>String(process.env.SUPABASE_URL||'').replace(/\/$/,'');
 const key=()=>process.env.SUPABASE_SERVICE_ROLE_KEY;
 async function get(path){
  const k=key();if(!k||!base())throw new Error('Database connection is not configured');
