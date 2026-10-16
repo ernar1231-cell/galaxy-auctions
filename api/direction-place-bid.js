@@ -1,5 +1,4 @@
 'use strict';
-const {requireActiveDirection}=require('./_single-line-bid-guard');
 const {verifyTelegram}=require('./_direction-telegram-auth');
 const {phaseClock}=require('./_direction-phase-clock');
 const {assertDirection,sessionCanBid,belongsToDirection}=require('./_multi-auction-core');
@@ -19,7 +18,6 @@ module.exports=async(req,res)=>{
  const lotNumber=Number(req.body?.lotNumber);
  if(!Number.isSafeInteger(lotNumber)||lotNumber<=0)return res.status(400).json({error:'Invalid lot'});
  try{
-  await requireActiveDirection(direction,base(),key());
   const [sessions,assignments,lots]=await Promise.all([
    read('galaxy_auction_sessions?direction=eq.'+direction+'&select=*'),
    read('galaxy_auction_lot_assignments?lot_number=eq.'+lotNumber+'&select=lot_number,direction'),
