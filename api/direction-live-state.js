@@ -44,6 +44,29 @@ module.exports=Object.assign(async(req,res)=>{
  let direction;
  try{direction=assertDirection(req.query?.direction)}catch{return res.status(400).json({error:'Invalid direction'});}
  if(direction==='usa')return res.status(400).json({error:'Use existing USA LIVE endpoint'});
+ if(process.env.GALAXY_LEGACY_DIRECTION_SESSIONS==='true'){}else{
+  // Unified auction: direction is only a label and inventory filter.
+  // Never advance an independent Dubai/Transit auction in a GET request.
+  try{
+   const {directionOf}=require('./_auction-direction');
+   const {sessionStart}=require('./_one-auction-schedule');
+   const [lots,states]=await Promise.all([
+    read('auction_lots?status=in.(upcoming,live)&select=*,auction_lot_images(image_url,is_primary,sort_order)'),
+    read('auction_state?id=eq.1&select=lot_id,status,phase,current_bid')
+   ]);
+   const queue=lots.filter(l=>directionOf(l)===direction).sort((a,b)=>(Number(a.sort_order)||999999)-(Number(b.sort_order)||999999)||Number(a.lot_number)-Number(b.lot_number)).map((lot,index)=>{
+    const images=(lot.auction_lot_images||[]).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0));
+    const {auction_lot_images,...fields}=lot;
+    return {...fields,display_lot_number:index+1,images,primary_image:(images.find(x=>x.is_primary)||images[0])?.image_url||null};
+   });
+   const state=states[0];
+   const current=queue.find(l=>Number(l.lot_number)===Number(state?.lot_id));
+   const enabled=Boolean(current&&state?.status==='live');
+   const now=new Date();
+   return res.status(200).json({direction,enabled,timezone:'Asia/Dubai',startAt:sessionStart(direction,now).toISOString(),serverNow:now.toISOString(),phase:enabled?state.phase:'waiting',phaseClock:{secondsRemaining:null},lotCount:queue.length,queue,currentLot:current||queue[0]||null,currentBid:enabled?state.current_bid:null,biddingAvailable:false,proxyAvailable:false,unified:true});
+  }catch{return res.status(503).json({error:'Unified direction inventory unavailable'});}
+ }
+
  try{
   const [sessions,assignments]=await Promise.all([
    read('galaxy_auction_sessions?direction=eq.'+direction+'&select=*'),
