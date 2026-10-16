@@ -1640,3 +1640,23 @@ body.mk-white #directionLotsListItems .catalogActions button {
  body.mk-white #catalogList .catalogActions button,
  body.mk-white #directionLotsListItems .catalogActions button{width:31px!important;min-width:31px!important;height:35px!important}
 }
+
+/* Live header redesign: scoped to top status row; all content below remains unchanged. */
+body.mk-white .progress #count{
+ display:inline-flex!important;align-items:center!important;justify-content:center!important;
+ padding:5px 12px!important;border-radius:999px!important;background:#123a70!important;
+ color:#fff!important;font-size:12px!important;font-weight:750!important;
+ white-space:nowrap!important;min-width:0!important;
+}
+body.mk-white .progress #liveAudienceCompact{
+ display:inline-flex!important;align-items:center!important;justify-content:center!important;
+ padding:5px 9px!important;border-radius:999px!important;background:#eef6ff!important;
+ border:1px solid #d3e4f7!important;color:#1b426e!important;font-size:11px!important;
+ font-weight:750!important;white-space:nowrap!important;
+}
+body.mk-white .progress .lotsBtn{font-size:11px!important;font-weight:750!important;white-space:nowrap!important}
+@media(max-width:390px){
+ body.mk-white .progress #count{font-size:10px!important;padding:5px 8px!important}
+ body.mk-white .progress #liveAudienceCompact{font-size:10px!important;padding:5px 7px!important}
+ body.mk-white .progress .lotsBtn{font-size:10px!important}
+}
