@@ -36,6 +36,7 @@ async function refreshRegisteredCount(){
   const c=$("registeredCount");if(c)c.textContent=visitorsTotal.toLocaleString("en-US");
   const today=Number(d.visitorsToday||0);
   const la=$("liveAudience");if(la)la.textContent=`👥 Всего участников: ${visitorsTotal.toLocaleString("en-US")} · +${today.toLocaleString("en-US")} сегодня`;
+  const compact=$("liveAudienceCompact");if(compact)compact.textContent=`👥 ${visitorsTotal.toLocaleString("en-US")}`;
   const t=$("registeredToday");if(t)t.textContent=`+${today.toLocaleString("en-US")} сегодня`;
   const pt=$("registeredTotalProfile");if(pt)pt.textContent=registeredTotal.toLocaleString("en-US");
   const ptd=$("registeredTodayProfile");if(ptd)ptd.textContent=`Сегодня зарегистрировались: +${registeredTodayCount.toLocaleString('ru-RU')}`;
@@ -338,7 +339,7 @@ function openLotDetail(idx){detailIndex=idx;const q=lots[idx];if(!q)return;const
 function render(doSubscribe=true){
  const x=lots[i];
  const qp=liveTodayQueue.indexOf(Number(x.no));
- $("count").textContent=qp>=0?`Позиция ${qp+1} из ${liveTodayQueue.length||0}`:`Позиция — из ${liveTodayQueue.length||0}`;
+ $("count").textContent="🇺🇸 Америка"; // USA remains authoritative until the unified scheduler is enabled.
  $("lot").textContent=auctionDateLabel(); $("title").textContent=x.title;
  $("chips").replaceChildren();
  $("lotsBtn").textContent=`Лоты (${liveTodayQueue.length}) ›`;
