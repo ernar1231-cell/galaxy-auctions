@@ -11,7 +11,7 @@ function close(){requestVersion++;if(overlay)overlay.classList.remove('open')}
 function open(car,index,direction){
  const version=++requestVersion;
  if(!overlay){
-  overlay=document.createElement('div');overlay.className='detailOverlay';overlay.id='directionReadonlyVehicle';
+  overlay=document.createElement('div');overlay.className='detailOverlay';overlay.id='directionReadonlyVehicle';overlay.style.zIndex='10001';
   const sheet=usa.querySelector('.detailSheet').cloneNode(true);
   const panel=sheet.querySelector('.detailBidPanel');
   if(panel)panel.innerHTML='<div class="detailBidStats"><div><span>Стартовая цена</span><strong class="directionStartingPrice">—</strong></div><div><span>Статус торгов</span><strong class="directionLiveStatus">Ожидание LIVE</strong></div><div><span>Текущая ставка</span><strong class="directionCurrentBid">—</strong></div><div><span>До начала / Осталось</span><strong class="directionRemaining">—</strong></div></div><div class="directionBidNotice">Ставки здесь пока недоступны. Участвовать можно только после подтверждённого запуска соответствующего LIVE-этапа.</div>';
@@ -105,7 +105,7 @@ list.addEventListener('click',async e=>{
     if(details.ok){const payload=await details.json();if(payload.lot)full={...car,...payload.lot};}
    }catch(err){console.warn('Full lot details unavailable',err)}
   }
-  if(list.classList.contains('open'))open(full,index);
+  if(list.classList.contains('open'))open(full,index,direction);
  }catch(err){console.warn('Unable to open direction lot',err)}
 });
 })();
