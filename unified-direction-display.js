@@ -19,8 +19,13 @@ async function tick(){
   const data=await r.json(),direction=data.displayDirection;
   if(direction==='usa'){panel.style.display='none';return}
   const q=await fetch('/api/direction-live-state?direction='+encodeURIComponent(direction),{cache:'no-store'});
-  if(!q.ok)throw Error('direction');
-  const state=await q.json(),lot=state.currentLot||state.queue?.[0];
+  let state=q.ok?await q.json():null;
+  if(!state?.currentLot&&!state?.queue?.length){
+   const fallback=await fetch('/api/direction-queue?direction='+encodeURIComponent(direction),{cache:'no-store'});
+   if(!fallback.ok)throw Error('direction queue unavailable');
+   state=await fallback.json();
+  }
+  const lot=state.currentLot||state.firstLot||state.queue?.[0];
   if(!lot)throw Error('no vehicle');
   const active=state.enabled===true&&state.biddingAvailable===true&&state.phase!=='waiting';
   // Do not hide real USA bidding UI with a fake alternative while any direction is actively bidding.
