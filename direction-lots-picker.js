@@ -88,14 +88,25 @@ async function openDirection(direction){
     if(prev)prev.count++;
     else ports.set(key,{name,count:1});
    }
+   const flagFor=name=>{
+    const n=norm(name);
+    if(['актау','aktau','ахтау','алматы','астана','атырау'].some(x=>n.includes(x)))return '🇰🇿';
+    if(['дубай','dubai','abu dhabi','абу-даби','шарджа','sharjah'].some(x=>n.includes(x)))return '🇦🇪';
+    if(['грузия','georgia','поти','poti','батуми','batumi','тбилиси','tbilisi'].some(x=>n.includes(x)))return '🇬🇪';
+    if(['сша','usa','new york','нью-йорк','лос-анджелес'].some(x=>n.includes(x)))return '🇺🇸';
+    if(['ташкент','tashkent','узбекистан'].some(x=>n.includes(x)))return '🇺🇿';
+    if(['баку','baku','азербайджан'].some(x=>n.includes(x)))return '🇦🇿';
+    if(['стамбул','istanbul','турция'].some(x=>n.includes(x)))return '🇹🇷';
+    return n==='другие'?'📍':'🚢';
+   };
    const bar=document.createElement('div');
    bar.setAttribute('aria-label','Фильтр по пункту назначения');
-   bar.style.cssText='display:flex;gap:8px;overflow-x:auto;padding:10px 12px 14px;white-space:nowrap;';
+   bar.style.cssText='display:flex;gap:6px;overflow-x:auto;padding:8px 12px 12px;white-space:nowrap;scrollbar-width:thin;-webkit-overflow-scrolling:touch;';
    const button=(name,count,key)=>{
     const b=document.createElement('button');
-    b.type='button';b.textContent=name+' ('+count+')';
+    b.type='button';b.textContent=(key==='__all__'?'':flagFor(name)+' ')+name+' ('+count+')';
     b.dataset.port=key;
-    b.style.cssText='flex:0 0 auto;border:1px solid #d5e3f3;border-radius:13px;background:#eef5fc;color:#17365b;padding:10px 13px;font-weight:700;';
+    b.style.cssText='flex:0 0 auto;border:1px solid #d5e3f3;border-radius:12px;background:#eef5fc;color:#17365b;padding:9px 11px;font-size:13px;font-weight:700;';
     return b;
    };
    bar.append(button('Все',cars.length,'__all__'));
