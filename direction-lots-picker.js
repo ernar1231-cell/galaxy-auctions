@@ -83,15 +83,16 @@ async function openDirection(direction){
    const car=cars[Number(row.dataset.directionIndex)];
    if(!car)return;
    // A catalog tap may open details; only the real shared LIVE screen accepts bids.
-   const live=await fetch('/api/one-auction-counts?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).catch(()=>null);
-   if(live?.liveDirection===direction){
-    hide(list);
-    document.getElementById('auctionDirectionUSA')?.click();
-    return;
-   }
-   hide(list);
+   // Always open the selected vehicle's details; never jump to another screen.
+   // The existing detail panel handles LIVE and pre-bid permissions.
    const opened=await window.galaxyOpenLotDetailByNumber?.(car.lot_number,car.id);
-   if(!opened)alert('Не удалось открыть автомобиль. Повторите попытку.');
+   if(opened){
+    hide(list);
+    const detail=document.getElementById('detailOverlay');
+    if(detail)detail.style.zIndex='10001';
+   }else{
+    alert('Не удалось открыть автомобиль. Повторите попытку.');
+   }
   }));
   root.querySelectorAll('[data-direction-star]').forEach(button=>button.addEventListener('click',event=>{
    event.stopPropagation();const car=cars[Number(button.dataset.directionStar)];if(!car)return;
