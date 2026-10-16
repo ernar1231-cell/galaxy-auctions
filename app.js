@@ -1147,7 +1147,17 @@ function syncAuctionDirectionUSACount(){
  }).length;
  c.textContent=String(count);
 }
-function openAuctionDirectionScreen(){closeModernScreens();setModernActive('markets');$('auctionDirectionScreen').classList.add('open');syncAuctionDirectionUSACount();}
+async function syncAllDirectionCounts(){
+ try{
+  const response=await fetch('/api/one-auction-counts?t='+Date.now(),{cache:'no-store'});
+  if(!response.ok)throw Error('Inventory unavailable');
+  const data=await response.json();
+  for(const [direction,id] of Object.entries({usa:'auctionDirectionUSACount',dubai:'auctionDirectionDubaiCount',transfer:'auctionDirectionTransferCount'})){
+   const node=$(id);if(node)node.textContent=String(data.counts?.[direction]??'—');
+  }
+ }catch(e){console.warn('Direction inventory counts unavailable',e);}
+}
+function openAuctionDirectionScreen(){closeModernScreens();setModernActive('markets');$('auctionDirectionScreen').classList.add('open');syncAllDirectionCounts();}
 
 let auctionEntryBusy=false;
 async function enterAuctionMarkets(){
