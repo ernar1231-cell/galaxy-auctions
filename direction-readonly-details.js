@@ -54,33 +54,7 @@ function open(car,index,direction){
   const active=state.enabled===true&&state.currentLot&&String(state.currentLot.id)===String(car.id);
   const phase=String(state.phase||'waiting').toLowerCase();
   const status=sheet.querySelector('.directionLiveStatus');if(status)status.textContent=active?(phase==='waiting'?'Ожидание LIVE':'LIVE · '+phase.toUpperCase()):'Ожидание LIVE';
-  const current=sheet.querySelector('.directionCurrentBid');if(current)current.textContent=active&&state.currentBid!=null?'
-list.addEventListener('click',async e=>{
- if(e.target.closest('button'))return;
- const row=e.target.closest('.directionLotsItem');if(!row||!list.contains(row))return;
- const rows=[...list.querySelectorAll('.directionLotsItem')],index=rows.indexOf(row);
- const title=document.getElementById('directionLotsListTitle')?.textContent||'';
- const direction=title.includes('ДУБАЙ')?'dubai':title.includes('ТРАНЗИТ')?'transfer':null;
- if(!direction||index<0)return;
- try{
-  const response=await fetch('/api/direction-queue?direction='+direction,{cache:'no-store'});
-  if(!response.ok)throw Error('Queue unavailable');
-  const data=await response.json();
-  if(!list.classList.contains('open'))return;
-  const car=Array.isArray(data.queue)?data.queue[index]:null;
-  if(!car)return;
-  let full=car;
-  if(car.id){
-   try{
-    const details=await fetch('/api/public-lot?id='+encodeURIComponent(car.id),{cache:'no-store'});
-    if(details.ok){const payload=await details.json();if(payload.lot)full={...car,...payload.lot};}
-   }catch(err){console.warn('Full lot details unavailable',err)}
-  }
-  if(list.classList.contains('open'))open(full,index,direction);
- }catch(err){console.warn('Unable to open direction lot',err)}
-});
-})();
-+Number(state.currentBid).toLocaleString('en-US'):'—';
+  const current=sheet.querySelector('.directionCurrentBid');if(current)current.textContent=active&&state.currentBid!=null?'$'+Number(state.currentBid).toLocaleString('en-US'):'—';
   const remaining=sheet.querySelector('.directionRemaining');if(remaining&&active&&state.phaseClock&&Number.isFinite(Number(state.phaseClock.secondsRemaining))){const sec=Math.max(0,Math.floor(Number(state.phaseClock.secondsRemaining)));remaining.textContent=String(Math.floor(sec/3600)).padStart(2,'0')+':'+String(Math.floor(sec%3600/60)).padStart(2,'0')+':'+String(sec%60).padStart(2,'0');}
  }).catch(()=>{});
 }
