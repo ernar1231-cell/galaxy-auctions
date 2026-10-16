@@ -38,11 +38,33 @@ async function openDirection(direction){
   const data=await response.json();
   if(!list.classList.contains('open')||$('directionLotsListTitle').textContent!==names[direction])return;
   const cars=Array.isArray(data.queue)?data.queue:[];
+  const schedule=new Intl.DateTimeFormat('ru-RU',{timeZone:'Asia/Dubai',day:'numeric',month:'long'}).format(new Date());
+  const heading=$('directionLotsListTitle');
+  heading.textContent=(names[direction]||'ЛОТЫ')+' · ЛОТЫ ('+cars.length+')';
   root.innerHTML=cars.length?cars.map((car,i)=>{
    const title=safe([car.make,car.model,car.year].filter(Boolean).join(' '));
    const photo=car.primary_image||car.images?.[0]?.image_url;
-   return '<div class="directionLotsItem">'+(photo?'<img src="'+safe(photo)+'" alt="'+title+'">':'')+'<div><strong>№'+(i+1)+' · '+title+'</strong><small>VIN: '+safe(car.vin||'—')+'</small><small>Стартовая цена: '+(car.starting_bid==null?'—':'$'+Number(car.starting_bid).toLocaleString('en-US'))+'</small></div></div>';
+   const miles=car.mileage==null?'—':Number(car.mileage).toLocaleString('ru-RU')+' миль';
+   const fuel=safe(car.fuel||'—');
+   const status=safe(String(car.status||'upcoming').toUpperCase());
+   const start=safe((data.local_start|| (direction==='dubai'?'17:00':'21:00')).slice(0,5));
+   const label=schedule+' · '+start;
+   const key=direction+':'+String(car.vin||car.lot_number||i);
+   const favorite=(()=>{try{return JSON.parse(localStorage.getItem('galaxy-direction-favorites-v1')||'{}')['lot:'+String(car.vin||car.lot_number||title)]===true}catch{return false}})();
+   return '<div class="directionLotsItem catalogItem" data-direction-index="'+i+'">'+(photo?'<img src="'+safe(photo)+'" alt="'+title+'">':'')+
+   '<div class="directionLotsInfo"><b>'+safe(label)+'</b><small>'+title+'</small><small>Позиция '+(i+1)+' из '+cars.length+' • '+safe(miles)+' • '+fuel+' • <strong>'+status+'</strong></small></div>'+
+   '<div class="catalogActions"><button type="button" class="starBtn'+(favorite?' on':'')+'" data-direction-star="'+i+'" aria-label="Избранное">'+(favorite?'★':'☆')+'</button><button type="button" class="catalogShareBtn" data-direction-share="'+i+'" aria-label="Поделиться">⇧</button></div></div>';
   }).join(''):'<p style="padding:18px">Автомобили пока не назначены в очередь.</p>';
+  root.querySelectorAll('[data-direction-star]').forEach(button=>button.addEventListener('click',event=>{
+   event.stopPropagation();const car=cars[Number(button.dataset.directionStar)];if(!car)return;
+   const key='lot:'+String(car.vin||car.lot_number||[car.make,car.model,car.year].filter(Boolean).join(' '));
+   try{const saved=JSON.parse(localStorage.getItem('galaxy-direction-favorites-v1')||'{}');saved[key]=!saved[key];localStorage.setItem('galaxy-direction-favorites-v1',JSON.stringify(saved));button.textContent=saved[key]?'★':'☆';button.classList.toggle('on',saved[key])}catch{}
+  }));
+  root.querySelectorAll('[data-direction-share]').forEach(button=>button.addEventListener('click',async event=>{
+   event.stopPropagation();const car=cars[Number(button.dataset.directionShare)];if(!car)return;
+   const text=[car.make,car.model,car.year].filter(Boolean).join(' ')+' · VIN: '+String(car.vin||'—');
+   try{if(navigator.share)await navigator.share({title:'Galaxy Auctions',text,url:location.origin});else if(navigator.clipboard)await navigator.clipboard.writeText(text+' '+location.origin)}catch{}
+  }));
  }catch{root.textContent='Не удалось загрузить лоты. Попробуйте позже.';}
 }
 picker.querySelectorAll('[data-lots-direction]').forEach(b=>b.addEventListener('click',()=>openDirection(b.dataset.lotsDirection)));
