@@ -73,5 +73,6 @@ async function openDirection(direction){
   }));
  }catch{root.textContent='Не удалось загрузить лоты. Попробуйте позже.';}
 }
+window.galaxyOpenDirectionLots=openDirection;
 picker.querySelectorAll('[data-lots-direction]').forEach(b=>b.addEventListener('click',()=>openDirection(b.dataset.lotsDirection)));
 })();
