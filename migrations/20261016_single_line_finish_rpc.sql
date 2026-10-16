@@ -32,6 +32,20 @@ BEGIN
      )
    )
  ) THEN RAISE EXCEPTION 'Direction still has a live lot'; END IF;
+ -- Do not end the direction while unfinished eligible lots remain.
+ IF EXISTS (
+   SELECT 1 FROM public.auction_lots l
+   WHERE l.status='upcoming' AND (
+     (p_direction='usa' AND NOT EXISTS (
+       SELECT 1 FROM public.galaxy_auction_lot_assignments a
+       WHERE a.lot_number=l.lot_number AND a.direction IN ('dubai','transfer')
+     ))
+     OR EXISTS (
+       SELECT 1 FROM public.galaxy_auction_lot_assignments a
+       WHERE a.lot_number=l.lot_number AND a.direction=p_direction
+     )
+   )
+ ) THEN RAISE EXCEPTION 'Direction still has upcoming lots'; END IF;
  following=CASE p_direction WHEN 'usa' THEN 'dubai'
    WHEN 'dubai' THEN 'transfer' ELSE NULL END;
  IF following IS NULL THEN
