@@ -3,10 +3,29 @@ const schedule=require('./_unified-live-schedule');
 module.exports=async(req,res)=>{
  res.setHeader('Cache-Control','no-store');
  if(req.method!=='GET')return res.status(405).json({error:'Method not allowed'});
- const state=schedule.resolve(new Date());
+ let state=schedule.resolve(new Date());
+ // A completed queue may preview the next direction immediately, without
+ // opening bids early. Never infer completion from an empty assignment list.
+ const baseUrl=String(process.env.SUPABASE_URL||'').replace(/\/$/,'');
+ const serviceKey=process.env.SUPABASE_SERVICE_ROLE_KEY;
+ if(state.phase==='live'&&baseUrl&&serviceKey){
+  try{
+   const headers={apikey:serviceKey,Authorization:'Bearer '+serviceKey};
+   const d=state.direction;
+   const [ar,lr]=await Promise.all([
+    fetch(baseUrl+'/rest/v1/galaxy_auction_lot_assignments?direction=eq.'+d+'&select=lot_number',{headers,cache:'no-store'}),
+    fetch(baseUrl+'/rest/v1/auction_lots?select=lot_number,status',{headers,cache:'no-store'})
+   ]);
+   if(ar.ok&&lr.ok){
+    const {completion}=require('./_unified-queue-completion');
+    const result=completion(await ar.json(),await lr.json());
+    if(result.complete)state=schedule.afterCompleted(d,new Date());
+   }
+  }catch{/* Fail closed: retain time-based direction. */}
+ }
  // Only read existing direction queues. Do not touch USA LIVE or write auction state.
  if(state.displayDirection==='usa')return res.status(200).json({mode:'simulation-preview',biddingEnabled:false,automatedSwitchingEnabled:false,timeZone:'Asia/Dubai',...state,previewLot:null});
- const base=String(process.env.SUPABASE_URL||'').replace(/\\/$/,'');
+ const base=String(process.env.SUPABASE_URL||'').replace(/\/$/,'');
  const key=process.env.SUPABASE_SERVICE_ROLE_KEY;
  if(!base||!key)return res.status(200).json({mode:'simulation-preview',biddingEnabled:false,automatedSwitchingEnabled:false,timeZone:'Asia/Dubai',...state,previewLot:null});
  try{
