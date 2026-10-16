@@ -15,6 +15,14 @@ function scheduledStart(state,now){
  const nextIndex=Math.floor((waitingSince-FIRST_AUCTION_MS)/DAY_MS)+1;
  return new Date(FIRST_AUCTION_MS+nextIndex*DAY_MS);
 }
+// Daily 13:00 Asia/Dubai start for an explicitly authorized USA cycle.
+function usaCycleStart(now){
+ const current=new Date(now);
+ if(!Number.isFinite(current.getTime()))throw new TypeError('Invalid date');
+ const local=new Date(current.getTime()+4*3600000);
+ const start=Date.UTC(local.getUTCFullYear(),local.getUTCMonth(),local.getUTCDate(),9,0,0);
+ return new Date(start);
+}
 async function activeLots(){const r=await sfetch('auction_lots?status=in.(upcoming,live)&select=id,lot_number,starting_bid,status,description,sort_order&order=sort_order.asc,lot_number.asc');if(!r.ok)return[];return ((await r.json())||[]).filter(l=>directionOf(l)==='usa')}
 function orderedQueue(rows,state){const current=Number(state?.lot_id||0);if(state?.status!=='live'||!current)return rows.slice();const selected=rows.find(x=>Number(x.lot_number)===current);return selected?[selected,...rows.filter(x=>Number(x.lot_number)!==current)]:rows.slice();}
 async function bidderCountries(bids){
@@ -37,9 +45,10 @@ module.exports=async(req,res)=>{if(req.method!=='GET'&&req.method!=='POST')retur
   if(!cycleResponse.ok)throw new Error('Unified cycle unavailable');
   const cycle=(await cycleResponse.json())?.[0];
   if(!cycle)throw new Error('Unified cycle not initialized');
+  startAt=usaCycleStart(nowIso);
   // USA may start only when it is the currently authorized direction.
   // The break and stopped states must never restart the old hourly auction.
-  canStart=canStart&&cycle.phase==='live'&&cycle.direction==='usa';
+  canStart=state.status==='waiting'&&nowMs>=startAt.getTime()&&cycle.phase==='live'&&cycle.direction==='usa';
  }
  const currentNo=Number(state.lot_id||0), currentSelected=queue.find(x=>Number(x.lot_number)===currentNo);let patch=null;
  // The full upcoming queue is available for preview, then starts on the next hour.
@@ -80,7 +89,8 @@ module.exports=async(req,res)=>{if(req.method!=='GET'&&req.method!=='POST')retur
   if(!unifiedCycle)throw new Error('Single-line cycle not initialized');
  }
  const sr=await sfetch('auction_lots?select=lot_number,status');const statusRows=sr.ok?await sr.json():[];const lotStatuses=Object.fromEntries((statusRows||[]).map(x=>[String(x.lot_number),x.status]));
- all=await activeLots();queue=orderedQueue(all,state).slice();startAt=state.status==='waiting'?scheduledStart(state,nowIso):new Date(new Date(state.phase_started_at||nowIso).setUTCMinutes(0,0,0));
+ all=await activeLots();queue=orderedQueue(all,state).slice();startAt=state.status==='waiting'?(process.env.GALAXY_SINGLE_LINE_CYCLE_ENABLED==='true'?usaCycleStart(nowIso):scheduledStart(state,nowIso)):new Date(new Date(state.phase_started_at||nowIso).setUTCMinutes(0,0,0));
  res.setHeader('Cache-Control','no-store, max-age=0');res.status(200).json({serverNow:nowIso,todayQueue:queue.map(x=>Number(x.lot_number)),startAt:startAt.toISOString(),canBid:state.status==='live',state,bids:Array.isArray(bids)?bids:[],lot,lotStatuses,unifiedCycle});
  }catch(e){res.status(500).json({error:e.message});}}
 module.exports.orderedQueue=orderedQueue;
+module.exports.usaCycleStart=usaCycleStart;
