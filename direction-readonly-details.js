@@ -1,18 +1,18 @@
-/* Read-only Dubai/Transit details. Does not alter the Lots button or direction picker. */
+/* Read-only Dubai/Transit details. USA LIVE, picker and bidding remain unchanged. */
 (function(){
 'use strict';
 const list=document.getElementById('directionLotsListOverlay');
 const usa=document.getElementById('detailOverlay');
 if(!list||!usa)return;
 let overlay=null;
-const specs=[['Пробег','mileage'],['Двигатель','engine'],['Топливо','fuel'],['Трансмиссия','transmission'],['Привод','drive'],['Салон','interior_color'],['Цвет','exterior_color'],['VIN','vin']];
-function close(){if(overlay)overlay.classList.remove('open');}
+const specs=[['Пробег','mileage'],['Двигатель','engine'],['Топливо','fuel'],['Трансмиссия','transmission'],['Привод','drive'],['Салон','interior_color'],['Цвет','exterior_color'],['VIN','vin'],['Спецификация','specification'],['Места','seats']];
+function close(){if(overlay)overlay.classList.remove('open')}
 function open(car,index){
  if(!overlay){
-  overlay=document.createElement('div');
-  overlay.className='detailOverlay';overlay.id='directionReadonlyVehicle';
+  overlay=document.createElement('div');overlay.className='detailOverlay';overlay.id='directionReadonlyVehicle';
   const sheet=usa.querySelector('.detailSheet').cloneNode(true);
-  sheet.querySelector('.detailBidPanel')?.remove();
+  const panel=sheet.querySelector('.detailBidPanel');
+  if(panel)panel.innerHTML='<div class="detailBidStats"><div><span>Стартовая цена</span><strong class="directionStartingPrice">—</strong></div><div><span>Торги</span><strong>Ожидание LIVE</strong></div></div><div class="directionBidNotice">Ставки доступны только во время соответствующего этапа единого LIVE-аукциона.</div>';
   sheet.querySelectorAll('[id]').forEach(el=>el.removeAttribute('id'));
   overlay.appendChild(sheet);document.body.appendChild(overlay);
   sheet.querySelectorAll('.sheetClose').forEach(b=>b.addEventListener('click',close));
@@ -33,11 +33,15 @@ function open(car,index){
  });
  sheet.querySelector('.detailTitle').textContent=title;
  sheet.querySelector('.detailLot').textContent='Лот № '+(index+1);
- sheet.querySelector('.detailChips').textContent='Стартовая цена: '+(car.starting_bid==null?'—':'$'+Number(car.starting_bid).toLocaleString('en-US'));
- const description=String(car.description||'').trim(),box=sheet.querySelector('details');
- if(box){box.hidden=!description;box.open=false;const p=box.querySelector('p');if(p)p.textContent=description;}
+ const price=car.starting_bid==null?'—':'$'+Number(car.starting_bid).toLocaleString('en-US');
+ sheet.querySelector('.detailChips').textContent='Стартовая цена: '+price;
+ const priceLabel=sheet.querySelector('.directionStartingPrice');if(priceLabel)priceLabel.textContent=price;
+ const description=String(car.description||'').replace(/\[GALAXY_DIRECTION:\{[^\n]*\}\]/g,'').trim();
+ const box=sheet.querySelector('details');
+ if(box){box.hidden=false;box.open=false;const paragraph=box.querySelector('p');if(paragraph)paragraph.textContent=description||'Описание автомобиля пока не добавлено в админке.';}
  const root=sheet.querySelector('.detailSpecs');root.replaceChildren();
- specs.forEach(([label,key])=>{if(car[key]==null||car[key]==='')return;
+ specs.forEach(([label,key])=>{
+  if(car[key]==null||car[key]==='')return;
   const row=document.createElement('div'),span=document.createElement('span'),strong=document.createElement('b');
   row.className='detailrow';span.textContent=label;strong.textContent=String(car[key]);
   row.append(span,strong);root.appendChild(row);
@@ -45,6 +49,7 @@ function open(car,index){
  overlay.classList.add('open');
 }
 list.addEventListener('click',async e=>{
+ if(e.target.closest('button'))return;
  const row=e.target.closest('.directionLotsItem');if(!row||!list.contains(row))return;
  const rows=[...list.querySelectorAll('.directionLotsItem')],index=rows.indexOf(row);
  const title=document.getElementById('directionLotsListTitle')?.textContent||'';
@@ -56,7 +61,15 @@ list.addEventListener('click',async e=>{
   const data=await response.json();
   if(!list.classList.contains('open'))return;
   const car=Array.isArray(data.queue)?data.queue[index]:null;
-  if(car)open(car,index);
- }catch(err){console.warn('Unable to open direction lot',err);}
+  if(!car)return;
+  let full=car;
+  if(car.id){
+   try{
+    const details=await fetch('/api/public-lot?id='+encodeURIComponent(car.id),{cache:'no-store'});
+    if(details.ok){const payload=await details.json();if(payload.lot)full={...car,...payload.lot};}
+   }catch(err){console.warn('Full lot details unavailable',err)}
+  }
+  if(list.classList.contains('open'))open(full,index);
+ }catch(err){console.warn('Unable to open direction lot',err)}
 });
 })();
