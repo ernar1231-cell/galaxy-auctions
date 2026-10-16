@@ -863,7 +863,18 @@ function resetLotForm(){
   ["lotYear","lotMake","lotModel","lotMileage","lotVin","lotSpecs","lotEngine","lotFuel","lotTransmission","lotDrive","lotSeats","lotExterior","lotInterior","lotStartingBid","lotReserve","lotDescription"].forEach(id=>$(id).value="");
   $("lotSellerApproval").checked=false;$("lotImages").value="";adminLotFiles=[];renderLotPhotoPreview();$("adminLotMsg").textContent="";
 }
-function openAddLot(){resetLotForm();$("lotDirection").value=adminSelectedDirection;$("lotTransitFields").hidden=adminSelectedDirection!=="transfer";$("adminLotOverlay").classList.add("open")}
+async function refreshTransitDestinationOptions(){
+ try{
+  const response=await fetch('/api/direction-queue?direction=transfer',{cache:'no-store'});
+  if(!response.ok)return;
+  const data=await response.json();
+  const options=$("transitDestinationOptions");
+  if(!options)return;
+  const destinations=[...new Set((data.queue||[]).map(x=>String(x.destination||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ru'));
+  options.replaceChildren(...destinations.map(name=>{const o=document.createElement('option');o.value=name;return o;}));
+ }catch(error){console.warn('Destination suggestions unavailable',error);}
+}
+function openAddLot(){resetLotForm();$("lotDirection").value=adminSelectedDirection;$("lotTransitFields").hidden=adminSelectedDirection!=="transfer";$("adminLotOverlay").classList.add("open");if(adminSelectedDirection==="transfer")refreshTransitDestinationOptions()}
 let adminVinVehicle=null;
 function openVinImport(){adminVinVehicle=null;$("adminVinInput").value="";$("adminVinMsg").textContent="";$("adminVinPreview").style.display="none";$("adminVinOverlay").classList.add("open");setTimeout(()=>$("adminVinInput").focus(),120)}
 function closeVinImport(){$("adminVinOverlay").classList.remove("open")}
