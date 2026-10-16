@@ -1157,14 +1157,15 @@ async function enterAuctionMarkets(){
  finally{auctionEntryBusy=false}
 }
 function openRegistrationDestination(){
- if(registrationDestination==='live'){closeModernScreens();document.body.classList.add('telegramLiveLaunch');setModernActive('');window.scrollTo(0,0);}
+ if(registrationDestination==='directions'){openAuctionDirectionScreen();}
+ else if(registrationDestination==='live'){closeModernScreens();document.body.classList.add('telegramLiveLaunch');setModernActive('');window.scrollTo(0,0);}
  else if(registrationDestination==='lots')openTodayLots();
  else if(registrationDestination==='markets')openAuctionMarkets();
  else openMainHome();
 }
 async function applyLaunchIntent(){
  const intent=readLaunchIntent();
- registrationDestination=intent.live?'live':(intent.lotId?'lots':'home');
+ registrationDestination=intent.live?'directions':(intent.lotId?'lots':'home');
  const ready=await sharedLotRegistrationGate();
  if(ready)openRegistrationDestination();
 }
