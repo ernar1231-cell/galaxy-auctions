@@ -33,11 +33,13 @@ module.exports=async(req,res)=>{if(req.method!=='GET'&&req.method!=='POST')retur
  let r=await sfetch('auction_state?id=eq.1&select=*');let state=(await r.json())?.[0];if(!r.ok||!state)throw new Error('Auction state unavailable');
  const nowMs=Date.now(),nowIso=new Date(nowMs).toISOString(),started=Date.parse(state.phase_started_at||state.updated_at||nowIso),age=Math.max(0,(nowMs-started)/1000),phase=String(state.phase||'red').toLowerCase();
  const slot=currentSlot(nowIso),next=nextSlot(nowIso);
- const direction=state.status==='live' ? null : slot.direction;
+ const waitingSince=Date.parse(state.phase_started_at||state.updated_at||nowIso);
+ const slotAlreadyFinished=state.status==='waiting'&&slot.direction&&Number.isFinite(waitingSince)&&waitingSince>=slot.startAt.getTime();
+ const direction=state.status==='live'?null:(slotAlreadyFinished||!slot.direction?next.direction:slot.direction);
  const currentLotDirection=state.status==='live' ? await (async()=>{const lr=await sfetch('auction_lots?lot_number=eq.'+Number(state.lot_id||0)+'&select=description');if(!lr.ok)throw Error('Active lot direction unavailable');return directionOf((await lr.json())?.[0]);})() : null;
  const activeDirection=currentLotDirection||direction;
- let all=activeDirection?await activeLots(activeDirection):[],queue=all.slice(),startAt=state.status==='waiting'?(slot.direction?slot.startAt:next.startAt):slot.startAt;
- const canStart=state.status==='waiting'&&Boolean(direction)&&nowMs>=slot.startAt.getTime();
+ let all=activeDirection?await activeLots(activeDirection):[],queue=all.slice(),startAt=state.status==='waiting'?(direction===next.direction?next.startAt:slot.startAt):slot.startAt;
+ const canStart=state.status==='waiting'&&Boolean(direction)&&!slotAlreadyFinished&&direction===slot.direction&&nowMs>=slot.startAt.getTime();
  const currentNo=Number(state.lot_id||0), currentSelected=queue.find(x=>Number(x.lot_number)===currentNo);let patch=null;
  // The full upcoming queue is available for preview, then starts on the next hour.
  if(state.status==='waiting'&&!canStart){const first=queue[0];if(first&&currentNo!==Number(first.lot_number))patch={lot_id:Number(first.lot_number),current_bid:await proxyStart(first,nowIso),phase:'wait',status:'waiting'};}
@@ -51,7 +53,14 @@ module.exports=async(req,res)=>{if(req.method!=='GET'&&req.method!=='POST')retur
  bids=await bidderCountries(bids);
  let lot=null;if(lotId){const lr=await sfetch(`auction_lots?lot_number=eq.${lotId}&select=*,auction_lot_images(id,image_url,is_primary,sort_order)`);const rows=await lr.json();if(lr.ok&&rows?.[0]){lot=rows[0];const images=(lot.auction_lot_images||[]).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0));delete lot.auction_lot_images;lot.images=images;lot.primary_image=(images.find(x=>x.is_primary)||images[0])?.image_url||null;}}
  const sr=await sfetch('auction_lots?select=lot_number,status');const statusRows=sr.ok?await sr.json():[];const lotStatuses=Object.fromEntries((statusRows||[]).map(x=>[String(x.lot_number),x.status]));
- all=await activeLots(activeDirection);queue=orderedQueue(all,state).slice();startAt=state.status==='waiting'?nextSlot(nowIso).startAt:currentSlot(nowIso).startAt;
+ all=await activeLots(activeDirection);queue=orderedQueue(all,state).slice();
+ if(state.status==='waiting'){
+  startAt=direction===next.direction?next.startAt:slot.startAt;
+  const preview=queue[0];
+  // Never show a previous direction's stale vehicle while awaiting the next slot.
+  state={...state,lot_id:preview?Number(preview.lot_number):0,
+   current_bid:preview?Number(preview.starting_bid||0):0};
+ }else startAt=slot.startAt;
  res.setHeader('Cache-Control','no-store, max-age=0');res.status(200).json({serverNow:nowIso,todayQueue:queue.map(x=>Number(x.lot_number)),startAt:startAt.toISOString(),canBid:state.status==='live',state,bids:Array.isArray(bids)?bids:[],lot,lotStatuses,direction:activeDirection||next.direction,nextDirection:next.direction});
  }catch(e){res.status(500).json({error:e.message});}}
 module.exports.orderedQueue=orderedQueue;
