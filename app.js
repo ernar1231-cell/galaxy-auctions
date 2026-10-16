@@ -839,7 +839,7 @@ function openAdminLotManage(l){
   $("adminLotManageMeta").innerHTML=`<span>${l.year||'—'} год</span><span>VIN: ${whiteEscape(l.vin||'—')}</span><span>Lot ID: ${whiteEscape(l.lot_number??l.id??'—')}</span>`;
   $("adminLotManageStatus").textContent=stLabel;$("adminLotManageStatus").className=`adminLotManageStatus ${l.status||"draft"}`;const pd=$("adminPendingDecision");if(pd){const isPending=stNow==="pending";pd.style.display=isPending?"block":"none";if(isPending){$("adminPendingWinner").textContent="🏆 Победитель: "+(l.winner_username||l.winner_user_id||"—");$("adminPendingAmount").textContent="Финальная ставка: "+adminMoney(l.winning_bid||0);}}
   $("manageMake").value=l.make||'';$("manageModel").value=l.model||'';$("manageYear").value=l.year||'';$("manageMileage").value=l.mileage??'';$("manageVin").value=l.vin||'';$("manageStarting").value=Number(l.starting_bid||0);$("manageDescription").value=l.description||'';$("manageDirection").value=adminDirectionOf(l);
-  let shipping={};try{const marker=String(l.description||'').match(/\\[GALAXY_DIRECTION:(\\{[^\\n]*\\})\\]/);shipping=marker?JSON.parse(marker[1]):{};}catch{}
+  let shipping={};try{const marker=String(l.description||'').match(/\[GALAXY_DIRECTION:(\{[^\n]*\})\]/);shipping=marker?JSON.parse(marker[1]):{};}catch{}
   $("manageTransitToField").hidden=adminDirectionOf(l)!=='transfer';
   $("manageTransitTo").value=shipping.to||'';
   if(adminDirectionOf(l)==='transfer')refreshTransitDestinationOptions();
