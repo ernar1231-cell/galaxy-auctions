@@ -15,6 +15,9 @@ module.exports=async(req,res)=>{
  if(process.env.GALAXY_DIRECTION_BIDDING_ENABLED!=='true')return res.status(503).json({code:'BIDDING_NOT_READY',error:'Direction bidding not enabled'});
  let direction;try{direction=assertDirection(req.body?.direction)}catch{return res.status(400).json({error:'Invalid direction'});}
  if(direction==='usa')return res.status(400).json({error:'Use existing USA bidding API'});
+ // Fail closed for enabled direction bidding: server time, never Telegram clock.
+ const slot=require('./_unified-live-schedule').resolve(new Date());
+ if(slot.phase!=='live'||slot.direction!==direction)return res.status(409).json({code:'OUTSIDE_AUCTION_WINDOW',error:'Торги этого направления сейчас закрыты'});
  const lotNumber=Number(req.body?.lotNumber);
  if(!Number.isSafeInteger(lotNumber)||lotNumber<=0)return res.status(400).json({error:'Invalid lot'});
  try{
