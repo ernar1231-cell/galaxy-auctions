@@ -39,7 +39,7 @@ async function refreshCounts(){
 const safe=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 async function openDirection(direction){
  hide(picker);show(list);
- const names={usa:'🇺🇸 АМЕРИКА',dubai:'🇦🇪 ДУБАЙ',transfer:'🚢 ТРАНЗИТ'};
+ const names={usa:'🇺🇸 АМЕРИКА',dubai:'🇦🇪 ДУБАЙ',transfer:'🚢 АВТО В ПУТИ'};
  $('directionLotsListTitle').textContent=names[direction]||'ЛОТЫ';
  const root=$('directionLotsListItems');root.textContent='Загрузка автомобилей…';
  // All three direction lists use the same direction-filtered inventory.
