@@ -79,7 +79,7 @@ async function openDirection(direction){
    '<div class="catalogActions"><button type="button" class="starBtn'+(favorite?' on':'')+'" data-direction-star="'+i+'" aria-label="Избранное">'+(favorite?'★':'☆')+'</button><button type="button" class="catalogShareBtn" data-direction-share="'+i+'" aria-label="Поделиться">⇧</button></div></div>';
   }).join(''):'<p style="padding:18px">Автомобили пока не назначены в очередь.</p>';
   if(direction==='transfer'){
-   const norm=v=>String(v||'').trim().replace(/\\s+/g,' ').toLocaleLowerCase('ru-RU');
+   const norm=v=>String(v||'').trim().replace(/\s+/g,' ').toLocaleLowerCase('ru-RU');
    const ports=new Map();
    for(const car of cars){
     const name=String(car.destination||'').trim()||'Другие';
