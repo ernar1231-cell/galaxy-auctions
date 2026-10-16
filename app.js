@@ -334,8 +334,20 @@ let lotViewerTouch=null;
 $('lotPhotoViewer').addEventListener('touchstart',e=>{const t=e.touches[0];lotViewerTouch=t?{x:t.clientX,y:t.clientY}:null},{passive:true});
 $('lotPhotoViewer').addEventListener('touchend',e=>{if(!lotViewerTouch)return;const t=e.changedTouches[0],dx=t.clientX-lotViewerTouch.x,dy=t.clientY-lotViewerTouch.y;lotViewerTouch=null;if(Math.abs(dx)>45&&Math.abs(dx)>Math.abs(dy)*1.2)lotViewerStep(dx<0?1:-1)},{passive:true});
 document.addEventListener('keydown',e=>{if($('lotPhotoViewer').hidden)return;if(e.key==='Escape')lotViewerClose();if(e.key==='ArrowLeft')lotViewerStep(-1);if(e.key==='ArrowRight')lotViewerStep(1)});
-window.galaxyOpenLotDetailByNumber=function(lotNumber){
- const index=lots.findIndex(l=>Number(l.no)===Number(lotNumber));
+window.galaxyOpenLotDetailByNumber=async function(lotNumber,lotId){
+ let index=lots.findIndex(l=>Number(l.no)===Number(lotNumber));
+ if(index<0&&lotId){
+  try{
+   const response=await fetch('/api/public-lot?id='+encodeURIComponent(String(lotId)),{cache:'no-store'});
+   if(response.ok){
+    const data=await response.json();
+    if(data?.lot&&Number(data.lot.lot_number)===Number(lotNumber)){
+     upsertServerLot(data.lot);
+     index=lots.findIndex(l=>Number(l.no)===Number(lotNumber));
+    }
+   }
+  }catch(error){console.warn('Could not load selected lot',error);}
+ }
  if(index<0)return false;
  openLotDetail(index);return true;
 };
