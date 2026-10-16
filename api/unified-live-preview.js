@@ -6,7 +6,7 @@ module.exports=async(req,res)=>{
  let state=schedule.resolve(new Date());
  // A completed queue may preview the next direction immediately, without
  // opening bids early. Never infer completion from an empty assignment list.
- const baseUrl=String(process.env.SUPABASE_URL||'').replace(/\\/$/,'');
+ const baseUrl=String(process.env.SUPABASE_URL||'').replace(/\/$/,'');
  const serviceKey=process.env.SUPABASE_SERVICE_ROLE_KEY;
  if(state.phase==='live'&&baseUrl&&serviceKey){
   try{
@@ -25,7 +25,7 @@ module.exports=async(req,res)=>{
  }
  // Only read existing direction queues. Do not touch USA LIVE or write auction state.
  if(state.displayDirection==='usa')return res.status(200).json({mode:'simulation-preview',biddingEnabled:false,automatedSwitchingEnabled:false,timeZone:'Asia/Dubai',...state,previewLot:null});
- const base=String(process.env.SUPABASE_URL||'').replace(/\\/$/,'');
+ const base=String(process.env.SUPABASE_URL||'').replace(/\/$/,'');
  const key=process.env.SUPABASE_SERVICE_ROLE_KEY;
  if(!base||!key)return res.status(200).json({mode:'simulation-preview',biddingEnabled:false,automatedSwitchingEnabled:false,timeZone:'Asia/Dubai',...state,previewLot:null});
  try{
