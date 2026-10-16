@@ -78,6 +78,18 @@ async function openDirection(direction){
    '<div class="directionLotsInfo"><b>'+safe(label)+'</b><small>'+title+'</small><small>Позиция '+(i+1)+' из '+cars.length+' • '+safe(miles)+' • '+fuel+' • <strong>'+status+'</strong></small></div>'+
    '<div class="catalogActions"><button type="button" class="starBtn'+(favorite?' on':'')+'" data-direction-star="'+i+'" aria-label="Избранное">'+(favorite?'★':'☆')+'</button><button type="button" class="catalogShareBtn" data-direction-share="'+i+'" aria-label="Поделиться">⇧</button></div></div>';
   }).join(''):'<p style="padding:18px">Автомобили пока не назначены в очередь.</p>';
+  root.querySelectorAll('[data-direction-index]').forEach(row=>row.addEventListener('click',async event=>{
+   if(event.target.closest('button'))return;
+   const car=cars[Number(row.dataset.directionIndex)];
+   if(!car)return;
+   // A catalog tap may open details; only the real shared LIVE screen accepts bids.
+   if(window.galaxyOpenLotDetailByNumber?.(car.lot_number))return;
+   const live=await fetch('/api/one-auction-counts?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).catch(()=>null);
+   if(live?.liveDirection===direction){
+    hide(list);
+    document.getElementById('auctionDirectionUSA')?.click();
+   }else alert('Лот доступен для просмотра. Ставки откроются во время LIVE.');
+  }));
   root.querySelectorAll('[data-direction-star]').forEach(button=>button.addEventListener('click',event=>{
    event.stopPropagation();const car=cars[Number(button.dataset.directionStar)];if(!car)return;
    const key='lot:'+String(car.vin||car.lot_number||[car.make,car.model,car.year].filter(Boolean).join(' '));
