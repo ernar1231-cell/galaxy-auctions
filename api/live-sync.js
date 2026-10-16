@@ -3,6 +3,7 @@ const SUPABASE_URL=String(process.env.SUPABASE_URL||'https://exfxcgiuotraszeqefh
 const key=()=>process.env.SUPABASE_SERVICE_ROLE_KEY;
 async function sfetch(path,opts={}){const k=key();if(!k)throw new Error('SUPABASE_SERVICE_ROLE_KEY is not configured');return fetch(SUPABASE_URL+'/rest/v1/'+path,{...opts,headers:{apikey:k,Authorization:`Bearer ${k}`,'Content-Type':'application/json',...(opts.headers||{})}})}
 const {nextAuctionTime}=require('../auction-schedule');
+const {currentSlot,nextSlot,directionQueue}=require('./_one-auction-schedule');
 const LOT_SECONDS=15,BONUS_SECONDS=15,SOLD_SECONDS=2;
 // 18:00 Dubai = 14:00 UTC. First scheduled session: 9 October 2026.
 // After a completed session enters waiting, the next session is the following day at 18:00 Dubai.
@@ -15,7 +16,7 @@ function scheduledStart(state,now){
  const nextIndex=Math.floor((waitingSince-FIRST_AUCTION_MS)/DAY_MS)+1;
  return new Date(FIRST_AUCTION_MS+nextIndex*DAY_MS);
 }
-async function activeLots(){const r=await sfetch('auction_lots?status=in.(upcoming,live)&select=id,lot_number,starting_bid,status,description,sort_order&order=sort_order.asc,lot_number.asc');if(!r.ok)return[];return ((await r.json())||[]).filter(l=>directionOf(l)==='usa')}
+async function activeLots(direction){const r=await sfetch('auction_lots?status=in.(upcoming,live)&select=id,lot_number,starting_bid,status,description,sort_order&order=sort_order.asc,lot_number.asc');if(!r.ok)throw Error('Lot queue unavailable');return directionQueue((await r.json())||[],direction)}
 function orderedQueue(rows,state){const current=Number(state?.lot_id||0);if(state?.status!=='live'||!current)return rows.slice();const selected=rows.find(x=>Number(x.lot_number)===current);return selected?[selected,...rows.filter(x=>Number(x.lot_number)!==current)]:rows.slice();}
 async function bidderCountries(bids){
  const ids=[...new Set((bids||[]).map(b=>String(b.user_id||'')).filter(Boolean))];
@@ -31,13 +32,18 @@ async function proxyStart(lot,now){const lotId=Number(lot.lot_number),base=Numbe
 module.exports=async(req,res)=>{if(req.method!=='GET'&&req.method!=='POST')return res.status(405).json({error:'Method not allowed'});try{
  let r=await sfetch('auction_state?id=eq.1&select=*');let state=(await r.json())?.[0];if(!r.ok||!state)throw new Error('Auction state unavailable');
  const nowMs=Date.now(),nowIso=new Date(nowMs).toISOString(),started=Date.parse(state.phase_started_at||state.updated_at||nowIso),age=Math.max(0,(nowMs-started)/1000),phase=String(state.phase||'red').toLowerCase();
- let all=await activeLots(),queue=all.slice(0,200),startAt=scheduledStart(state,nowIso),canStart=state.status==='waiting'&&nowMs>=startAt.getTime();
+ const slot=currentSlot(nowIso),next=nextSlot(nowIso);
+ const direction=state.status==='live' ? null : slot.direction;
+ const currentLotDirection=state.status==='live' ? await (async()=>{const lr=await sfetch('auction_lots?lot_number=eq.'+Number(state.lot_id||0)+'&select=description');if(!lr.ok)throw Error('Active lot direction unavailable');return directionOf((await lr.json())?.[0]);})() : null;
+ const activeDirection=currentLotDirection||direction;
+ let all=activeDirection?await activeLots(activeDirection):[],queue=all.slice(),startAt=state.status==='waiting'?(slot.direction?slot.startAt:next.startAt):slot.startAt;
+ const canStart=state.status==='waiting'&&Boolean(direction)&&nowMs>=slot.startAt.getTime();
  const currentNo=Number(state.lot_id||0), currentSelected=queue.find(x=>Number(x.lot_number)===currentNo);let patch=null;
  // The full upcoming queue is available for preview, then starts on the next hour.
  if(state.status==='waiting'&&!canStart){const first=queue[0];if(first&&currentNo!==Number(first.lot_number))patch={lot_id:Number(first.lot_number),current_bid:await proxyStart(first,nowIso),phase:'wait',status:'waiting'};}
- else if(!currentSelected){all=await activeLots();queue=all.slice(0,200);const first=queue[0];if(first&&canStart){await setLotStatus(first.lot_number,'live',nowIso);patch={lot_id:Number(first.lot_number),current_bid:await proxyStart(first,nowIso),phase:'red',phase_started_at:nowIso,status:'live'};}else if(state.status!=='waiting')patch={phase:'wait',phase_started_at:nowIso,status:'waiting'};}
+ else if(!currentSelected){all=await activeLots(activeDirection);queue=all.slice();const first=queue[0];if(first&&canStart){await setLotStatus(first.lot_number,'live',nowIso);patch={lot_id:Number(first.lot_number),current_bid:await proxyStart(first,nowIso),phase:'red',phase_started_at:nowIso,status:'live'};}else if(state.status!=='waiting')patch={phase:'wait',phase_started_at:nowIso,status:'waiting'};}
  else if(state.status==='waiting'&&canStart){await setLotStatus(currentSelected.lot_number,'live',nowIso);patch={lot_id:Number(currentSelected.lot_number),current_bid:await proxyStart(currentSelected,nowIso),phase:'red',phase_started_at:nowIso,status:'live'};}
- else if(state.status==='live'&&phase==='sold'&&age>=SOLD_SECONDS){let br=await sfetch(`auction_bids?lot_id=eq.${currentNo}&select=id&limit=1`),hasBid=br.ok&&((await br.json())||[]).length>0;if(hasBid){await setLotStatus(currentNo,'pending',nowIso);}else{await setLotStatus(currentNo,'draft',nowIso);}all=await activeLots();queue=all.filter(x=>Number(x.lot_number)!==currentNo).slice(0,200);const next=queue[0];if(next){await setLotStatus(next.lot_number,'live',nowIso);patch={lot_id:Number(next.lot_number),current_bid:await proxyStart(next,nowIso),phase:'red',phase_started_at:nowIso,status:'live'};}else patch={phase:'wait',phase_started_at:nowIso,status:'waiting'};}
+ else if(state.status==='live'&&phase==='sold'&&age>=SOLD_SECONDS){let br=await sfetch(`auction_bids?lot_id=eq.${currentNo}&select=id&limit=1`),hasBid=br.ok&&((await br.json())||[]).length>0;if(hasBid){await setLotStatus(currentNo,'pending',nowIso);}else{await setLotStatus(currentNo,'draft',nowIso);}all=await activeLots(activeDirection);queue=all.filter(x=>Number(x.lot_number)!==currentNo).slice();const next=queue[0];if(next){await setLotStatus(next.lot_number,'live',nowIso);patch={lot_id:Number(next.lot_number),current_bid:await proxyStart(next,nowIso),phase:'red',phase_started_at:nowIso,status:'live'};}else patch={phase:'wait',phase_started_at:nowIso,status:'waiting'};}
  else if(state.status==='live'&&!['bonus','green','sold','wait'].includes(phase)&&age>=LOT_SECONDS)patch={phase:'bonus',phase_started_at:nowIso,status:'live'};
  else if(state.status==='live'&&['bonus','green'].includes(phase)&&age>=BONUS_SECONDS)patch={phase:'sold',phase_started_at:nowIso,status:'live'};
  if(patch){const expected=encodeURIComponent(state.phase_started_at||''),q=`auction_state?id=eq.1&phase_started_at=eq.${expected}&phase=eq.${encodeURIComponent(state.phase||'')}`;r=await sfetch(q,{method:'PATCH',headers:{Prefer:'return=representation'},body:JSON.stringify({...patch,updated_at:nowIso})});const changed=await r.json();if(r.ok&&changed?.length)state=changed[0];else{r=await sfetch('auction_state?id=eq.1&select=*');state=(await r.json())?.[0]||state;}}
@@ -45,7 +51,7 @@ module.exports=async(req,res)=>{if(req.method!=='GET'&&req.method!=='POST')retur
  bids=await bidderCountries(bids);
  let lot=null;if(lotId){const lr=await sfetch(`auction_lots?lot_number=eq.${lotId}&select=*,auction_lot_images(id,image_url,is_primary,sort_order)`);const rows=await lr.json();if(lr.ok&&rows?.[0]){lot=rows[0];const images=(lot.auction_lot_images||[]).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0));delete lot.auction_lot_images;lot.images=images;lot.primary_image=(images.find(x=>x.is_primary)||images[0])?.image_url||null;}}
  const sr=await sfetch('auction_lots?select=lot_number,status');const statusRows=sr.ok?await sr.json():[];const lotStatuses=Object.fromEntries((statusRows||[]).map(x=>[String(x.lot_number),x.status]));
- all=await activeLots();queue=orderedQueue(all,state).slice(0,200);startAt=state.status==='waiting'?scheduledStart(state,nowIso):new Date(new Date(state.phase_started_at||nowIso).setUTCMinutes(0,0,0));
- res.setHeader('Cache-Control','no-store, max-age=0');res.status(200).json({serverNow:nowIso,todayQueue:queue.map(x=>Number(x.lot_number)),startAt:startAt.toISOString(),canBid:state.status==='live',state,bids:Array.isArray(bids)?bids:[],lot,lotStatuses});
+ all=await activeLots(activeDirection);queue=orderedQueue(all,state).slice();startAt=state.status==='waiting'?nextSlot(nowIso).startAt:currentSlot(nowIso).startAt;
+ res.setHeader('Cache-Control','no-store, max-age=0');res.status(200).json({serverNow:nowIso,todayQueue:queue.map(x=>Number(x.lot_number)),startAt:startAt.toISOString(),canBid:state.status==='live',state,bids:Array.isArray(bids)?bids:[],lot,lotStatuses,direction:activeDirection||next.direction,nextDirection:next.direction});
  }catch(e){res.status(500).json({error:e.message});}}
 module.exports.orderedQueue=orderedQueue;
