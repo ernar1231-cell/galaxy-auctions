@@ -32,16 +32,6 @@ module.exports=async(req,res)=>{if(req.method!=='GET'&&req.method!=='POST')retur
  let r=await sfetch('auction_state?id=eq.1&select=*');let state=(await r.json())?.[0];if(!r.ok||!state)throw new Error('Auction state unavailable');
  const nowMs=Date.now(),nowIso=new Date(nowMs).toISOString(),started=Date.parse(state.phase_started_at||state.updated_at||nowIso),age=Math.max(0,(nowMs-started)/1000),phase=String(state.phase||'red').toLowerCase();
  let all=await activeLots(),queue=all.slice(0,200),startAt=scheduledStart(state,nowIso),canStart=state.status==='waiting'&&nowMs>=startAt.getTime();
- // Opt-in only: protect new USA starts while leaving already-active bids untouched.
- if(process.env.GALAXY_UNIFIED_SCHEDULE_GUARD==='true'){
-  const schedule=require('./_unified-live-schedule').resolve(new Date(nowMs));
-  canStart=state.status==='waiting'&&schedule.phase==='live'&&schedule.direction==='usa';
-  if(state.status==='waiting'){
-   const dubaiDate=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Dubai',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(nowMs));
-   const parts=dubaiDate.split('-').map(Number);
-   if(parts.length===3&&parts.every(Number.isFinite))startAt=new Date(Date.UTC(parts[0],parts[1]-1,parts[2],9));
-  }
- }
  const currentNo=Number(state.lot_id||0), currentSelected=queue.find(x=>Number(x.lot_number)===currentNo);let patch=null;
  // The full upcoming queue is available for preview, then starts on the next hour.
  if(state.status==='waiting'&&!canStart){const first=queue[0];if(first&&currentNo!==Number(first.lot_number))patch={lot_id:Number(first.lot_number),current_bid:await proxyStart(first,nowIso),phase:'wait',status:'waiting'};}
