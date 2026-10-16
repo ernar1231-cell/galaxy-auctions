@@ -1,0 +1,10 @@
+'use strict';
+const assert=require('node:assert/strict');
+const {WINDOWS,directionForLot,directionAtDubaiTime,mayAdvance}=require('../staging/shared-auction-plan');
+assert.equal(WINDOWS.length,3);
+for(const [n,d] of [[1,'usa'],[100,'usa'],[101,'dubai'],[200,'dubai'],[201,'transfer'],[300,'transfer'],[301,null]])assert.equal(directionForLot(n),d);
+for(const [iso,d] of [['2026-10-15T09:00:00Z','usa'],['2026-10-15T13:00:00Z','dubai'],['2026-10-15T17:00:00Z','transfer'],['2026-10-15T21:00:00Z',null]])assert.equal(directionAtDubaiTime(iso),d);
+assert.equal(mayAdvance({currentDirection:'usa',completedLot:100,serverConfirmedClosed:false}),false);
+assert.equal(mayAdvance({currentDirection:'usa',completedLot:100,serverConfirmedClosed:true}),true);
+assert.equal(mayAdvance({currentDirection:'dubai',completedLot:199,serverConfirmedClosed:true}),false);
+console.log('Staging schedule checks passed');
