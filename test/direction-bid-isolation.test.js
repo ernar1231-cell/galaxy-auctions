@@ -18,7 +18,7 @@ async function run(direction,session,assignmentDirection='dubai',lotDirection='d
   else throw Error('Unexpected table');
   return {ok:true,json:async()=>data};
  };
- const sandbox={require:(name)=>{if(name==='./_multi-auction-core')return core;if(name==='./_direction-telegram-auth')return {verifyTelegram:()=>null};if(name==='./_direction-phase-clock')return clock;if(name==='./_unified-live-schedule')return {resolve:()=>({phase:'live',direction:'dubai'})};throw Error('Unexpected module '+name);},module:{exports:{}},process:{env:{SUPABASE_URL:'https://database.invalid',SUPABASE_SERVICE_ROLE_KEY:'test',GALAXY_DIRECTION_BIDDING_ENABLED:'true'}},fetch,URL};
+ const sandbox={require:(name)=>{if(name==='./_multi-auction-core')return core;if(name==='./_direction-telegram-auth')return {verifyTelegram:()=>null};if(name==='./_direction-phase-clock')return clock;throw Error('Unexpected module '+name);},module:{exports:{}},process:{env:{SUPABASE_URL:'https://database.invalid',SUPABASE_SERVICE_ROLE_KEY:'test',GALAXY_DIRECTION_BIDDING_ENABLED:'true'}},fetch,URL};
  vm.runInNewContext(source,sandbox);
  let status=0,body=null;
  const res={setHeader(){},status(n){status=n;return this;},json(data){body=JSON.parse(JSON.stringify(data));return this;}};
