@@ -17,7 +17,8 @@ const patch={make:String(b.make||'').trim(),model:String(b.model||'').trim(),yea
  const raw=String(old.description||'');
  const tag=raw.match(/\[GALAXY_DIRECTION:\{[^\n]*\}\]/);
  const edited=String(b.description||'').replace(/\[GALAXY_DIRECTION:\{[^\n]*\}\]/g,'').trim();
- const metadata=direction===null?(tag?.[0]||''):'[GALAXY_DIRECTION:'+JSON.stringify({direction})+']';
+ let previous={};try{previous=tag?JSON.parse(tag[0].slice('[GALAXY_DIRECTION:'.length,-1)):{};}catch{}
+ const metadata='[GALAXY_DIRECTION:'+JSON.stringify({...previous,...(direction===null?{}:{direction})})+']';
  return [edited,metadata].filter(Boolean).join('\n')||null;
 })(),updated_at:new Date().toISOString()};if(!patch.make||!patch.model)return res.status(400).json({error:'Марка и модель обязательны'});r=await sf(`auction_lots?id=eq.${encodeURIComponent(id)}`,{method:'PATCH',headers:{Prefer:'return=representation'},body:JSON.stringify(patch)});const rows=await r.json();if(!r.ok)throw Error(rows?.message||'Could not update lot');if(direction!==null){const number=Number(old.lot_number);const assignment=await sf('galaxy_auction_lot_assignments?on_conflict=lot_number',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({lot_number:number,direction,queue_position:number,updated_at:new Date().toISOString()})});if(!assignment.ok)return res.status(502).json({error:'Lot saved, but queue assignment failed. Retry saving.'});}
 res.status(200).json({lot:rows[0]})}catch(e){res.status(500).json({error:e.message})}}
