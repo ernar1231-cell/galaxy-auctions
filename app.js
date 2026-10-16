@@ -339,7 +339,7 @@ function openLotDetail(idx){detailIndex=idx;const q=lots[idx];if(!q)return;const
 function render(doSubscribe=true){
  const x=lots[i];
  const qp=liveTodayQueue.indexOf(Number(x.no));
- $("count").textContent=({"usa":"🇺🇸 Америка","dubai":"🇦🇪 Дубай","transfer":"🚢 Транзит"})[window.galaxyLiveDirection||"usa"];
+ $("count").textContent=({"usa":"🇺🇸 Америка","dubai":"🇦🇪 Дубай","transfer":"🚢 Авто в пути"})[window.galaxyLiveDirection||"usa"];
  $("lot").textContent=auctionDateLabel(); $("title").textContent=x.title;
  $("chips").replaceChildren();
  $("lotsBtn").textContent=`Лоты (${liveTodayQueue.length}) ›`;
@@ -961,7 +961,7 @@ fetchAuctionState().then(()=>{
       if(r.ok){const snap=await r.json();syncServerClock(snap.serverNow,requestStarted);
         if(snap.direction&&window.galaxyLiveDirection!==snap.direction){
           window.galaxyLiveDirection=snap.direction;
-          const label=$("count");if(label)label.textContent=({"usa":"🇺🇸 Америка","dubai":"🇦🇪 Дубай","transfer":"🚢 Транзит"})[snap.direction]||"🇺🇸 Америка";
+          const label=$("count");if(label)label.textContent=({"usa":"🇺🇸 Америка","dubai":"🇦🇪 Дубай","transfer":"🚢 Авто в пути"})[snap.direction]||"🇺🇸 Америка";
         }
         if(snap.lotStatuses){managedLotStatuses=snap.lotStatuses;renderCatalog();renderWatchlist();syncAuctionDirectionUSACount();} if(snap.startAt){galaxyStartAt=snap.startAt;const al=$("lot");if(al)al.textContent=auctionDateLabel();} if(Array.isArray(snap.todayQueue)){liveTodayQueue=snap.todayQueue.map(Number); const lb=$("lotsBtn");if(lb)lb.textContent=`Лоты (${liveTodayQueue.length}) ›`;renderCatalog();syncAuctionDirectionUSACount();}
         if(snap.state){
