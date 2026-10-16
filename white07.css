@@ -1660,3 +1660,40 @@ body.mk-white .progress .lotsBtn{font-size:11px!important;font-weight:750!import
  body.mk-white .progress #liveAudienceCompact{font-size:10px!important;padding:5px 7px!important}
  body.mk-white .progress .lotsBtn{font-size:10px!important}
 }
+
+/* Final compact LIVE header: only country, total visitors and Lots. */
+body.mk-white .progress{
+ display:grid!important;
+ grid-template-columns:minmax(104px,1fr) auto auto!important;
+ align-items:center!important;justify-content:initial!important;
+ gap:8px!important;height:auto!important;min-height:43px!important;
+ padding:4px 12px!important;box-sizing:border-box!important;
+ overflow:visible!important;
+}
+body.mk-white .progress #lot{
+ grid-column:1!important;grid-row:1!important;
+ min-width:0!important;max-width:100%!important;
+ font-size:10px!important;line-height:1.25!important;
+ overflow-wrap:normal!important;white-space:normal!important;
+}
+body.mk-white .progress #count{
+ grid-column:2!important;grid-row:1!important;
+ min-width:max-content!important;flex-shrink:0!important;
+ padding:6px 10px!important;font-size:11px!important;
+}
+body.mk-white .progress #liveAudienceCompact{
+ grid-column:3!important;grid-row:1!important;
+ min-width:max-content!important;padding:6px 10px!important;
+ font-size:11px!important;
+}
+body.mk-white .progress .lotsBtn{
+ grid-column:1 / -1!important;grid-row:2!important;
+ justify-self:end!important;margin-top:-1px!important;
+ padding:2px 8px!important;min-height:20px!important;
+ font-size:11px!important;
+}
+body.mk-white .progress #liveAudience{display:none!important}
+@media(min-width:430px){
+ body.mk-white .progress{grid-template-columns:minmax(105px,1fr) auto auto auto!important}
+ body.mk-white .progress .lotsBtn{grid-column:4!important;grid-row:1!important;margin:0!important}
+}
