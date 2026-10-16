@@ -5,12 +5,12 @@ const picker=fs.readFileSync(require.resolve('../direction-lots-picker.js'),'utf
 const create=fs.readFileSync(require.resolve('../api/admin-create-lot'),'utf8');
 const edit=fs.readFileSync(require.resolve('../api/admin-update-lot'),'utf8');
 test('transit port filtering uses existing destination metadata',()=>{
- assert.match(queue,/destinationOf\\(l\\)/);
- assert.match(queue,/direction==='transfer'/);
- assert.match(picker,/car\\.destination/);
- assert.match(picker,/data-direction-index/);
+ assert.ok(queue.includes('destinationOf(l)'));
+ assert.ok(queue.includes("direction==='transfer'"));
+ assert.ok(picker.includes('car.destination'));
+ assert.ok(picker.includes('data-direction-index'));
 });
 test('new lots store destination and edits preserve metadata',()=>{
- assert.match(create,/to:String\\(transit\\.to/);
- assert.match(edit,/\\.\\.\\.previous/);
+ assert.ok(create.includes('to:String(transit.to'));
+ assert.ok(edit.includes('...previous'));
 });
