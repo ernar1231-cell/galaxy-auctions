@@ -41,6 +41,23 @@ module.exports=async(req,res)=>{if(req.method!=='GET'&&req.method!=='POST')retur
  else if(state.status==='live'&&!['bonus','green','sold','wait'].includes(phase)&&age>=LOT_SECONDS)patch={phase:'bonus',phase_started_at:nowIso,status:'live'};
  else if(state.status==='live'&&['bonus','green'].includes(phase)&&age>=BONUS_SECONDS)patch={phase:'sold',phase_started_at:nowIso,status:'live'};
  if(patch){const expected=encodeURIComponent(state.phase_started_at||''),q=`auction_state?id=eq.1&phase_started_at=eq.${expected}&phase=eq.${encodeURIComponent(state.phase||'')}`;r=await sfetch(q,{method:'PATCH',headers:{Prefer:'return=representation'},body:JSON.stringify({...patch,updated_at:nowIso})});const changed=await r.json();if(r.ok&&changed?.length)state=changed[0];else{r=await sfetch('auction_state?id=eq.1&select=*');state=(await r.json())?.[0]||state;}}
+ // When the final USA lot has settled, persist the exact completion time.
+ // The guarded SQL function rejects unfinished lots and duplicate transitions.
+ if(process.env.GALAXY_SINGLE_LINE_CYCLE_ENABLED==='true'&&state.status==='waiting'){
+  const cycleRead=await sfetch('galaxy_single_line_cycle?id=eq.1&select=phase,direction');
+  if(!cycleRead.ok)throw new Error('Cycle read unavailable');
+  const cycle=(await cycleRead.json())?.[0];
+  if(!cycle)throw new Error('Cycle not initialized');
+  if(cycle.phase==='live'&&cycle.direction==='usa'){
+   const pending=await activeLots();
+   if(pending.length===0){
+    const finished=await sfetch('rpc/galaxy_cycle_finish_direction',{
+     method:'POST',body:JSON.stringify({p_direction:'usa',p_finished_at:nowIso})
+    });
+    if(!finished.ok)throw new Error('USA cycle completion failed');
+   }
+  }
+ }
  const lotId=Number(state.lot_id||0);r=await sfetch(`auction_bids?lot_id=eq.${lotId}&country=neq.PB&select=user_id,username,country,amount,created_at,id&order=id.desc&limit=20`);let bids=await r.json();if(!Array.isArray(bids))bids=[];const statePrice=Number(state.current_bid||0);const exact=bids.find(b=>Number(b.amount)===statePrice);if(exact)bids=[exact,...bids.filter(b=>b!==exact)].slice(0,4);else bids=bids.slice(0,4);if(state.status==='waiting'&&lotId){const pr=await sfetch(`auction_bids?lot_id=eq.${lotId}&country=eq.PB&select=id,user_id,username,amount&order=id.desc`),rows=pr.ok?await pr.json():[],latest=new Map();for(const pb of rows||[]){const k=String(pb.user_id);if(!latest.has(k))latest.set(k,pb)}const proxy=[...latest.values()].map(x=>({...x,amount:Number(x.amount||0)})).sort((a,b)=>b.amount-a.amount||Number(b.id)-Number(a.id)),leader=proxy[0]||null,second=proxy[1]||null;if(leader){const base=Number((queue.find(x=>Number(x.lot_number)===lotId)||{}).starting_bid||state.current_bid||0),visible=Math.max(base,leader.amount);state={...state,current_bid:visible};bids=[{user_id:leader.user_id,username:leader.username,country:'',amount:visible,id:leader.id},...bids.filter(x=>String(x.user_id)!==String(leader.user_id))].slice(0,4)}}
  bids=await bidderCountries(bids);
  let lot=null;if(lotId){const lr=await sfetch(`auction_lots?lot_number=eq.${lotId}&select=*,auction_lot_images(id,image_url,is_primary,sort_order)`);const rows=await lr.json();if(lr.ok&&rows?.[0]){lot=rows[0];const images=(lot.auction_lot_images||[]).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0));delete lot.auction_lot_images;lot.images=images;lot.primary_image=(images.find(x=>x.is_primary)||images[0])?.image_url||null;}}
