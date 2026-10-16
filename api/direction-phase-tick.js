@@ -29,13 +29,14 @@ module.exports=async(req,res)=>{
    return res.status(200).json({dryRun:true,checked:sessions.length,sessions:sessions.map(s=>({direction:s.direction,enabled:s.enabled===true,phase:s.phase,transitionDue:nextPhase(s)!==null}))});
   }
   const errors=[];
-  const schedule=require('./_unified-live-schedule').resolve(new Date());
+  const enforceSchedule=process.env.GALAXY_UNIFIED_WORKER_GUARD==='true';
+  const schedule=enforceSchedule?require('./_unified-live-schedule').resolve(new Date()):null;
   for(const session of sessions){
    try{
    // Never arm or advance another direction while outside its scheduled window.
    // Active sessions outside their window are reported for reconciliation, not
    // silently marked sold or switched to a different lot.
-   if(schedule.phase!=='live'||schedule.direction!==session.direction){
+   if(enforceSchedule&&(schedule.phase!=='live'||schedule.direction!==session.direction)){
     if(session.enabled===true)errors.push({direction:session.direction,error:'ACTIVE_OUTSIDE_SCHEDULE_REQUIRES_RECONCILIATION'});
     continue;
    }
