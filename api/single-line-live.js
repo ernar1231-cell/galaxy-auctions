@@ -28,6 +28,14 @@ module.exports=async(req,res)=>{
   ]);
   const session=sessions[0];
   if(!session||session.enabled!==true)throw Error('Active session unavailable');
+  // Never display a direction as LIVE when the legacy USA auction or
+  // another direction is active. Fail closed instead of showing conflicting lots.
+  const [usaState,otherSessions]=await Promise.all([
+   read('auction_state?id=eq.1&select=status'),
+   read('galaxy_auction_sessions?enabled=eq.true&select=direction')
+  ]);
+  if(usaState[0]?.status==='live'||otherSessions.some(s=>s.direction!==cycle.direction))
+   throw Error('Conflicting live auction');
   const {directionOf}=require('./_auction-direction');
   const allowed=new Set(assignments.map(a=>Number(a.lot_number)));
   const current=lots.find(l=>Number(l.lot_number)===Number(session.current_lot_number)&&allowed.has(Number(l.lot_number))&&directionOf(l)===cycle.direction);
