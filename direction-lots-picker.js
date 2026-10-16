@@ -70,7 +70,7 @@ async function openDirection(direction){
    const fuel=safe(car.fuel||'—');
    const status=safe(String(car.status||'upcoming').toUpperCase());
    const rawStart=String(data.local_start||'');
-   const start=safe(/^\\d{4}-/.test(rawStart)?new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Dubai',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date(rawStart)):(rawStart.slice(0,5)||({usa:'13:00',dubai:'17:00',transfer:'21:00'})[direction]));
+   const start=safe(/^\d{4}-/.test(rawStart)?new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Dubai',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date(rawStart)):(rawStart.slice(0,5)||({usa:'13:00',dubai:'17:00',transfer:'21:00'})[direction]));
    const label=schedule+' · '+start;
    const key=direction+':'+String(car.vin||car.lot_number||i);
    const favorite=(()=>{try{return JSON.parse(localStorage.getItem('galaxy-direction-favorites-v1')||'{}')['lot:'+String(car.vin||car.lot_number||title)]===true}catch{return false}})();
@@ -79,7 +79,7 @@ async function openDirection(direction){
    '<div class="catalogActions"><button type="button" class="starBtn'+(favorite?' on':'')+'" data-direction-star="'+i+'" aria-label="Избранное">'+(favorite?'★':'☆')+'</button><button type="button" class="catalogShareBtn" data-direction-share="'+i+'" aria-label="Поделиться">⇧</button></div></div>';
   }).join(''):'<p style="padding:18px">Автомобили пока не назначены в очередь.</p>';
   if(direction==='transfer'){
-   const norm=v=>String(v||'').trim().replace(/\\s+/g,' ').toLocaleLowerCase('ru-RU');
+   const norm=v=>String(v||'').trim().replace(/\s+/g,' ').toLocaleLowerCase('ru-RU');
    const ports=new Map();
    for(const car of cars){
     const name=String(car.destination||'').trim()||'Другие';
