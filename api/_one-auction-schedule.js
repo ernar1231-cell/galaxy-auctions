@@ -45,7 +45,9 @@ function nextSlot(now=new Date()){
   const at=day+minutes[direction]*60000;
   if(ms<at)return {direction,startAt:new Date(at)};
  }
- return {direction:'usa',startAt:new Date(day+86400000+scheduleMinutes(day+86400000).usa*60000)};
+ const tomorrow=day+86400000;
+ const nextDay=new Date(tomorrow+4*3600000).toISOString().slice(0,10)===POSTPONED_DAY?tomorrow+86400000:tomorrow;
+ return {direction:'usa',startAt:new Date(nextDay+scheduleMinutes(nextDay).usa*60000)};
 }
 function directionQueue(lots,direction){
  if(!ORDER.includes(direction))throw new Error('Invalid direction');
