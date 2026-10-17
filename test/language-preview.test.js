@@ -12,7 +12,7 @@ test('english dictionary includes auction, logistics and admin terms',()=>{
 test('English preview includes bid, buyout and admin labels without translating vehicle data',()=>{
  const s=fs.readFileSync(require.resolve('../language-preview.js'),'utf8');
  for(const key of ['КУПИТЬ СЕЙЧАС','СДЕЛАТЬ СТАВКУ','УДАЛИТЬ НАВСЕГДА','Поиск по марке, модели или VIN'])assert.ok(s.includes(key));
- assert.ok(s.includes('.adminLotCard,.carcol,.bidcol'));
+ assert.ok(s.includes('.adminLotCard'));
 });
 
 test('language picker labels stay readable and shipping terms are translated',()=>{

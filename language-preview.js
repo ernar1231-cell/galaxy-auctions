@@ -56,26 +56,76 @@
  'Участники':'Participants','Участников':'Participants',
  'до окончания':'remaining','Бонусный тайм':'Bonus Time',
  'ВЫ ЛИДИРУЕТЕ!':'YOU ARE LEADING!',
- 'История':'History','Настройки':'Settings'
+ 'История':'History','Настройки':'Settings',
+ 'Избранное':'Favorites','Отслеживание':'Tracking','Документы':'Documents',
+ 'Документы пока отсутствуют.':'No documents available yet.',
+ 'Описание авто':'Vehicle Description','АВТОМОБИЛЬ':'VEHICLE',
+ 'Ваша максимальная ставка':'Your Maximum Bid',
+ 'Выберите направление':'Choose Direction','ВЫБЕРИТЕ НАПРАВЛЕНИЕ':'CHOOSE DIRECTION',
+ 'Три мира. Одни возможности.':'Three worlds. One opportunity.',
+ 'Автомобили из Америки':'Cars from America','Автомобили в Дубае':'Cars in Dubai',
+ 'Машины в доставке':'Vehicles in Transit','Лотов:':'Lots:',
+ 'АУКЦИОН США':'USA AUCTION','АУКЦИОН ДУБАЙ':'DUBAI AUCTION',
+ 'Клиенты':'Clients','Авто':'Cars','Профиль':'Profile',
+ 'ПРЕМИАЛЬНЫЕ АВТО':'PREMIUM VEHICLES',
+ 'НА МИРОВЫХ АУКЦИОНАХ':'AT GLOBAL AUCTIONS',
+ 'Перейти к аукционам':'Explore Auctions',
+ 'Новости автомира':'Automotive News','Новинки мира':'Global Highlights',
+ 'Продано сегодня':'Sold Today','Полезные сервисы':'Useful Services',
+ 'Все сервисы':'All Services','Популярное сегодня':'Popular Today',
+ 'Смотреть все':'View All','Калькулятор':'Calculator',
+ 'Растаможка':'Customs Clearance','Проверка VIN':'VIN Check',
+ 'Новая модель':'New Model','МИРОВОЙ РЫНОК':'GLOBAL MARKET',
+ 'Завтра':'Tomorrow','Звук выключен':'Sound Off',
+ 'Звук включён':'Sound On','Ожидаем данные':'Waiting for Data',
+ 'до начала аукциона':'until auction starts',
+ 'до окончания аукциона':'until auction ends',
+ 'Текущая ставка':'Current Bid',
+ 'Всего':'Total','Предстоящие':'Upcoming',
+ 'Ожидают решения':'Awaiting Decision','Проданные':'Sold',
+ 'В наличии':'Available','Зарегистрировано в Galaxy Auctions':'Registered with Galaxy Auctions',
+ 'Избранное 0':'Favorites 0','Отслеживание 0':'Tracking 0','Документы 0':'Documents 0',
+ 'Документы пока отсутствуют.':'No documents available yet.',
+ 'Клиенты':'Clients','Авто':'Cars',
+ 'ПРЕМИАЛЬНЫЕ АВТО':'PREMIUM CARS',
+ 'Три мира. Одни возможности.':'Three worlds. One opportunity.',
+ 'Полная стоимость':'Total Cost','Доставка по миру':'Worldwide Shipping',
+ 'Пошлины и сборы':'Duties and Fees','История и отчёты':'History and Reports'
  };
- const nodes='button,span,b,small,label,h1,h2,h3,p,option';
+ const nodes='button,span,b,small,label,h1,h2,h3,p,option,div';
+ const navigation={'home':{'ru':'Главная','en':'Home'},'markets':{'ru':'Аукционы','en':'Auctions'},'bids':{'ru':'Мои авто','en':'My Cars'},'profile':{'ru':'Профиль','en':'Profile'}};
+ function updateNavigation(lang){document.querySelectorAll('#modernBottomNav button[data-modern]').forEach(button=>{const label=navigation[button.dataset.modern];if(!label)return;for(const node of button.childNodes){if(node.nodeType===3&&node.textContent.trim()){node.textContent=label[lang];break;}}button.setAttribute('aria-label',label[lang]);});}
  const placeholders={'Поиск по марке, модели или VIN':'Search by make, model or VIN','Выберите порт':'Select port','Выберите страну':'Select country'};
  const originalPlaceholder=new WeakMap();
  const original=new WeakMap();
+ const patterns=[
+  [/^(❤️\\s*)Избранное(\\s*\\d+)$/,'$1Favorites$2'],
+  [/^(⏳\\s*)Ожидает подтверждения(\\s*\\d+)$/,'$1Awaiting Confirmation$2'],
+  [/^(🚢\\s*)Отслеживание(\\s*\\d+)$/,'$1Tracking$2'],
+  [/^(📄\\s*)Документы(\\s*\\d+)$/,'$1Documents$2'],
+  [/^Лотов:\\s*(\\d+)$/,'Lots: $1'],
+  [/^Всего\\s+(\\d+)$/,'Total $1']
+ ];
+ function translatePattern(source,lang){
+  if(lang!=='en')return source;
+  for(const [re,value] of patterns)if(re.test(source))return source.replace(re,value);
+  return source;
+ }
  function current(){const v=typeof window.galaxySelectedLanguage==='function'?window.galaxySelectedLanguage():'ru';return v==='en'?'en':'ru'}
  function translate(root=document){
   const lang=current();document.documentElement.lang=lang==='en'?'en':'ru';
+  updateNavigation(lang);
   root.querySelectorAll('input[placeholder],textarea[placeholder]').forEach(el=>{if(!originalPlaceholder.has(el))originalPlaceholder.set(el,el.getAttribute('placeholder'));const source=originalPlaceholder.get(el);if(Object.hasOwn(placeholders,source))el.setAttribute('placeholder',lang==='en'?placeholders[source]:source);});
   root.querySelectorAll(nodes).forEach(el=>{
-   if(el.closest('input,textarea,[contenteditable],.adminLotCard,.carcol,.bidcol,[data-profile-language],#modernProfileLanguage'))return;
+   if(el.closest('input,textarea,[contenteditable],.adminLotCard,[data-profile-language],#modernProfileLanguage'))return;
+   if(el.matches('div')&&!el.classList.contains('circleLabel')&&!el.classList.contains('circleSub'))return;
    if(el.children.length)return;
    const text=el.textContent||'',trim=text.trim();
    if(!original.has(el))original.set(el,trim);
    const source=original.get(el);
    if(trim!==source&&trim!==dictionary[source]){original.set(el,trim);}
    const key=original.get(el);
-   if(!Object.prototype.hasOwnProperty.call(dictionary,key))return;
-   const next=lang==='en'?dictionary[key]:key;
+   const next=Object.prototype.hasOwnProperty.call(dictionary,key)?(lang==='en'?dictionary[key]:key):translatePattern(key,lang);
    if(trim!==next)el.textContent=next;
   });
  }
