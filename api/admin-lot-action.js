@@ -4,7 +4,29 @@ function verifyTelegram(initData,botToken){const token=String(botToken||'').trim
 const base=()=>String(process.env.SUPABASE_URL||'https://exfxcgiuotraszeqefha.supabase.co').replace(/\/$/,'');const key=()=>process.env.SUPABASE_SERVICE_ROLE_KEY;
 async function sfetch(path,opts={}){const k=key();if(!k)throw new Error('SUPABASE_SERVICE_ROLE_KEY is not configured');return fetch(base()+'/rest/v1/'+path,{...opts,headers:{apikey:k,Authorization:`Bearer ${k}`,'Content-Type':'application/json',...(opts.headers||{})}})}
 async function requireAdmin(user){const r=await sfetch(`auction_users?telegram_id=eq.${encodeURIComponent(String(user.id))}&is_admin=eq.true&select=telegram_id`);const a=await r.json();return r.ok&&Array.isArray(a)&&a.length>0}
-module.exports=async(req,res)=>{if(req.method!=='POST')return res.status(405).json({error:'Method not allowed'});const vr=verifyTelegram(req.body?.initData,process.env.TELEGRAM_BOT_TOKEN);if(!vr.ok)return res.status(401).json({error:vr.error});try{if(!await requireAdmin(vr.user))return res.status(403).json({error:'Admin access required'});const lotId=String(req.body?.lotId||''),action=String(req.body?.action||'');if(!lotId||!['live','upcoming','archive','withdraw'].includes(action))return res.status(400).json({error:'Invalid lot action'});let r=await sfetch(`auction_lots?id=eq.${encodeURIComponent(lotId)}&select=id,lot_number,starting_bid,status,description`);const lot=(await r.json())?.[0];if(!r.ok||!lot)return res.status(404).json({error:'Lot not found'});if(action==='live'){const match=String(lot.description||'').match(/\[GALAXY_DIRECTION:(\{[^\n]*\})\]/);let dir='usa';try{dir=match?JSON.parse(match[1]).direction||'usa':'usa'}catch{}if(dir!=='usa')return res.status(409).json({error:'This lot belongs to another auction'});}
+module.exports=async(req,res)=>{if(req.method!=='POST')return res.status(405).json({error:'Method not allowed'});const vr=verifyTelegram(req.body?.initData,process.env.TELEGRAM_BOT_TOKEN);if(!vr.ok)return res.status(401).json({error:vr.error});try{if(!await requireAdmin(vr.user))return res.status(403).json({error:'Admin access required'});const lotId=String(req.body?.lotId||''),action=String(req.body?.action||'');if(!lotId||!['live','upcoming','archive','withdraw','remove_from_list'].includes(action))return res.status(400).json({error:'Invalid lot action'});let r=await sfetch(`auction_lots?id=eq.${encodeURIComponent(lotId)}&select=id,lot_number,starting_bid,status,description`);const lot=(await r.json())?.[0];if(!r.ok||!lot)return res.status(404).json({error:'Lot not found'});if(action==='live'){const match=String(lot.description||'').match(/\[GALAXY_DIRECTION:(\{[^\n]*\})\]/);let dir='usa';try{dir=match?JSON.parse(match[1]).direction||'usa':'usa'}catch{}if(dir!=='usa')return res.status(409).json({error:'This lot belongs to another auction'});}
+if(action==='remove_from_list'){
+ const status=String(lot.status||'').toLowerCase();
+ if(!['draft','upcoming'].includes(status))return res.status(409).json({error:'Активные или завершённые торги нельзя убрать из списка этим действием'});
+ const stateResponse=await sfetch('auction_state?id=eq.1&select=lot_id,status');
+ if(!stateResponse.ok)return res.status(502).json({error:'Не удалось проверить активный аукцион'});
+ const state=(await stateResponse.json())?.[0];
+ if(Number(state?.lot_id)===Number(lot.lot_number)&&String(state?.status||'').toLowerCase()==='live')return res.status(409).json({error:'Текущий LIVE-лот нельзя убрать'});
+ const bidsResponse=await sfetch('auction_bids?lot_id=eq.'+encodeURIComponent(String(lot.lot_number))+'&select=id&limit=1');
+ if(!bidsResponse.ok)return res.status(502).json({error:'Не удалось проверить историю ставок'});
+ const hasBids=(await bidsResponse.json()).length>0;
+ const reason=String(req.body?.reason||'').trim();
+ if(!['Продан до аукциона','Снят с продажи'].includes(reason))return res.status(400).json({error:'Выберите причину'});
+ const now=new Date().toISOString();
+ const description=String(lot.description||'').replace(/\n?\[GALAXY_WITHDRAWN:[^\n]*\]/g,'')+'\n[GALAXY_WITHDRAWN:'+JSON.stringify({reason,at:now,hasBids})+']';
+ const response=await sfetch('auction_lots?id=eq.'+encodeURIComponent(lotId)+'&status=eq.'+encodeURIComponent(status),{method:'PATCH',headers:{Prefer:'return=representation'},body:JSON.stringify({status:'archived',description,updated_at:now})});
+ if(!response.ok)return res.status(502).json({error:'Не удалось убрать автомобиль из списка'});
+ const rows=await response.json();
+ if(!rows?.length)return res.status(409).json({error:'Статус автомобиля изменился. Обновите список'});
+ const day=Q.dayFromDescription(lot.description);
+ if(day)await Q.reindexDay(sfetch,day);
+ return res.status(200).json({lot:rows[0],action:'remove_from_list',historyPreserved:true});
+}
 if(action==='withdraw'){
  const status=String(lot.status||'').toLowerCase();
  if(!['draft','upcoming'].includes(status))return res.status(409).json({error:'Снять можно только лот до начала торгов'});
