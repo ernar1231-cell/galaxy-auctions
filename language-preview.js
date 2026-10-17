@@ -40,7 +40,23 @@
  'КУПИТЬ СЕЙЧАС':'BUY NOW','СДЕЛАТЬ СТАВКУ':'PLACE BID',
  'Начальная ставка':'Starting Bid','Победитель':'Winner',
  'Ставка принята':'Bid Accepted','Аукцион завершён':'Auction Ended',
- 'Выберите страну':'Select Country','Выберите порт':'Select Port'
+ 'Выберите страну':'Select Country','Выберите порт':'Select Port',
+ 'США':'USA','Грузия':'Georgia','Казахстан':'Kazakhstan','Россия':'Russia',
+ 'Япония':'Japan','Корея':'Korea','Узбекистан':'Uzbekistan',
+ 'Кыргызстан':'Kyrgyzstan','Таджикистан':'Tajikistan','Туркменистан':'Turkmenistan',
+ 'Азербайджан':'Azerbaijan','ОАЭ':'UAE',
+ 'Порт назначения':'Destination Port','Пункт назначения':'Destination',
+ 'Страна отправления':'Origin Country','Город назначения':'Destination City',
+ 'Ориентировочная доставка':'Estimated Delivery',
+ 'Доставка':'Shipping','Отправление':'Departure','Прибытие':'Arrival',
+ 'Снято с аукциона':'Withdrawn from Auction',
+ 'Подтверждение':'Confirmation','Отправить':'Submit',
+ 'Выберите направление':'Choose Auction Direction',
+ 'Все направления':'All Destinations','Другие':'Other',
+ 'Участники':'Participants','Участников':'Participants',
+ 'до окончания':'remaining','Бонусный тайм':'Bonus Time',
+ 'ВЫ ЛИДИРУЕТЕ!':'YOU ARE LEADING!',
+ 'История':'History','Настройки':'Settings'
  };
  const nodes='button,span,b,small,label,h1,h2,h3,p,option';
  const placeholders={'Поиск по марке, модели или VIN':'Search by make, model or VIN','Выберите порт':'Select port','Выберите страну':'Select country'};
@@ -51,7 +67,7 @@
   const lang=current();document.documentElement.lang=lang==='en'?'en':'ru';
   root.querySelectorAll('input[placeholder],textarea[placeholder]').forEach(el=>{if(!originalPlaceholder.has(el))originalPlaceholder.set(el,el.getAttribute('placeholder'));const source=originalPlaceholder.get(el);if(Object.hasOwn(placeholders,source))el.setAttribute('placeholder',lang==='en'?placeholders[source]:source);});
   root.querySelectorAll(nodes).forEach(el=>{
-   if(el.closest('input,textarea,[contenteditable],.adminLotCard,.carcol,.bidcol'))return;
+   if(el.closest('input,textarea,[contenteditable],.adminLotCard,.carcol,.bidcol,[data-profile-language],#modernProfileLanguage'))return;
    if(el.children.length)return;
    const text=el.textContent||'',trim=text.trim();
    if(!original.has(el))original.set(el,trim);
