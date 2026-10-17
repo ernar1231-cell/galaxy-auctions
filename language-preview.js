@@ -99,6 +99,15 @@
  const originalPlaceholder=new WeakMap();
  const original=new WeakMap();
  const patterns=[
+  [/^(Избранное)\\s+(\\d+)$/,'Favorites $2'],
+  [/^(Ожидает подтверждения)\\s+(\\d+)$/,'Awaiting Confirmation $2'],
+  [/^(Отслеживание)\\s+(\\d+)$/,'Tracking $2'],
+  [/^(Документы)\\s+(\\d+)$/,'Documents $2'],
+  [/^Предстоящие\\s+(\\d+)$/,'Upcoming $1'],
+  [/^Проданные\\s+(\\d+)$/,'Sold $1'],
+  [/^В наличии\\s+(\\d+)$/,'Available $1'],
+  [/^Ожидают решения\\s+(\\d+)$/,'Awaiting Decision $1'],
+
   [/^(❤️\\s*)Избранное(\\s*\\d+)$/,'$1Favorites$2'],
   [/^(⏳\\s*)Ожидает подтверждения(\\s*\\d+)$/,'$1Awaiting Confirmation$2'],
   [/^(🚢\\s*)Отслеживание(\\s*\\d+)$/,'$1Tracking$2'],
