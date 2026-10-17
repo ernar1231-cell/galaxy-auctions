@@ -862,12 +862,12 @@ function openAdminLotManage(l){
   if(adminDirectionOf(l)==='transfer')refreshTransitDestinationOptions();
   const hasBids=Number(l.bid_count||0)>0, sold=stNow==='sold';
   // Keep delete buttons clickable so the administrator always receives an explanation.
-  $("adminLotDelete").disabled=false;$("adminLotQuickDelete").disabled=false;
+  $("adminLotDelete").disabled=false;
   $("adminLotDelete").title=hasBids||sold?'Лот со ставками или завершённый лот нельзя удалить навсегда; используйте архив':'Удалить лот без ставок';
   $("adminLotManageMsg").textContent="";
   if($("adminLotSchedule")){ $("adminLotSchedule").style.display=stNow==="draft"?"block":"none"; $("adminLotSchedule").textContent="＋ ДОБАВИТЬ НА ЛОТ"; }
   if($("adminLotStartLive")) $("adminLotStartLive").style.display="none";
-  if($("adminLotArchive")) $("adminLotArchive").style.display="none";if($("adminLotWithdraw")){const eligible=['draft','upcoming'].includes(stNow)&&!hasBids;$("adminLotWithdraw").style.display=eligible?'block':'none';$("adminLotWithdraw").disabled=!eligible;}
+
   if($("adminLotRemoveFromList")){const allowed=['draft','upcoming'].includes(stNow);$("adminLotRemoveFromList").style.display=allowed?'block':'none';$("adminLotRemoveFromList").disabled=!allowed;}
   $("adminLotManageOverlay").classList.add("open");
 }
@@ -910,7 +910,7 @@ async function withdrawManagedLot(){
 async function archiveManagedLot(){if(!adminManagedLot)return;if(!confirm(`Архивировать ${adminManagedLot.make||""} ${adminManagedLot.model||""}? История сохранится.`))return;await adminLotAction('archive')}
 async function deleteManagedLot(){
  if(!adminManagedLot)return;
- const msg=$("adminLotManageMsg"),buttons=[$("adminLotDelete"),$("adminLotQuickDelete")];
+ const msg=$("adminLotManageMsg"),buttons=[$("adminLotDelete")];
  const status=String(adminManagedLot.status||'').toLowerCase();
  if(['live','pending','sold'].includes(status)||Number(adminManagedLot.bid_count||0)>0){
   msg.textContent='Этот лот нельзя удалить навсегда: есть ставки или торги уже начались. Историю нужно сохранить.';
@@ -1001,7 +1001,7 @@ async function saveAdminLot(){
   finally{btn.disabled=false;btn.textContent="ДОБАВИТЬ В «ВСЕ»";}
 }
 document.querySelectorAll('#adminDirectionFilters [data-direction]').forEach(b=>b.onclick=()=>setAdminDirection(b.dataset.direction));
-$("adminTabClients").onclick=()=>setAdminView("clients");$("adminTabLots").onclick=()=>setAdminView("lots");$("adminAddLotBtn").onclick=openAddLot;$("adminLotsView")?.querySelectorAll(".adminStatusFilter [data-status]").forEach(b=>b.onclick=()=>{const v=b.dataset.status;$("adminLotFilter").value=v;$("adminLotsView").querySelectorAll(".adminStatusFilter [data-status]").forEach(x=>x.classList.toggle("active",x===b));renderAdminLots();});$("adminLotsReload").onclick=loadAdminLots;$("adminLotManageClose").onclick=$("adminLotManageBack").onclick=()=>$("adminLotManageOverlay").classList.remove("open");$("adminLotManageOverlay").onclick=e=>{if(e.target===$("adminLotManageOverlay"))$("adminLotManageOverlay").classList.remove("open")};$("adminApproveSale").onclick=()=>adminPendingAction("approve");$("adminRejectSale").onclick=()=>adminPendingAction("reject");$("adminCounterofferSale").onclick=()=>adminPendingAction("counteroffer");$("adminLotStartLive").onclick=()=>adminLotAction("live");$("adminLotSchedule").onclick=()=>adminLotAction("upcoming");$("adminLotSaveChanges").onclick=saveManagedLot;$("adminLotQuickSave").onclick=saveManagedLot;$("adminLotQuickDelete").onclick=deleteManagedLot;$("adminLotArchive").onclick=archiveManagedLot;$("adminLotWithdraw").onclick=withdrawManagedLot;$("adminLotRemoveFromList").onclick=removeManagedLotFromList;$("adminLotDelete").onclick=deleteManagedLot;$("adminLotSearch").oninput=renderAdminLots;$("adminLotFilter").onchange=renderAdminLots;$("adminLotClose").onclick=$("adminLotBack").onclick=()=>$("adminLotOverlay").classList.remove("open");$("adminLotOverlay").onclick=e=>{if(e.target===$("adminLotOverlay"))$("adminLotOverlay").classList.remove("open")};$("lotImages").onchange=chooseLotImages;$("adminLotSave").onclick=saveAdminLot;
+$("adminTabClients").onclick=()=>setAdminView("clients");$("adminTabLots").onclick=()=>setAdminView("lots");$("adminAddLotBtn").onclick=openAddLot;$("adminLotsView")?.querySelectorAll(".adminStatusFilter [data-status]").forEach(b=>b.onclick=()=>{const v=b.dataset.status;$("adminLotFilter").value=v;$("adminLotsView").querySelectorAll(".adminStatusFilter [data-status]").forEach(x=>x.classList.toggle("active",x===b));renderAdminLots();});$("adminLotsReload").onclick=loadAdminLots;$("adminLotManageClose").onclick=$("adminLotManageBack").onclick=()=>$("adminLotManageOverlay").classList.remove("open");$("adminLotManageOverlay").onclick=e=>{if(e.target===$("adminLotManageOverlay"))$("adminLotManageOverlay").classList.remove("open")};$("adminApproveSale").onclick=()=>adminPendingAction("approve");$("adminRejectSale").onclick=()=>adminPendingAction("reject");$("adminCounterofferSale").onclick=()=>adminPendingAction("counteroffer");$("adminLotStartLive").onclick=()=>adminLotAction("live");$("adminLotSchedule").onclick=()=>adminLotAction("upcoming");$("adminLotSaveChanges").onclick=saveManagedLot;$("adminLotQuickSave").onclick=saveManagedLot;$("adminLotRemoveFromList").onclick=removeManagedLotFromList;$("adminLotDelete").onclick=deleteManagedLot;$("adminLotSearch").oninput=renderAdminLots;$("adminLotFilter").onchange=renderAdminLots;$("adminLotClose").onclick=$("adminLotBack").onclick=()=>$("adminLotOverlay").classList.remove("open");$("adminLotOverlay").onclick=e=>{if(e.target===$("adminLotOverlay"))$("adminLotOverlay").classList.remove("open")};$("lotImages").onchange=chooseLotImages;$("adminLotSave").onclick=saveAdminLot;
 
 $("adminQuick").onclick=openAdminPanel;$("adminAccountBtn").onclick=openAdminPanel;$("adminClose").onclick=()=>$("adminOverlay").classList.remove("open");$("adminOverlay").onclick=e=>{if(e.target===$("adminOverlay"))$("adminOverlay").classList.remove("open")};$("adminReload").onclick=loadAdminClients;$("adminSearch").oninput=renderAdminClients;$("adminEditClose").onclick=$("adminEditBack").onclick=()=>$("adminEditOverlay").classList.remove("open");$("adminEditOverlay").onclick=e=>{if(e.target===$("adminEditOverlay"))$("adminEditOverlay").classList.remove("open")};$("adminSave").onclick=saveAdminClient;
 
