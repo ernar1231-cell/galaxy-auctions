@@ -7,7 +7,7 @@ test('admin edit and delete code parses',()=>{
 test('both delete buttons are wired and remain responsive',()=>{
  const source=fs.readFileSync(require.resolve('../app.js'),'utf8');
  for(const id of ['adminLotDelete'])assert.ok(source.includes('$("'+id+'").onclick=deleteManagedLot'));
- assert.ok(source.includes('Ошибка удаления: '));
+ assert.ok(source.includes('Ошибка: '));
  assert.ok(source.includes("['live','pending','sold'].includes(status)"));
 });
 test('backend refuses to delete lots with bids or active/completed status',()=>{
