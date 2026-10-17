@@ -860,7 +860,10 @@ function openAdminLotManage(l){
   $("manageTransitToField").hidden=adminDirectionOf(l)!=='transfer';
   $("manageTransitTo").value=shipping.to||'';
   if(adminDirectionOf(l)==='transfer')refreshTransitDestinationOptions();
-  const hasBids=Number(l.bid_count||0)>0, sold=stNow==='sold';$("adminLotDelete").disabled=hasBids||sold;$("adminLotQuickDelete").disabled=hasBids||sold;$("adminLotDelete").title=hasBids||sold?'Лот со ставками/SOLD нельзя удалить':'';
+  const hasBids=Number(l.bid_count||0)>0, sold=stNow==='sold';
+  // Keep delete buttons clickable so the administrator always receives an explanation.
+  $("adminLotDelete").disabled=false;$("adminLotQuickDelete").disabled=false;
+  $("adminLotDelete").title=hasBids||sold?'Лот со ставками или завершённый лот нельзя удалить навсегда; используйте архив':'Удалить лот без ставок';
   $("adminLotManageMsg").textContent="";
   if($("adminLotSchedule")){ $("adminLotSchedule").style.display=stNow==="draft"?"block":"none"; $("adminLotSchedule").textContent="＋ ДОБАВИТЬ НА ЛОТ"; }
   if($("adminLotStartLive")) $("adminLotStartLive").style.display="none";
@@ -888,7 +891,24 @@ async function withdrawManagedLot(){
  finally{btn.disabled=false;}
 }
 async function archiveManagedLot(){if(!adminManagedLot)return;if(!confirm(`Архивировать ${adminManagedLot.make||""} ${adminManagedLot.model||""}? История сохранится.`))return;await adminLotAction('archive')}
-async function deleteManagedLot(){if(!adminManagedLot)return;if(!confirm(`Удалить ${adminManagedLot.make||""} ${adminManagedLot.model||""} навсегда?`))return;const msg=$("adminLotManageMsg");try{await adminApi('/api/admin-delete-lot',{lotId:adminManagedLot.id});msg.textContent='✅ Лот удалён';msg.className='adminSaveMsg ok';await loadAdminLots();setTimeout(()=>$("adminLotManageOverlay").classList.remove('open'),500)}catch(e){msg.textContent='Ошибка: '+e.message;msg.className='adminSaveMsg error'}}
+async function deleteManagedLot(){
+ if(!adminManagedLot)return;
+ const msg=$("adminLotManageMsg"),buttons=[$("adminLotDelete"),$("adminLotQuickDelete")];
+ const status=String(adminManagedLot.status||'').toLowerCase();
+ if(['live','pending','sold'].includes(status)||Number(adminManagedLot.bid_count||0)>0){
+  msg.textContent='Этот лот нельзя удалить навсегда: есть ставки или торги уже начались. Историю нужно сохранить.';
+  msg.className='adminSaveMsg error';return;
+ }
+ if(!confirm('Удалить '+[adminManagedLot.make,adminManagedLot.model].filter(Boolean).join(' ')+' навсегда? Это удалит и фотографии.'))return;
+ buttons.forEach(b=>b.disabled=true);msg.textContent='Удаляю лот…';msg.className='adminSaveMsg';
+ try{
+  await adminApi('/api/admin-delete-lot',{lotId:adminManagedLot.id});
+  msg.textContent='✅ Лот удалён';msg.className='adminSaveMsg ok';
+  await loadAdminLots();
+  $("adminLotManageOverlay").classList.remove('open');
+ }catch(e){msg.textContent='Ошибка удаления: '+e.message;msg.className='adminSaveMsg error';}
+ finally{buttons.forEach(b=>b.disabled=false);}
+}
 async function adminLotAction(action){
   if(!adminManagedLot)return;const buttons=[$("adminLotStartLive"),$("adminLotSchedule"),$("adminLotArchive")];buttons.forEach(b=>b&&(b.disabled=true));const msg=$("adminLotManageMsg");msg.textContent='Обновляю статус…';msg.className='adminSaveMsg';
   try{const out=await adminApi('/api/admin-lot-action',{lotId:adminManagedLot.id,action});adminManagedLot={...adminManagedLot,...(out.lot||{})};msg.textContent=action==='live'?'✅ Лот запущен LIVE':action==='upcoming'?'✅ Автомобиль добавлен в предстоящие лоты':'✅ Лот архивирован';msg.className='adminSaveMsg ok';await loadAdminLots();if(action==='archive')setTimeout(()=>$("adminLotManageOverlay").classList.remove('open'),500);else openAdminLotManage(adminManagedLot)}catch(e){msg.textContent='Ошибка: '+e.message;msg.className='adminSaveMsg error'}finally{buttons.forEach(b=>b&&(b.disabled=false))}
