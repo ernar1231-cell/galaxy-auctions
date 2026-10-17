@@ -83,7 +83,14 @@
  'Текущая ставка':'Current Bid',
  'Всего':'Total','Предстоящие':'Upcoming',
  'Ожидают решения':'Awaiting Decision','Проданные':'Sold',
- 'В наличии':'Available','Зарегистрировано в Galaxy Auctions':'Registered with Galaxy Auctions'
+ 'В наличии':'Available','Зарегистрировано в Galaxy Auctions':'Registered with Galaxy Auctions',
+ 'Избранное 0':'Favorites 0','Отслеживание 0':'Tracking 0','Документы 0':'Documents 0',
+ 'Документы пока отсутствуют.':'No documents available yet.',
+ 'Клиенты':'Clients','Авто':'Cars',
+ 'ПРЕМИАЛЬНЫЕ АВТО':'PREMIUM CARS',
+ 'Три мира. Одни возможности.':'Three worlds. One opportunity.',
+ 'Полная стоимость':'Total Cost','Доставка по миру':'Worldwide Shipping',
+ 'Пошлины и сборы':'Duties and Fees','История и отчёты':'History and Reports'
  };
  const nodes='button,span,b,small,label,h1,h2,h3,p,option,div';
  const navigation={'home':{'ru':'Главная','en':'Home'},'markets':{'ru':'Аукционы','en':'Auctions'},'bids':{'ru':'Мои авто','en':'My Cars'},'profile':{'ru':'Профиль','en':'Profile'}};
