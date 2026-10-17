@@ -116,8 +116,11 @@ async function openDirection(direction){
    const apply=key=>{
     rows.forEach(row=>{
      const car=cars[Number(row.dataset.directionIndex)];
-     row.hidden=key!=='__all__'&&norm(car?.destination||'Другие')!==key;
-     row.style.display=row.hidden?'none':'';
+     const visible=key==='__all__'||norm(car?.destination||'Другие')===key;
+     row.hidden=!visible;
+     // Existing catalog CSS can override display:none; force visibility for port filtering.
+     row.style.setProperty('display',visible?'':'none',visible?'':'important');
+     row.setAttribute('aria-hidden',String(!visible));
     });
     bar.querySelectorAll('button').forEach(b=>{
      const active=b.dataset.port===key;

@@ -6,6 +6,6 @@ test('filters remain destination-based and only render assigned ports',()=>{
  assert.ok(source.includes('for(const car of cars)'));
  assert.ok(source.includes('for(const [key,entry] of ports)'));
  assert.ok(source.includes('flagFor(name)'));
- assert.ok(source.includes("key!=='__all__'"));
+ assert.ok(source.includes("key==='__all__'"));
  assert.ok(source.includes("direction==='transfer'"));
 });
