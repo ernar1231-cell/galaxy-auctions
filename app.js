@@ -815,15 +815,15 @@ function setAdminView(view){
   $("adminTabClients").classList.toggle("active",clients);
   $("adminTabLots").classList.toggle("active",!clients);
   $("adminPanelTitle").textContent=clients?"АДМИН • КЛИЕНТЫ":"АДМИН • ЛОТЫ";
-  if(!clients){ if($("adminLotFilter")) $("adminLotFilter").value="all"; $("adminLotsView")?.querySelectorAll(".adminStatusFilter [data-status]").forEach((b,i)=>b.classList.toggle("active",i===0)); loadAdminLots(); }
+  if(!clients){ if($("adminLotFilter")) $("adminLotFilter").value="inventory"; $("adminLotsView")?.querySelectorAll(".adminStatusFilter [data-status]").forEach((b,i)=>b.classList.toggle("active",i===0)); loadAdminLots(); }
 }
 function renderAdminLots(){
-  const root=$("adminLotList"), q=String($("adminLotSearch")?.value||"").trim().toLowerCase(), filter=$("adminLotFilter")?.value||"all";
+  const root=$("adminLotList"), q=String($("adminLotSearch")?.value||"").trim().toLowerCase(), filter=$("adminLotFilter")?.value||"inventory";
   const group=l=>{const st=String(l.status||"draft").toLowerCase();if(st==='pending')return 'pending';if(st==='sold')return 'sold';if(st==='upcoming'||st==='live')return 'auction';return 'inventory';};
-  const shown=adminLots.filter(l=>{if(String(l.status||'').toLowerCase()==='archived')return false;const text=[l.make,l.model,l.year,l.vin].join(" ").toLowerCase();return (filter==='all'||group(l)===filter)&&(!q||text.includes(q))&&adminDirectionOf(l)===adminSelectedDirection});
+  const shown=adminLots.filter(l=>{if(String(l.status||'').toLowerCase()==='archived')return false;const text=[l.make,l.model,l.year,l.vin].join(" ").toLowerCase();return group(l)===filter&&(!q||text.includes(q))&&adminDirectionOf(l)===adminSelectedDirection});
   const scoped=adminLots.filter(x=>String(x.status||'').toLowerCase()!=='archived'&&adminDirectionOf(x)===adminSelectedDirection);
   const count=g=>scoped.filter(x=>group(x)===g).length;
-  $("adminLotsSummary").textContent=`Все ${scoped.length} • Предстоящие ${count('auction')} • Ожидают подтверждения ${count('pending')} • Проданные ${count('sold')}`;
+  $("adminLotsSummary").textContent=`В наличии ${count('inventory')} • Предстоящие ${count('auction')} • Ожидают решения ${count('pending')} • Проданные ${count('sold')}`;
   const labels={inventory:'В НАЛИЧИИ',auction:'ПРЕДСТОЯЩИЙ',pending:'ОЖИДАЕТ',sold:'ПРОДАНО'};
   root.innerHTML=shown.map(l=>{const lotId=String(l.id),pic=l.primary_image||l.images?.[0]?.image_url||"",g=group(l),winner=g==='pending'||g==='sold'?(l.winner_username||l.winner_user_id||'—'):'';return `<div class="adminLotCard" data-admin-lot-id="${whiteEscape(lotId)}" role="button" tabindex="0">${pic?`<img class="adminLotPic" src="${pic}" alt="${whiteEscape([l.make,l.model,l.year].filter(Boolean).join(' '))}">`:`<div class="adminLotPic adminLotPicPlaceholder" aria-label="Фото отсутствует">🚘</div>`}<div class="adminLotInfo"><b>${whiteEscape(l.make||"")} ${whiteEscape(l.model||"")} ${l.year||""}</b><small>${l.mileage==null?'—':Number(l.mileage).toLocaleString()+' миль'} • Starting ${adminMoney(l.starting_bid)}</small><small>${l.vin?"VIN "+whiteEscape(l.vin):"Без VIN"}</small>${winner?`<span class="adminLotDay">🏆 Победитель: ${whiteEscape(winner)} • ${adminMoney(l.winning_bid||0)}</span>`:''}</div><span class="adminLotStatus ${g}">${labels[g]}</span><span class="adminChevron">›</span></div>`}).join("")||'<div class="emptyWatch">Автомобили не найдены.</div>';
   root.querySelectorAll('[data-admin-lot-id]').forEach(el=>{const open=()=>{const lot=adminLots.find(item=>String(item.id)===el.dataset.adminLotId);if(lot)openAdminLotManage(lot);};el.onclick=open;el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();open()}}});
