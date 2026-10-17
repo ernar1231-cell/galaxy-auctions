@@ -1255,6 +1255,18 @@ async function sharedLotRegistrationGate(){
   return false;
  }
 }
+function showNewClientLanguageChoice(){
+ const page=$('newClientLanguagePage');if(!page)return openRegistrationDestination();
+ page.hidden=false;page.setAttribute('aria-hidden','false');
+}
+document.querySelectorAll('[data-new-client-language]').forEach(button=>button.addEventListener('click',()=>{
+ const code=button.dataset.newClientLanguage;
+ if(code!=='ru'&&code!=='en')return;
+ try{localStorage.setItem(profileLanguageKey(),code)}catch(error){console.warn('Language preference could not be stored',error);}
+ syncProfileLanguage();
+ const page=$('newClientLanguagePage');page.hidden=true;page.setAttribute('aria-hidden','true');
+ openRegistrationDestination();
+}));
 let registrationDestination='home';
 function openMainHome(){try{closeModernScreens();setModernActive('home');$('homeScreen').classList.add('open');window.scrollTo(0,0)}catch(e){console.error('Could not open home',e)}}
 function openAuctionMarkets(){closeModernScreens();setModernActive('markets');$('marketsScreen').classList.add('open')}
@@ -1325,7 +1337,7 @@ async function shareLot(idx){
       const r=await fetch('/api/account-information',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:tg?.initData||'',action:'complete_registration',full_name:$('shareRegName').value,phone:{country:$('shareRegCountry').value,number:$('shareRegPhone').value},email:$('shareRegEmail').value,residence_address:$('shareRegAddress').value})});
       const d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.error||'Не удалось сохранить регистрацию.');
       window.accountData={...window.accountData,...d.information};currentAccountProfile={...currentAccountProfile,...d.information};
-      const page=$('shareRegistrationPage');page.hidden=true;page.setAttribute('aria-hidden','true');openRegistrationDestination();
+      const page=$('shareRegistrationPage');page.hidden=true;page.setAttribute('aria-hidden','true');showNewClientLanguageChoice();
     }catch(problem){err.textContent=problem.message||'Не удалось сохранить регистрацию.';}
     finally{btn.disabled=false;btn.textContent='ПРОДОЛЖИТЬ К АУКЦИОНУ';}
   });
