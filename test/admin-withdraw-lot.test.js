@@ -15,6 +15,6 @@ test('withdraw preserves lot and rejects bids and live lots',()=>{
 test('admin button is wired',()=>{
  const html=fs.readFileSync(require.resolve('../index.html'),'utf8');
  const app=fs.readFileSync(require.resolve('../app.js'),'utf8');
- assert.ok(html.includes('id="adminLotWithdraw"'));
- assert.ok(app.includes('withdrawManagedLot'));
+ assert.ok(html.includes('id="adminLotRemoveFromList"'));
+ assert.ok(app.includes('removeManagedLotFromList'));
 });
