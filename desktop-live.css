@@ -47,3 +47,36 @@
 @media screen and (min-width:900px) and (max-width:1100px){
  body.mk-white .app>.livegrid{grid-template-columns:minmax(0,1.25fr) minmax(300px,1fr)!important;gap:16px!important}
 }
+
+/* Balanced Mac/desktop layout: preserve the same live data and controls. */
+@media screen and (min-width:900px){
+ body.mk-white .app{max-width:1220px!important;min-height:0!important;height:auto!important;overflow:visible!important}
+ body.mk-white .app>.livegrid{
+  display:grid!important;grid-template-columns:minmax(0,1.35fr) minmax(350px,0.9fr)!important;
+  gap:20px!important;align-items:start!important;min-height:0!important;
+ }
+ body.mk-white .livegrid>.carcol{grid-column:1!important;grid-row:1!important;flex:none!important;max-width:100%!important}
+ body.mk-white .livegrid>.bidcol{grid-column:2!important;grid-row:1!important;position:static!important;min-width:0!important}
+ body.mk-white .livegrid .photoFrame{
+  min-height:0!important;height:auto!important;aspect-ratio:4/3!important;
+  max-height:520px!important;flex:none!important;
+ }
+ body.mk-white .livegrid .gallery{min-height:0!important}
+ body.mk-white .livegrid .main{display:block!important;max-width:100%!important}
+ body.mk-white .livegrid .bidbox{padding:16px!important;min-height:0!important}
+ body.mk-white .livegrid .bidcircle{width:190px!important;height:190px!important;max-width:100%!important}
+ body.mk-white .livegrid .circleTime{font-size:34px!important}
+ body.mk-white .desktopTradeControls{
+  position:static!important;inset:auto!important;transform:none!important;
+  display:flex!important;flex-direction:column!important;gap:10px!important;
+  width:100%!important;max-width:none!important;height:auto!important;
+  padding:14px 0 0!important;margin:0!important;background:transparent!important;
+  box-shadow:none!important;border:0!important;z-index:auto!important;
+ }
+ body.mk-white .desktopTradeControls .circlecontrols{display:grid!important;grid-template-columns:52px minmax(0,1fr) 52px!important;gap:8px!important;margin:0!important}
+ body.mk-white .desktopTradeControls .circlecontrols button{width:52px!important;height:48px!important;border-radius:10px!important}
+ body.mk-white .desktopTradeControls .circlecontrols .selected{height:48px!important;font-size:19px!important}
+ body.mk-white .desktopTradeControls .bidbtn{height:58px!important;min-height:58px!important;border-radius:12px!important;font-size:16px!important}
+ body.mk-white .desktopTradeControls .historyLink{position:static!important;display:flex!important;justify-content:center!important}
+ body.mk-white #modernBottomNav{display:none!important}
+}
