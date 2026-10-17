@@ -98,6 +98,19 @@
  const placeholders={'Поиск по марке, модели или VIN':'Search by make, model or VIN','Выберите порт':'Select port','Выберите страну':'Select country'};
  const originalPlaceholder=new WeakMap();
  const original=new WeakMap();
+ const patterns=[
+  [/^(❤️\\s*)Избранное(\\s*\\d+)$/,'$1Favorites$2'],
+  [/^(⏳\\s*)Ожидает подтверждения(\\s*\\d+)$/,'$1Awaiting Confirmation$2'],
+  [/^(🚢\\s*)Отслеживание(\\s*\\d+)$/,'$1Tracking$2'],
+  [/^(📄\\s*)Документы(\\s*\\d+)$/,'$1Documents$2'],
+  [/^Лотов:\\s*(\\d+)$/,'Lots: $1'],
+  [/^Всего\\s+(\\d+)$/,'Total $1']
+ ];
+ function translatePattern(source,lang){
+  if(lang!=='en')return source;
+  for(const [re,value] of patterns)if(re.test(source))return source.replace(re,value);
+  return source;
+ }
  function current(){const v=typeof window.galaxySelectedLanguage==='function'?window.galaxySelectedLanguage():'ru';return v==='en'?'en':'ru'}
  function translate(root=document){
   const lang=current();document.documentElement.lang=lang==='en'?'en':'ru';
@@ -112,8 +125,7 @@
    const source=original.get(el);
    if(trim!==source&&trim!==dictionary[source]){original.set(el,trim);}
    const key=original.get(el);
-   if(!Object.prototype.hasOwnProperty.call(dictionary,key))return;
-   const next=lang==='en'?dictionary[key]:key;
+   const next=Object.prototype.hasOwnProperty.call(dictionary,key)?(lang==='en'?dictionary[key]:key):translatePattern(key,lang);
    if(trim!==next)el.textContent=next;
   });
  }
