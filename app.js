@@ -878,7 +878,7 @@ async function refreshTransitDestinationOptions(){
   options.replaceChildren(...destinations.map(name=>{const o=document.createElement('option');o.value=name;return o;}));
  }catch(error){console.warn('Destination suggestions unavailable',error);}
 }
-function openAddLot(){resetLotForm();$("lotDirection").value=adminSelectedDirection;$("lotTransitFields").hidden=adminSelectedDirection!=="transfer";$("adminLotOverlay").classList.add("open");if(adminSelectedDirection==="transfer")refreshTransitDestinationOptions()}
+function openAddLot(){resetLotForm();$("lotTransitFrom").value="";$("lotTransitDeparturePort").replaceChildren(new Option("Выберите порт",""));$("lotTransitDays").value="";$("lotDirection").value=adminSelectedDirection;$("lotTransitFields").hidden=adminSelectedDirection!=="transfer";$("adminLotOverlay").classList.add("open");if(adminSelectedDirection==="transfer")refreshTransitDestinationOptions()}
 let adminVinVehicle=null;
 function openVinImport(){adminVinVehicle=null;$("adminVinInput").value="";$("adminVinMsg").textContent="";$("adminVinPreview").style.display="none";$("adminVinOverlay").classList.add("open");setTimeout(()=>$("adminVinInput").focus(),120)}
 function closeVinImport(){$("adminVinOverlay").classList.remove("open")}
@@ -900,10 +900,25 @@ async function chooseLotImages(e){
   try{for(let i=0;i<files.length;i++){const dataUrl=await fileToCompressedDataUrl(files[i]);adminLotFiles.push({name:files[i].name||`photo-${i+1}.jpg`,dataUrl,preview:dataUrl})}renderLotPhotoPreview();$("adminLotMsg").textContent=adminLotFiles.length?`Выбрано фото: ${adminLotFiles.length}`:"";$("adminLotMsg").className="adminSaveMsg";}
   catch(err){$("adminLotMsg").textContent="Ошибка фото: "+err.message;$("adminLotMsg").className="adminSaveMsg error";}
 }
+const departurePorts={
+ 'США':['Майами','Нью-Йорк','Саванна','Лос-Анджелес','Хьюстон','Балтимор'],
+ 'ОАЭ':['Джебель-Али','Фуджейра','Шарджа'],
+ 'Грузия':['Поти','Батуми'],
+ 'Япония':['Йокогама','Кобе','Нагоя'],
+ 'Южная Корея':['Пусан','Инчхон']
+};
+function updateDeparturePorts(){
+ const select=$("lotTransitDeparturePort");
+ const old=select.value;
+ const options=departurePorts[$("lotTransitFrom").value]||[];
+ select.replaceChildren(...[new Option('Выберите порт',''),...options.map(x=>new Option(x,x))]);
+ if(options.includes(old))select.value=old;
+}
+$("lotTransitFrom").addEventListener("change",updateDeparturePorts);
 $("lotDirection").addEventListener("change",()=>{$("lotTransitFields").hidden=$("lotDirection").value!=="transfer";});
 async function saveAdminLot(){
   const btn=$("adminLotSave"),msg=$("adminLotMsg");
-  const payload={make:$("lotMake").value.trim(),model:$("lotModel").value.trim(),year:Number($("lotYear").value)||null,mileage:Number($("lotMileage").value)||null,vin:$("lotVin").value.trim()||null,specs:$("lotSpecs").value.trim()||null,engine:$("lotEngine").value.trim()||null,fuel:$("lotFuel").value.trim()||null,transmission:$("lotTransmission").value.trim()||null,drive:$("lotDrive").value.trim()||null,exteriorColor:$("lotExterior").value.trim()||null,interiorColor:$("lotInterior").value.trim()||null,seats:Number($("lotSeats").value)||null,startingBid:Number($("lotStartingBid").value)||0,reservePrice:$("lotReserve").value?Number($("lotReserve").value):null,sellerApprovalRequired:$("lotSellerApproval").checked,description:$("lotDescription").value.trim()||null,direction:$("lotDirection").value,transit:($("lotDirection").value==="transfer"?{from:$("lotTransitFrom").value.trim(),to:$("lotTransitTo").value.trim(),carrier:$("lotTransitCarrier").value.trim(),tracking:$("lotTransitTracking").value.trim(),eta:$("lotTransitEta").value}:null)};
+  const payload={make:$("lotMake").value.trim(),model:$("lotModel").value.trim(),year:Number($("lotYear").value)||null,mileage:Number($("lotMileage").value)||null,vin:$("lotVin").value.trim()||null,specs:$("lotSpecs").value.trim()||null,engine:$("lotEngine").value.trim()||null,fuel:$("lotFuel").value.trim()||null,transmission:$("lotTransmission").value.trim()||null,drive:$("lotDrive").value.trim()||null,exteriorColor:$("lotExterior").value.trim()||null,interiorColor:$("lotInterior").value.trim()||null,seats:Number($("lotSeats").value)||null,startingBid:Number($("lotStartingBid").value)||0,reservePrice:$("lotReserve").value?Number($("lotReserve").value):null,sellerApprovalRequired:$("lotSellerApproval").checked,description:$("lotDescription").value.trim()||null,direction:$("lotDirection").value,transit:($("lotDirection").value==="transfer"?{from:$("lotTransitFrom").value.trim(),departurePort:$("lotTransitDeparturePort").value,to:$("lotTransitTo").value.trim(),transitDays:$("lotTransitDays").value?Number($("lotTransitDays").value):null,carrier:$("lotTransitCarrier").value.trim(),tracking:$("lotTransitTracking").value.trim(),eta:$("lotTransitEta").value}:null)};
   if(!payload.make||!payload.model){msg.textContent="Укажи марку и модель";msg.className="adminSaveMsg error";return}
   btn.disabled=true;btn.textContent="СОЗДАЮ LOT…";msg.textContent="";
   try{
