@@ -85,7 +85,7 @@
  'Ожидают решения':'Awaiting Decision','Проданные':'Sold',
  'В наличии':'Available','Зарегистрировано в Galaxy Auctions':'Registered with Galaxy Auctions'
  };
- const nodes='button,span,b,small,label,h1,h2,h3,p,option';
+ const nodes='button,span,b,small,label,h1,h2,h3,p,option,div';
  const placeholders={'Поиск по марке, модели или VIN':'Search by make, model or VIN','Выберите порт':'Select port','Выберите страну':'Select country'};
  const originalPlaceholder=new WeakMap();
  const original=new WeakMap();
@@ -94,7 +94,8 @@
   const lang=current();document.documentElement.lang=lang==='en'?'en':'ru';
   root.querySelectorAll('input[placeholder],textarea[placeholder]').forEach(el=>{if(!originalPlaceholder.has(el))originalPlaceholder.set(el,el.getAttribute('placeholder'));const source=originalPlaceholder.get(el);if(Object.hasOwn(placeholders,source))el.setAttribute('placeholder',lang==='en'?placeholders[source]:source);});
   root.querySelectorAll(nodes).forEach(el=>{
-   if(el.closest('input,textarea,[contenteditable],.adminLotCard,.carcol,.bidcol,[data-profile-language],#modernProfileLanguage'))return;
+   if(el.closest('input,textarea,[contenteditable],.adminLotCard,[data-profile-language],#modernProfileLanguage'))return;
+   if(el.matches('div')&&!el.classList.contains('circleLabel')&&!el.classList.contains('circleSub'))return;
    if(el.children.length)return;
    const text=el.textContent||'',trim=text.trim();
    if(!original.has(el))original.set(el,trim);
