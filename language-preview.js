@@ -16,11 +16,27 @@
  'Мой аккаунт':'My Account','Уведомления':'Notifications','Безопасность':'Security',
  'Админ-панель':'Admin Panel','Активный аккаунт':'Active Account',
  'Верификация':'Verification','Депозит':'Deposit','Лимит ставок':'Bid Limit',
- 'Русский':'Russian'
+ 'Русский':'Russian','Клиенты':'Clients','Авто':'Cars','Всё':'All','Все':'All',
+ 'Аукцион':'Auction','Аукцион Америка':'USA Auction','Америка':'USA','Дубай':'Dubai',
+ 'Авто в пути':'Cars in Transit','Мои ставки':'My Bids','История ставок':'Bid History',
+ 'Избранное':'Favorites','Мои покупки':'My Purchases','Регистрация':'Registration',
+ 'Имя':'First Name','Фамилия':'Last Name','Телефон':'Phone','Страна':'Country',
+ 'Город':'City','Порт отправления':'Departure Port','Срок доставки, дней':'Delivery Time, Days',
+ 'Транспортная компания':'Shipping Company','Трек-номер':'Tracking Number',
+ 'Ориентировочная дата прибытия':'Estimated Arrival Date',
+ 'Откуда · страна':'Origin Country','Куда':'Destination',
+ 'Марка':'Make','Модель':'Model','Места':'Seats','Руль':'Steering Wheel',
+ 'Спецификация':'Specifications','Автомат':'Automatic','Черный':'Black',
+ 'Закрыть':'Close','Назад':'Back','Отмена':'Cancel','Подтвердить':'Confirm',
+ 'Выбрать':'Select','Поиск':'Search','Обновить':'Refresh',
+ 'Добавить на лот':'Add to Auction','Лот удалён':'Lot Deleted',
+ 'Продано':'Sold','Ожидает':'Pending','В НАЛИЧИИ':'AVAILABLE',
+ 'ПРЕДСТОЯЩИЙ':'UPCOMING','ОЖИДАЕТ':'PENDING','ПРОДАНО':'SOLD',
+ 'Сохранить историю':'Preserve History','ЯЗЫК':'LANGUAGE'
  };
  const nodes='button,span,b,small,label,h1,h2,h3,p,option';
  const original=new WeakMap();
- function current(){return typeof window.galaxySelectedLanguage==='function'?window.galaxySelectedLanguage():'ru'}
+ function current(){const v=typeof window.galaxySelectedLanguage==='function'?window.galaxySelectedLanguage():'ru';return v==='en'?'en':'ru'}
  function translate(root=document){
   const lang=current();document.documentElement.lang=lang==='en'?'en':'ru';
   root.querySelectorAll(nodes).forEach(el=>{
@@ -29,8 +45,11 @@
    const text=el.textContent||'',trim=text.trim();
    if(!original.has(el))original.set(el,trim);
    const source=original.get(el);
-   if(!Object.prototype.hasOwnProperty.call(dictionary,source))return;
-   el.textContent=lang==='en'?dictionary[source]:source;
+   if(trim!==source&&trim!==dictionary[source]){original.set(el,trim);}
+   const key=original.get(el);
+   if(!Object.prototype.hasOwnProperty.call(dictionary,key))return;
+   const next=lang==='en'?dictionary[key]:key;
+   if(trim!==next)el.textContent=next;
   });
  }
  let pending=false;
