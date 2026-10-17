@@ -86,12 +86,15 @@
  'В наличии':'Available','Зарегистрировано в Galaxy Auctions':'Registered with Galaxy Auctions'
  };
  const nodes='button,span,b,small,label,h1,h2,h3,p,option,div';
+ const navigation={'home':{'ru':'Главная','en':'Home'},'markets':{'ru':'Аукционы','en':'Auctions'},'bids':{'ru':'Мои авто','en':'My Cars'},'profile':{'ru':'Профиль','en':'Profile'}};
+ function updateNavigation(lang){document.querySelectorAll('#modernBottomNav button[data-modern]').forEach(button=>{const label=navigation[button.dataset.modern];if(!label)return;for(const node of button.childNodes){if(node.nodeType===3&&node.textContent.trim()){node.textContent=label[lang];break;}}button.setAttribute('aria-label',label[lang]);});}
  const placeholders={'Поиск по марке, модели или VIN':'Search by make, model or VIN','Выберите порт':'Select port','Выберите страну':'Select country'};
  const originalPlaceholder=new WeakMap();
  const original=new WeakMap();
  function current(){const v=typeof window.galaxySelectedLanguage==='function'?window.galaxySelectedLanguage():'ru';return v==='en'?'en':'ru'}
  function translate(root=document){
   const lang=current();document.documentElement.lang=lang==='en'?'en':'ru';
+  updateNavigation(lang);
   root.querySelectorAll('input[placeholder],textarea[placeholder]').forEach(el=>{if(!originalPlaceholder.has(el))originalPlaceholder.set(el,el.getAttribute('placeholder'));const source=originalPlaceholder.get(el);if(Object.hasOwn(placeholders,source))el.setAttribute('placeholder',lang==='en'?placeholders[source]:source);});
   root.querySelectorAll(nodes).forEach(el=>{
    if(el.closest('input,textarea,[contenteditable],.adminLotCard,[data-profile-language],#modernProfileLanguage'))return;
