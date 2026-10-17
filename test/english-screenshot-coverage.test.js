@@ -18,3 +18,8 @@ test('bottom navigation translates without replacing buttons or icons',()=>{
  assert.ok(src.includes('button.childNodes'));
  assert.ok(src.includes("button.setAttribute('aria-label'"));
 });
+
+test('counted labels preserve quantities when translated',()=>{
+ const src=fs.readFileSync(require.resolve('../language-preview.js'),'utf8');
+ for(const key of ['Favorites$2','Awaiting Confirmation$2','Tracking$2','Documents$2','Lots: $1'])assert.ok(src.includes(key));
+});
