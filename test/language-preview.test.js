@@ -8,3 +8,9 @@ test('english dictionary includes auction, logistics and admin terms',()=>{
  for(const key of ['Порт отправления','Сделать ставку','Убрать из списка аукциона','Ожидают решения','Трек-номер'])assert.ok(s.includes("'"+key+"'"));
  assert.ok(s.includes("v==='en'?'en':'ru'"));
 });
+
+test('English preview includes bid, buyout and admin labels without translating vehicle data',()=>{
+ const s=fs.readFileSync(require.resolve('../language-preview.js'),'utf8');
+ for(const key of ['КУПИТЬ СЕЙЧАС','СДЕЛАТЬ СТАВКУ','УДАЛИТЬ НАВСЕГДА','Поиск по марке, модели или VIN'])assert.ok(s.includes(key));
+ assert.ok(s.includes('.adminLotCard,.carcol,.bidcol'));
+});
