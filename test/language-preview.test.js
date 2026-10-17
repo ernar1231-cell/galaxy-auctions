@@ -14,3 +14,9 @@ test('English preview includes bid, buyout and admin labels without translating 
  for(const key of ['КУПИТЬ СЕЙЧАС','СДЕЛАТЬ СТАВКУ','УДАЛИТЬ НАВСЕГДА','Поиск по марке, модели или VIN'])assert.ok(s.includes(key));
  assert.ok(s.includes('.adminLotCard,.carcol,.bidcol'));
 });
+
+test('language picker labels stay readable and shipping terms are translated',()=>{
+ const s=fs.readFileSync(require.resolve('../language-preview.js'),'utf8');
+ assert.ok(s.includes('[data-profile-language],#modernProfileLanguage'));
+ for(const key of ['Ориентировочная доставка','Пункт назначения','Бонусный тайм','Все направления'])assert.ok(s.includes(key));
+});
