@@ -5,10 +5,10 @@ const {sessionStart,directionQueue}=require('../api/_one-auction-schedule');
 const {counts}=require('../api/one-auction-counts');
 const label=d=>'[GALAXY_DIRECTION:{"direction":"'+d+'"}]';
 test('regular schedule restored after temporary meeting day',()=>{
- const date='2026-10-17T08:00:00Z';
- assert.equal(sessionStart('usa',date).toISOString(),'2026-10-17T09:00:00.000Z');
- assert.equal(sessionStart('dubai',date).toISOString(),'2026-10-17T13:00:00.000Z');
- assert.equal(sessionStart('transfer',date).toISOString(),'2026-10-17T17:00:00.000Z');
+ const date='2026-10-18T08:00:00Z';
+ assert.equal(sessionStart('usa',date).toISOString(),'2026-10-18T09:00:00.000Z');
+ assert.equal(sessionStart('dubai',date).toISOString(),'2026-10-18T13:00:00.000Z');
+ assert.equal(sessionStart('transfer',date).toISOString(),'2026-10-18T17:00:00.000Z');
 });
 test('each direction has only its own queue in one database',()=>{
  const lots=[
