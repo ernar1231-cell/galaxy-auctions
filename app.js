@@ -1242,7 +1242,7 @@ async function sharedLotRegistrationGate(){
   const address=info.residence_address;
   const validAddress=typeof address==='string'?!!address.trim():address&&typeof address==='object'&&Object.values(address).some(v=>typeof v==='string'&&v.trim());
   if(r.ok&&String(info.full_name||'').trim()&&String(info.phone||'').trim()&&String(info.phone_country||'').trim()&&String(info.email||'').trim()&&validAddress)return true;
-  page.hidden=false;page.setAttribute('aria-hidden','false');showNewClientLanguageChoice();
+  page.hidden=false;page.setAttribute('aria-hidden','false');
   $('shareRegName').value=info.full_name||[tgUser.first_name,tgUser.last_name].filter(Boolean).join(' ');
   $('shareRegCountry').value=info.phone_country||'AE';$('shareRegEmail').value=info.email||'';
   $('shareRegError').textContent=r.ok?'':(d.error||'Не удалось проверить регистрацию. Попробуйте ещё раз.');
@@ -1255,19 +1255,6 @@ async function sharedLotRegistrationGate(){
   return false;
  }
 }
-const registrationLabels={
- ru:['Регистрация','Заполните данные один раз, чтобы открыть автомобиль и участвовать в аукционе.','Имя','Страна / код','Телефон','Email','Адрес проживания','ПРОДОЛЖИТЬ К АУКЦИОНУ','Город, улица, дом'],
- en:['Registration','Complete your details once to view cars and participate in auctions.','Full Name','Country / Code','Phone','Email','Residential Address','CONTINUE TO AUCTION','City, street, building']
-};
-function applyRegistrationLanguage(code){
- const page=$('shareRegistrationPage'),labels=registrationLabels[code]||registrationLabels.ru;
- if(!page)return;
- page.querySelector('h1').textContent=labels[0];page.querySelector('p').textContent=labels[1];
- page.querySelectorAll('form label').forEach((label,index)=>{label.textContent=labels[index+2]});
- $('shareRegSubmit').textContent=labels[7];$('shareRegAddress').placeholder=labels[8];
- const countries={ru:['ОАЭ','Казахстан','Россия','США','Великобритания','Грузия'],en:['UAE','Kazakhstan','Russia','USA','United Kingdom','Georgia']};
- [...$('shareRegCountry').options].forEach((option,index)=>{const flag=['🇦🇪','🇰🇿','🇷🇺','🇺🇸','🇬🇧','🇬🇪'][index],dial=['+971','+7','+7','+1','+44','+995'][index];option.textContent=flag+' '+countries[code][index]+' '+dial;});
-}
 function showNewClientLanguageChoice(){
  const page=$('newClientLanguagePage');if(!page)return openRegistrationDestination();
  page.hidden=false;page.setAttribute('aria-hidden','false');
@@ -1276,9 +1263,9 @@ document.querySelectorAll('[data-new-client-language]').forEach(button=>button.a
  const code=button.dataset.newClientLanguage;
  if(code!=='ru'&&code!=='en')return;
  try{localStorage.setItem(profileLanguageKey(),code)}catch(error){console.warn('Language preference could not be stored',error);}
- syncProfileLanguage();applyRegistrationLanguage(code);
+ syncProfileLanguage();
  const page=$('newClientLanguagePage');page.hidden=true;page.setAttribute('aria-hidden','true');
- const registration=$('shareRegistrationPage');registration.hidden=false;registration.setAttribute('aria-hidden','false');
+ openRegistrationDestination();
 }));
 let registrationDestination='home';
 function openMainHome(){try{closeModernScreens();setModernActive('home');$('homeScreen').classList.add('open');window.scrollTo(0,0)}catch(e){console.error('Could not open home',e)}}
@@ -1350,7 +1337,7 @@ async function shareLot(idx){
       const r=await fetch('/api/account-information',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:tg?.initData||'',action:'complete_registration',full_name:$('shareRegName').value,phone:{country:$('shareRegCountry').value,number:$('shareRegPhone').value},email:$('shareRegEmail').value,residence_address:$('shareRegAddress').value})});
       const d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.error||'Не удалось сохранить регистрацию.');
       window.accountData={...window.accountData,...d.information};currentAccountProfile={...currentAccountProfile,...d.information};
-      const page=$('shareRegistrationPage');page.hidden=true;page.setAttribute('aria-hidden','true');openRegistrationDestination();
+      const page=$('shareRegistrationPage');page.hidden=true;page.setAttribute('aria-hidden','true');showNewClientLanguageChoice();
     }catch(problem){err.textContent=problem.message||'Не удалось сохранить регистрацию.';}
     finally{btn.disabled=false;btn.textContent='ПРОДОЛЖИТЬ К АУКЦИОНУ';}
   });
