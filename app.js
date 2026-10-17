@@ -459,6 +459,7 @@ const PROFILE_FLAGS={AE:'🇦🇪',KZ:'🇰🇿',RU:'🇷🇺',US:'🇺🇸',GB:
 function setProfileAvatar(el,d,name){if(!el)return;const url=d.avatar_url||tgUser?.photo_url||'';el.textContent=(name.trim().slice(0,2)||'MK').toUpperCase();el.style.backgroundImage=url?`url("${String(url).replace(/["\\]/g,"\\$&")}")`:'';el.classList.toggle('hasPhoto',!!url)}
 function profileLanguageKey(){return 'galaxyLanguage:'+(tgUser?.id||'guest')}
 function selectedProfileLanguage(){try{const code=localStorage.getItem(profileLanguageKey());return Object.hasOwn(PROFILE_LANGUAGES,code)?code:'ru'}catch{return 'ru'}}
+window.galaxySelectedLanguage=selectedProfileLanguage;
 function syncProfileLanguage(){const code=selectedProfileLanguage();$('modernProfileLanguage').textContent=PROFILE_LANGUAGES[code];document.querySelectorAll('[data-profile-language]').forEach(b=>b.classList.toggle('active',b.dataset.profileLanguage===code))}
 function syncModernProfile(){
  if(!window.accountData)return;const d=window.accountData;const name=[d.first_name,d.last_name].filter(Boolean).join(' ')||d.username||'Telegram user';
