@@ -20,7 +20,7 @@
  };
  const nodes='button,span,b,small,label,h1,h2,h3,p,option';
  const original=new WeakMap();
- function current(){try{const k='galaxyLanguage:'+(window.tgUser?.id||'guest');return localStorage.getItem(k)||'ru'}catch{return 'ru'}}
+ function current(){return typeof window.galaxySelectedLanguage==='function'?window.galaxySelectedLanguage():'ru'}
  function translate(root=document){
   const lang=current();document.documentElement.lang=lang==='en'?'en':'ru';
   root.querySelectorAll(nodes).forEach(el=>{
