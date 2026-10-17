@@ -80,57 +80,69 @@ async function openDirection(direction){
   }).join(''):'<p style="padding:18px">Автомобили пока не назначены в очередь.</p>';
   if(direction==='transfer'){
    const norm=v=>String(v||'').trim().replace(/\s+/g,' ').toLocaleLowerCase('ru-RU');
-   const ports=new Map();
-   for(const car of cars){
-    const name=String(car.destination||'').trim()||'Другие';
-    const key=norm(name);
-    const prev=ports.get(key);
-    if(prev)prev.count++;
-    else ports.set(key,{name,count:1});
-   }
-   const flagFor=name=>{
-    const n=norm(name);
-    if(['актау','aktau','ахтау','алматы','астана','атырау'].some(x=>n.includes(x)))return '🇰🇿';
-    if(['дубай','dubai','abu dhabi','абу-даби','шарджа','sharjah'].some(x=>n.includes(x)))return '🇦🇪';
-    if(['грузия','georgia','поти','poti','батуми','batumi','тбилиси','tbilisi'].some(x=>n.includes(x)))return '🇬🇪';
-    if(['сша','usa','new york','нью-йорк','лос-анджелес'].some(x=>n.includes(x)))return '🇺🇸';
-    if(['ташкент','tashkent','узбекистан'].some(x=>n.includes(x)))return '🇺🇿';
-    if(['баку','baku','азербайджан'].some(x=>n.includes(x)))return '🇦🇿';
-    if(['стамбул','istanbul','турция'].some(x=>n.includes(x)))return '🇹🇷';
-    return n==='другие'?'📍':'🚢';
+   const definitions=[
+    {id:'kz',name:'Казахстан',flag:'🇰🇿',cities:['казахстан','kazakhstan','актау','aktau','ахтау','алматы','almaty','астана','astana','атырау','шымкент']},
+    {id:'ae',name:'ОАЭ',flag:'🇦🇪',cities:['оаэ','uae','дубай','dubai','абу-даби','abu dhabi','шарджа','sharjah','фуджейра','fujairah','джебель-али']},
+    {id:'ge',name:'Грузия',flag:'🇬🇪',cities:['грузия','georgia','поти','poti','батуми','batumi','тбилиси','tbilisi','рустави']},
+    {id:'ru',name:'Россия',flag:'🇷🇺',cities:['россия','russia','москва','moscow','санкт-петербург','владивосток','новороссийск','казань','краснодар']},
+    {id:'uz',name:'Узбекистан',flag:'🇺🇿',cities:['узбекистан','uzbekistan','ташкент','tashkent','самарканд','бухара','андижан']},
+    {id:'az',name:'Азербайджан',flag:'🇦🇿',cities:['азербайджан','azerbaijan','баку','baku','алят','гянджа','сумгаит']},
+    {id:'kg',name:'Кыргызстан',flag:'🇰🇬',cities:['кыргызстан','киргизия','kyrgyzstan','бишкек','ош']},
+    {id:'tj',name:'Таджикистан',flag:'🇹🇯',cities:['таджикистан','tajikistan','душанбе','худжанд']},
+    {id:'tm',name:'Туркменистан',flag:'🇹🇲',cities:['туркменистан','turkmenistan','ашхабад','туркменбаши','мары']},
+    {id:'tr',name:'Турция',flag:'🇹🇷',cities:['турция','turkey','стамбул','istanbul']},
+    {id:'us',name:'США',flag:'🇺🇸',cities:['сша','usa','united states','нью-йорк','new york','лос-анджелес']}
+   ];
+   const countryOf=value=>{
+    const v=norm(value);
+    if(!v)return 'other';
+    const match=definitions.find(d=>d.cities.some(city=>v===city||v.startsWith(city+',')||v.startsWith(city+' /')||v.endsWith(', '+city)));
+    return match?.id||'other';
    };
+   const counts=new Map();
+   for(const car of cars){const id=countryOf(car.destination);counts.set(id,(counts.get(id)||0)+1);}
+   const active=definitions.filter(d=>counts.has(d.id));
+   if(counts.has('other'))active.push({id:'other',name:'Другие',flag:'📍'});
+   const ordered=[...active].sort((a,b)=>counts.get(b.id)-counts.get(a.id));
    const bar=document.createElement('div');
-   bar.setAttribute('aria-label','Фильтр по пункту назначения');
-   bar.style.cssText='display:flex;gap:6px;overflow-x:auto;padding:8px 12px 12px;white-space:nowrap;scrollbar-width:thin;-webkit-overflow-scrolling:touch;';
-   const button=(name,count,key)=>{
-    const b=document.createElement('button');
-    b.type='button';b.textContent=(key==='__all__'?'':flagFor(name)+' ')+name+' ('+count+')';
-    b.dataset.port=key;
+   bar.setAttribute('aria-label','Страны назначения');
+   bar.style.cssText='display:flex;gap:6px;overflow-x:auto;padding:8px 12px 12px;white-space:nowrap;-webkit-overflow-scrolling:touch;';
+   const button=(name,count,key,flag='')=>{
+    const b=document.createElement('button');b.type='button';
+    b.textContent=(flag?flag+' ':'')+name+' ('+count+')';b.dataset.country=key;
     b.style.cssText='flex:0 0 auto;border:1px solid #d5e3f3;border-radius:12px;background:#eef5fc;color:#17365b;padding:9px 11px;font-size:13px;font-weight:700;';
     return b;
    };
    bar.append(button('Все',cars.length,'__all__'));
-   for(const [key,entry] of ports)bar.append(button(entry.name,entry.count,key));
-   root.prepend(bar);
+   for(const item of ordered.slice(0,4))bar.append(button(item.name,counts.get(item.id),item.id,item.flag));
+   if(ordered.length>4){
+    const more=document.createElement('button');more.type='button';more.textContent='Все направления ▾';more.dataset.moreCountries='1';
+    more.style.cssText='flex:0 0 auto;border:1px solid #d5e3f3;border-radius:12px;background:#eef5fc;color:#17365b;padding:9px 11px;font-size:13px;font-weight:700;';
+    bar.append(more);
+   }
+   const menu=document.createElement('div');menu.hidden=true;
+   menu.style.cssText='display:none;flex-wrap:wrap;gap:7px;padding:8px 12px 12px;';
+   for(const item of ordered)menu.append(button(item.name,counts.get(item.id),item.id,item.flag));
    const rows=[...root.querySelectorAll('[data-direction-index]')];
    const apply=key=>{
     rows.forEach(row=>{
      const car=cars[Number(row.dataset.directionIndex)];
-     const visible=key==='__all__'||norm(car?.destination||'Другие')===key;
-     row.hidden=!visible;
-     // Existing catalog CSS can override display:none; force visibility for port filtering.
-     row.style.setProperty('display',visible?'':'none',visible?'':'important');
+     const visible=key==='__all__'||countryOf(car?.destination)===key;
+     row.hidden=!visible;row.style.setProperty('display',visible?'':'none',visible?'':'important');
      row.setAttribute('aria-hidden',String(!visible));
     });
-    bar.querySelectorAll('button').forEach(b=>{
-     const active=b.dataset.port===key;
-     b.style.background=active?'#1676d2':'#eef5fc';
-     b.style.color=active?'white':'#17365b';
-     b.setAttribute('aria-pressed',String(active));
-    });
+    for(const b of [...bar.querySelectorAll('[data-country]'),...menu.querySelectorAll('[data-country]')]){
+     const on=b.dataset.country===key;b.style.background=on?'#1676d2':'#eef5fc';b.style.color=on?'white':'#17365b';b.setAttribute('aria-pressed',String(on));
+    }
+    menu.hidden=true;menu.style.display='none';
    };
-   bar.addEventListener('click',event=>{const b=event.target.closest('button[data-port]');if(b)apply(b.dataset.port);});
-   apply('__all__');
+   const click=e=>{
+    const more=e.target.closest('[data-more-countries]');
+    if(more){menu.hidden=!menu.hidden;menu.style.display=menu.hidden?'none':'flex';return;}
+    const b=e.target.closest('[data-country]');if(b)apply(b.dataset.country);
+   };
+   bar.addEventListener('click',click);menu.addEventListener('click',click);
+   root.prepend(bar,menu);apply('__all__');
   }
   root.querySelectorAll('[data-direction-index]').forEach(row=>row.addEventListener('click',async event=>{
    if(event.target.closest('button'))return;
