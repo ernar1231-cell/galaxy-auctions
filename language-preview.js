@@ -43,10 +43,13 @@
  'Выберите страну':'Select Country','Выберите порт':'Select Port'
  };
  const nodes='button,span,b,small,label,h1,h2,h3,p,option';
+ const placeholders={'Поиск по марке, модели или VIN':'Search by make, model or VIN','Выберите порт':'Select port','Выберите страну':'Select country'};
+ const originalPlaceholder=new WeakMap();
  const original=new WeakMap();
  function current(){const v=typeof window.galaxySelectedLanguage==='function'?window.galaxySelectedLanguage():'ru';return v==='en'?'en':'ru'}
  function translate(root=document){
   const lang=current();document.documentElement.lang=lang==='en'?'en':'ru';
+  root.querySelectorAll('input[placeholder],textarea[placeholder]').forEach(el=>{if(!originalPlaceholder.has(el))originalPlaceholder.set(el,el.getAttribute('placeholder'));const source=originalPlaceholder.get(el);if(Object.hasOwn(placeholders,source))el.setAttribute('placeholder',lang==='en'?placeholders[source]:source);});
   root.querySelectorAll(nodes).forEach(el=>{
    if(el.closest('input,textarea,[contenteditable],.adminLotCard,.carcol,.bidcol'))return;
    if(el.children.length)return;
