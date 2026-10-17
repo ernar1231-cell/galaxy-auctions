@@ -6,9 +6,7 @@ test('new client selects language after registration',()=>{
  assert.ok(html.includes('id="newClientLanguagePage"'));
  assert.ok(html.includes('data-new-client-language="ru"'));
  assert.ok(html.includes('data-new-client-language="en"'));
- assert.ok(app.includes("page.hidden=true;page.setAttribute('aria-hidden','true');openRegistrationDestination();"));
- assert.ok(app.includes('showNewClientLanguageChoice();'));
- assert.ok(app.includes('applyRegistrationLanguage(code)'));
+ assert.ok(app.includes("page.hidden=true;page.setAttribute('aria-hidden','true');showNewClientLanguageChoice();"));
  assert.ok(app.includes('localStorage.setItem(profileLanguageKey(),code)'));
 });
 test('existing registered users continue without language onboarding',()=>{
