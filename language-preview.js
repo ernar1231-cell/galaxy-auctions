@@ -32,7 +32,15 @@
  'Добавить на лот':'Add to Auction','Лот удалён':'Lot Deleted',
  'Продано':'Sold','Ожидает':'Pending','В НАЛИЧИИ':'AVAILABLE',
  'ПРЕДСТОЯЩИЙ':'UPCOMING','ОЖИДАЕТ':'PENDING','ПРОДАНО':'SOLD',
- 'Сохранить историю':'Preserve History','ЯЗЫК':'LANGUAGE'
+ 'Сохранить историю':'Preserve History','ЯЗЫК':'LANGUAGE',
+ 'АДМИН • ЛОТЫ':'ADMIN · LOTS','АДМИН • КЛИЕНТЫ':'ADMIN · CLIENTS',
+ 'РЕДАКТИРОВАТЬ АВТО':'EDIT CAR','ДОБАВИТЬ АВТО':'ADD CAR',
+ 'СОХРАНИТЬ ИЗМЕНЕНИЯ':'SAVE CHANGES','УДАЛИТЬ НАВСЕГДА':'DELETE PERMANENTLY',
+ 'УБРАТЬ ИЗ СПИСКА АУКЦИОНА':'REMOVE FROM AUCTION LIST',
+ 'КУПИТЬ СЕЙЧАС':'BUY NOW','СДЕЛАТЬ СТАВКУ':'PLACE BID',
+ 'Начальная ставка':'Starting Bid','Победитель':'Winner',
+ 'Ставка принята':'Bid Accepted','Аукцион завершён':'Auction Ended',
+ 'Выберите страну':'Select Country','Выберите порт':'Select Port'
  };
  const nodes='button,span,b,small,label,h1,h2,h3,p,option';
  const original=new WeakMap();
