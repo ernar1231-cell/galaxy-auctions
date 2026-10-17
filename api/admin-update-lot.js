@@ -16,7 +16,7 @@ if(direction!==null){
 const patch={make:String(b.make||'').trim(),model:String(b.model||'').trim(),year:b.year==null?null:Number(b.year),mileage:b.mileage==null?null:Number(b.mileage),vin:b.vin||null,starting_bid:Number(b.startingBid||0),description:(()=>{
  const raw=String(old.description||'');
  const tag=raw.match(/\[GALAXY_DIRECTION:\{[^\n]*\}\]/);
- const edited=String(b.description||'').replace(/\[GALAXY_DIRECTION:\{[^\n]*\}\]/g,'').trim();
+ const edited=String(b.description||'').replace(/\n?\[GALAXY_[A-Z_]+:[^\n]*\]/g,'').replace(/\n?\[\[auction_day:[^\n]*\]\]/g,'').trim();
  let previous={};try{previous=tag?JSON.parse(tag[0].slice('[GALAXY_DIRECTION:'.length,-1)):{};}catch{}
  const transit=b.transit&&typeof b.transit==='object'?b.transit:null;
  const shipping=transit&&['from','to','carrier','tracking','eta'].reduce((acc,key)=>{
@@ -24,6 +24,7 @@ const patch={make:String(b.make||'').trim(),model:String(b.model||'').trim(),yea
   return acc;
  },{});
  const metadata='[GALAXY_DIRECTION:'+JSON.stringify({...previous,...(direction===null?{}:{direction}),...(shipping||{})})+']';
- return [edited,metadata].filter(Boolean).join('\n')||null;
+ const preserved=raw.split('\n').filter(line=>/^(?:\[GALAXY_(?!DIRECTION)[A-Z_]+:|\[\[auction_day:)/.test(line.trim()));
+ return [edited,...preserved,metadata].filter(Boolean).join('\n')||null;
 })(),updated_at:new Date().toISOString()};if(!patch.make||!patch.model)return res.status(400).json({error:'Марка и модель обязательны'});r=await sf(`auction_lots?id=eq.${encodeURIComponent(id)}`,{method:'PATCH',headers:{Prefer:'return=representation'},body:JSON.stringify(patch)});const rows=await r.json();if(!r.ok)throw Error(rows?.message||'Could not update lot');if(direction!==null){const number=Number(old.lot_number);const assignment=await sf('galaxy_auction_lot_assignments?on_conflict=lot_number',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({lot_number:number,direction,queue_position:number,updated_at:new Date().toISOString()})});if(!assignment.ok)return res.status(502).json({error:'Lot saved, but queue assignment failed. Retry saving.'});}
 res.status(200).json({lot:rows[0]})}catch(e){res.status(500).json({error:e.message})}}

@@ -855,7 +855,7 @@ function openAdminLotManage(l){
   };
   $("adminLotManageMeta").innerHTML=`<span>${l.year||'—'} год</span><span>VIN: ${whiteEscape(l.vin||'—')}</span><span>Lot ID: ${whiteEscape(l.lot_number??l.id??'—')}</span>`;
   $("adminLotManageStatus").textContent=stLabel;$("adminLotManageStatus").className=`adminLotManageStatus ${l.status||"draft"}`;const pd=$("adminPendingDecision");if(pd){const isPending=stNow==="pending";pd.style.display=isPending?"block":"none";if(isPending){$("adminPendingWinner").textContent="🏆 Победитель: "+(l.winner_username||l.winner_user_id||"—");$("adminPendingAmount").textContent="Финальная ставка: "+adminMoney(l.winning_bid||0);}}
-  $("manageMake").value=l.make||'';$("manageModel").value=l.model||'';$("manageYear").value=l.year||'';$("manageMileage").value=l.mileage??'';$("manageVin").value=l.vin||'';$("manageStarting").value=Number(l.starting_bid||0);$("manageDescription").value=l.description||'';$("manageDirection").value=adminDirectionOf(l);
+  $("manageMake").value=l.make||'';$("manageModel").value=l.model||'';$("manageYear").value=l.year||'';$("manageMileage").value=l.mileage??'';$("manageVin").value=l.vin||'';$("manageStarting").value=Number(l.starting_bid||0);$("manageDescription").value=String(l.description||'').replace(/\n?\[GALAXY_[A-Z_]+:[^\n]*\]/g,'').replace(/\n?\[\[auction_day:[^\n]*\]\]/g,'').trim();$("manageDirection").value=adminDirectionOf(l);
   let shipping={};try{const marker=String(l.description||'').match(/\[GALAXY_DIRECTION:(\{[^\n]*\})\]/);shipping=marker?JSON.parse(marker[1]):{};}catch{}
   $("manageTransitToField").hidden=adminDirectionOf(l)!=='transfer';
   $("manageTransitTo").value=shipping.to||'';
@@ -910,21 +910,25 @@ async function withdrawManagedLot(){
 async function archiveManagedLot(){if(!adminManagedLot)return;if(!confirm(`Архивировать ${adminManagedLot.make||""} ${adminManagedLot.model||""}? История сохранится.`))return;await adminLotAction('archive')}
 async function deleteManagedLot(){
  if(!adminManagedLot)return;
- const msg=$("adminLotManageMsg"),buttons=[$("adminLotDelete")];
- const status=String(adminManagedLot.status||'').toLowerCase();
- if(['live','pending','sold'].includes(status)||Number(adminManagedLot.bid_count||0)>0){
-  msg.textContent='Этот лот нельзя удалить навсегда: есть ставки или торги уже начались. Историю нужно сохранить.';
-  msg.className='adminSaveMsg error';return;
+ const msg=$("adminLotManageMsg"),btn=$("adminLotDelete"),status=String(adminManagedLot.status||'').toLowerCase();
+ if(!['draft','upcoming'].includes(status)){
+  msg.textContent='Активные и завершённые торги нельзя удалить этой кнопкой.';msg.className='adminSaveMsg error';return;
  }
- if(!confirm('Удалить '+[adminManagedLot.make,adminManagedLot.model].filter(Boolean).join(' ')+' навсегда? Это удалит и фотографии.'))return;
- buttons.forEach(b=>b.disabled=true);msg.textContent='Удаляю лот…';msg.className='adminSaveMsg';
+ if(!confirm('Удалить автомобиль из списка? Если есть история ставок, она останется в архиве.'))return;
+ btn.disabled=true;msg.textContent='Обрабатываю удаление…';msg.className='adminSaveMsg';
  try{
-  await adminApi('/api/admin-delete-lot',{lotId:adminManagedLot.id});
-  msg.textContent='✅ Лот удалён';msg.className='adminSaveMsg ok';
-  await loadAdminLots();
-  $("adminLotManageOverlay").classList.remove('open');
- }catch(e){msg.textContent='Ошибка удаления: '+e.message;msg.className='adminSaveMsg error';}
- finally{buttons.forEach(b=>b.disabled=false);}
+  try{
+   await adminApi('/api/admin-delete-lot',{lotId:adminManagedLot.id});
+   msg.textContent='✅ Автомобиль удалён навсегда';
+  }catch(e){
+   if(!/ставк|bid|409/i.test(String(e.message||'')))throw e;
+   await adminApi('/api/admin-lot-action',{lotId:adminManagedLot.id,action:'remove_from_list',reason:'Снят с продажи'});
+   msg.textContent='✅ Автомобиль убран из списка. История ставок сохранена.';
+  }
+  msg.className='adminSaveMsg ok';
+  await loadAdminLots();$("adminLotManageOverlay").classList.remove('open');
+ }catch(e){msg.textContent='Ошибка: '+e.message;msg.className='adminSaveMsg error';}
+ finally{btn.disabled=false;}
 }
 async function adminLotAction(action){
   if(!adminManagedLot)return;const buttons=[$("adminLotStartLive"),$("adminLotSchedule"),$("adminLotArchive")];buttons.forEach(b=>b&&(b.disabled=true));const msg=$("adminLotManageMsg");msg.textContent='Обновляю статус…';msg.className='adminSaveMsg';
