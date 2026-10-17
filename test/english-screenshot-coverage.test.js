@@ -11,3 +11,10 @@ test('preserves auction values and language selection',()=>{
  assert.ok(src.includes('[data-profile-language]'));
  assert.ok(src.includes("v==='en'?'en':'ru'"));
 });
+
+test('bottom navigation translates without replacing buttons or icons',()=>{
+ const src=fs.readFileSync(require.resolve('../language-preview.js'),'utf8');
+ for(const key of ['home','markets','bids','profile'])assert.ok(src.includes("'"+key+"':"));
+ assert.ok(src.includes('button.childNodes'));
+ assert.ok(src.includes("button.setAttribute('aria-label'"));
+});
