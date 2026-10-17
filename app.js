@@ -308,13 +308,30 @@ function ensureHeroCounter(){ /* Counter is anchored to photoFrame in the HTML. 
 
 const vehicleLabels={Mileage:'Пробег',Engine:'Двигатель',Fuel:'Топливо',Transmission:'Трансмиссия',Drive:'Привод',Interior:'Салон',Exterior:'Цвет',VIN:'VIN','Auction location':'Площадка аукциона','Estimated retail value':'Ожидаемая стоимость','Primary damage':'Основной ущерб',Specs:'Спецификация',Seats:'Места'};
 const liveVehicleFieldOrder=['Mileage','Engine','Fuel','Transmission','Drive','Interior','Exterior','VIN','Specs','Seats'];
+function transitRouteDetails(description){
+ const match=String(description||'').match(/\[GALAXY_DIRECTION:(\{[^\n]*\})\]/);
+ if(!match)return [];
+ let meta;try{meta=JSON.parse(match[1]);}catch{return [];}
+ if(meta.direction!=='transfer')return [];
+ const fields=[];
+ if(meta.from)fields.push(['Страна отправления',String(meta.from)]);
+ if(meta.departurePort)fields.push(['Порт отправления',String(meta.departurePort)]);
+ if(meta.to)fields.push(['Пункт назначения',String(meta.to)]);
+ if(Number.isInteger(Number(meta.transitDays))&&Number(meta.transitDays)>0)fields.push(['Ориентировочная доставка',String(meta.transitDays)+' дней']);
+ if(meta.carrier)fields.push(['Транспортная компания',String(meta.carrier)]);
+ if(meta.tracking)fields.push(['Трек-номер',String(meta.tracking)]);
+ if(meta.eta)fields.push(['Ожидаемая дата прибытия',String(meta.eta)]);
+ return fields;
+}
 function completeVehicleDetails(q){
  const values=new Map();
  const meta=[['Mileage',q.meta?.[0]],['Fuel',q.meta?.[1]],['Transmission',q.meta?.[2]],['Drive',q.meta?.[3]]];
  for(const [key,value] of meta)if(value&&value!=='—')values.set(key,value);
  for(const item of (q.details||[])){if(!Array.isArray(item)||!item[0])continue;values.set(item[0],item[1]||'—');}
+ for(const item of transitRouteDetails(q.description))values.set(item[0],item[1]);
  const ordered=liveVehicleFieldOrder.map(key=>[key,values.has(key)?values.get(key):'—']);
  for(const item of (q.details||[])){if(Array.isArray(item)&&item[0]&&!liveVehicleFieldOrder.includes(item[0]))ordered.push([item[0],item[1]||'—']);}
+ for(const item of transitRouteDetails(q.description))ordered.push(item);
  return ordered;
 }
 let detailPrebid={lotId:null,currentBid:null,myMaximum:null,leader:null,canBid:false};
